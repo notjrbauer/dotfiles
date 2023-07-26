@@ -1,0 +1,4 @@
+*~
+.tmux/plugins
+.DS_Store
+.zsh/history
