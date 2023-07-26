@@ -1,0 +1,88 @@
+[github]
+  user = john.bauer
+
+[core]
+  editor = nvim
+  excludesfile = ~/.gitignore
+  preloadindex = true
+	pager = diff-so-fancy | less --tabs=4 -RFX
+
+[color]
+	ui = true
+
+  # meta = yellow bold
+  # frag = magenta bold
+  # old = red bold
+  # new = green bold
+  # whitespace = red reverse
+
+[alias]
+  st = status
+  co = checkout
+  ci = commit
+  br = switch
+  lo = log --color=always --max-count=15 --oneline
+  ll  = lla --first-parent
+  lla = "log --graph --date=human --format='%C(#e3c78a)%h%C(#ff5454)%d%C(reset) - %C(#36c692)(%ad)%C(reset) %s %C(#80a0ff){%an}%C(reset)'"
+  graph = log --graph --date-order --all --pretty=format:'%h %Cred%d %Cgreen%ad %Cblue%cn %Creset%s' --date=short
+  unadd = restore --staged
+  review = diff origin/HEAD...
+  rvf = diff origin/HEAD... --name-only
+  rvc = log --oneline ...origin/HEAD
+  typechange = status -s | awk '$1=="T"{print $2}' | xargs git checkout
+  delete-merged-branches = !git branch --merged | grep -v \\* | xargs -I % git branch -d %
+
+[help]
+  autocorrect = 1
+
+[user]
+  name = john.bauer
+	email = john.bauer@agilebits.com
+	signingkey = DED7FCDAB4294CA7D2788EEFDCA242F0524E0C29
+
+[pager]
+  log  = diff-so-fancy| less -RX
+  show = diff-so-fancy| less -RX
+  diff = diff-so-fancy| less -RX
+  # diff = diff-so-fancy | less --tabs=4 -RFX
+  # diff = delta --dark --plus-color="#012800" --minus-color="#340001"
+
+[diff]
+  tool                = vimdiff
+  algorithm           = histogram
+  compactionHeuristic = true
+
+[init]
+  defaultBranch = main
+
+[merge]
+  tool = vimdiff
+
+[commit]
+  template = ~/.gitmessage
+	gpgsign = true
+
+[push]
+  # Use the Git 1.x.x default to avoid errors on machines with old Git
+  # installations. To use `simple` instead, add this to your `~/.extra` file:
+  # `git config --global push.default simple`. See http://git.io/mMah-w.
+  default = matching
+
+[tag]
+
+[gpg]
+  program = gpg
+
+[url "https://"]
+  insteadOf = git://
+
+[url "ssh://git@github.com/"]
+  insteadOf = https://github.com/
+
+
+[sequence]
+  editor = nvim
+[url "ssh://git@gitlab.1password.io:2227"]
+	insteadOf = https://gitlab.1password.io
+[interactive]
+	diffFilter = diff-so-fancy --patch
