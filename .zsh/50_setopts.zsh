@@ -1,5 +1,6 @@
 #setopt ignore_eof
 #setopt xtrace
+
 setopt ignoreeof
 setopt always_last_prompt
 setopt append_history

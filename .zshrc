@@ -26,3 +26,5 @@ source <(afx init)
 [ -f /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ] && . /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 source <(afx completion zsh)
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

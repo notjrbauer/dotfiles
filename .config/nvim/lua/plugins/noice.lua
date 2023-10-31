@@ -21,6 +21,10 @@ return {
     })
     table.insert(opts.routes, 1, {
       filter = {
+        ['not'] = {
+          event = 'lsp',
+          kind = 'progress',
+        },
         cond = function()
           return not focused
         end,
@@ -37,6 +41,7 @@ return {
         filter = {},
       },
     }
+    -- opts.status = { lsp_progress = { event = "lsp", kind = "progress" } }
 
     vim.api.nvim_create_autocmd('FileType', {
       pattern = 'markdown',

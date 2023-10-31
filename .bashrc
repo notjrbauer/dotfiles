@@ -65,3 +65,5 @@ trap _exit EXIT
   shopt -s dirspell
 } &>/dev/null
 . "$HOME/.cargo/env"
+
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash

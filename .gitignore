@@ -2,3 +2,5 @@
 .tmux/plugins
 .DS_Store
 .zsh/history
+.config/AWSVPNClient/*
+.config/*/*.log

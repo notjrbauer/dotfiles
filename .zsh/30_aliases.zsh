@@ -1,4 +1,5 @@
 autoload -Uz zmv
+alias python='python3'
 alias vim='nvim'
 alias zmv='noglob zmv -W'
 # alias tmux="tmux attach"
