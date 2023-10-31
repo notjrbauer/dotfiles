@@ -12,7 +12,7 @@ return {
          distribution = 'OSX',
          username = 'johnbauer',
          default_cwd = '/home/johnbauer',
-         default_prog = { 'zsh' },
+         default_prog = { '/opt/homebrew/bin/zsh', '-l' },
       },
    },
 }

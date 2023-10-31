@@ -56,7 +56,8 @@
   defaultBranch = main
 
 [merge]
-  tool = vimdiff
+	tool = nvimdiff
+	conflictstyle = diff3
 
 [commit]
   template = ~/.gitmessage
@@ -86,3 +87,7 @@
 	insteadOf = https://gitlab.1password.io
 [interactive]
 	diffFilter = diff-so-fancy --patch
+[mergetool "opendiff"]
+	trustExitCode = true
+[mergetool]
+	prompt = false

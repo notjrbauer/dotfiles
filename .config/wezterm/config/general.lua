@@ -1,8 +1,9 @@
 return {
    -- behaviours
    automatically_reload_config = true,
-   exit_behavior = 'CloseOnCleanExit', -- if the shell program exited with a successful status
+   -- exit_behavior = 'CloseOnCleanExit', -- if the shell program exited with a successful status
    status_update_interval = 1000,
+   hide_tab_bar_if_only_one_tab = true,
 
    scrollback_lines = 5000,
 

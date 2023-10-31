@@ -4,8 +4,10 @@ tap "homebrew/cask-fonts"
 brew "autojump"
 brew "awscli"
 brew "bat"
+brew "diff-so-fancy"
 brew "exiftool"
 brew "libidn2"
+brew "unbound"
 brew "ffmpeg"
 brew "fzf"
 brew "gawk"
@@ -20,13 +22,14 @@ brew "helmfile"
 brew "hugo"
 brew "jq"
 brew "kustomize"
+brew "libwebsockets"
 brew "litecli"
 brew "lua-language-server"
 brew "luarocks"
+brew "luv"
 brew "mas"
 brew "mysql"
 brew "node@16"
-brew "openssl@3", link: false
 brew "protobuf"
 brew "pure"
 brew "ripgrep"
@@ -66,4 +69,5 @@ mas "GarageBand", id: 682658836
 mas "iMovie", id: 408981434
 mas "Keynote", id: 409183694
 mas "Numbers", id: 409203825
+mas "Okta Verify", id: 490179405
 mas "Pages", id: 409201541

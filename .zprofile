@@ -7,7 +7,7 @@ autoload -Uz is-at-least
 
 # TERM FOR ALACRITTY
 # https://unix.stackexchange.com/questions/597445/why-would-i-set-term-to-xterm-256color-when-using-alacritty
-export TERM=alacritty
+# export TERM=alacritty
 
 # LANGUAGE must be set by en_US
 export LANGUAGE="en_US.UTF-8"
@@ -42,6 +42,7 @@ export LS_COLORS='di=34:ln=35:so=32:pi=33:ex=31:bd=46;34:cd=43;34:su=41;30:sg=46
 
 export PATH=~/bin:/opt/homebrew/bin:$PATH
 export PATH="/opt/homebrew/opt/node@16/bin:$PATH"
+# export PATH="$PATH:/Applications/WezTerm.app/Contents/MacOS"
 
 export GOPATH=$HOME
 
@@ -70,6 +71,12 @@ fi
 
 # fzf - command-line fuzzy finder (https://github.com/junegunn/fzf)
 export FZF_DEFAULT_OPTS="--extended --ansi --multi"
+# export FZF_DEFAULT_OPTS=" \
+# --color=bg+:#363a4f,bg:#24273a,spinner:#f4dbd6,hl:#ed8796 \
+# --color=fg:#cad3f5,header:#ed8796,info:#c6a0f6,pointer:#f4dbd6 \
+# --color=marker:#f4dbd6,fg+:#cad3f5,prompt:#c6a0f6,hl+:#ed8796"
+
+export FZF_PREVIEW_COMMAND="COLORTERM=truecolor bat --style=numbers --color=always {}"
 
 # Cask
 #export HOMEBREW_CASK_OPTS="--appdir=/Applications"
