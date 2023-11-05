@@ -26,8 +26,6 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   pattern = '*',
 })
 
-require 'util.status'
-
 -- make all keymaps silent by default
 local keymap_set = vim.keymap.set
 ---@diagnostic disable-next-line: duplicate-set-field

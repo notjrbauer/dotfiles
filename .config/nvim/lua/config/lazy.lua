@@ -1,3 +1,5 @@
+local use_dev = true
+
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
 if not vim.loop.fs_stat(lazypath) then
   vim.fn.system { 'git', 'clone', '--filter=blob:none', 'https://github.com/folke/lazy.nvim.git', lazypath }
@@ -9,22 +11,21 @@ vim.opt.rtp:prepend(lazypath)
 return function(opts)
   opts = vim.tbl_deep_extend('force', {
     spec = {
-       { 'LazyVim/LazyVim', import = 'lazyvim.plugins', opts = {} },
-      -- { import = 'lazyvim.plugins.extras.lang.typescript' },
-      -- { import = 'lazyvim.plugins.extras.linting.eslint' },
-      -- -- { import = "lazyvim.plugins.extras.formatting.prettier" },
-      -- { import = 'lazyvim.plugins.extras.lang.json' },
-      -- { import = 'lazyvim.plugins.extras.lang.tailwind' },
-      -- { import = 'lazyvim.plugins.extras.ui.mini-animate' },
-      { import = 'lazyvim.plugins.extras.dap.core' },
-      -- { import = 'lazyvim.plugins.extras.vscode' },
-      -- { import = 'lazyvim.plugins.extras.dap.nlua' },
-      -- { import = 'lazyvim.plugins.extras.util.mini-hipatterns' },
-      -- { import = "lazyvim.plugins.extras.util.project" },
+      {
+        'LazyVim/LazyVim',
+        import = 'lazyvim.plugins',
+        opts = {
+          -- colorscheme = "rose-pine",
+          news = {
+            lazyvim = true,
+            neovim = true,
+          },
+        },
+      },
       { import = 'plugins' },
     },
     defaults = { lazy = true },
-    install = { colorscheme = { 'catppuccin' } },
+    install = { colorscheme = { 'catppuccin', 'habamax' } },
     checker = { enabled = true },
     diff = {
       cmd = 'terminal_git',
@@ -37,9 +38,9 @@ return function(opts)
       rtp = {
         disabled_plugins = {
           'gzip',
-          'matchit',
-          'matchparen',
-          'netrwPlugin',
+          -- "matchit",
+          -- "matchparen",
+          -- "netrwPlugin",
           'rplugin',
           'tarPlugin',
           'tohtml',
