@@ -7,6 +7,9 @@ return {
       experimental = {
         pathStrict = true,
       },
+      library = {
+        runtime = '~/projects/neovim/runtime/',
+      },
     },
   },
 
@@ -38,10 +41,10 @@ return {
       },
       ---@type lspconfig.options
       servers = {
-        gopls = {},
         ansiblels = {},
         bashls = {},
         clangd = {},
+        gopls = {},
         -- denols = {},
         cssls = {},
         dockerls = {},
@@ -83,7 +86,7 @@ return {
         },
         -- svelte = {},
         html = {},
-        -- gopls = {},
+        gopls = {},
         marksman = {},
         -- pyright = {
         --   enabled = false,
@@ -198,6 +201,8 @@ return {
         ['javascriptreact'] = { 'dprint' },
         ['typescript'] = { 'dprint' },
         ['typescriptreact'] = { 'dprint' },
+        ['go'] = { 'goimports' },
+        ['golang'] = { 'goimports' },
       },
       formatters = {
         shfmt = {

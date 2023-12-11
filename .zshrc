@@ -28,3 +28,4 @@ source <(afx init)
 source <(afx completion zsh)
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
