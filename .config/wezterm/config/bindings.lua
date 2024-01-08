@@ -45,9 +45,10 @@ local keys = {
 
    -- misc/useful --
    { key = '[', mods = 'LEADER', action = 'ActivateCopyMode' },
-   { key = 'F2', mods = 'NONE', action = act.ActivateCommandPalette },
-   { key = 'F3', mods = 'NONE', action = act.ShowLauncher },
-   { key = 'F4', mods = 'NONE', action = act.ShowTabNavigator },
+   -- { key = 'F1', mods = 'NONE' },
+   -- { key = 'F2', mods = 'NONE', action = act.ActivateCommandPalette },
+   -- { key = 'F3', mods = 'NONE', action = act.ShowLauncher },
+   -- { key = 'F4', mods = 'NONE', action = act.ShowTabNavigator },
    { key = 'F12', mods = 'NONE', action = act.ShowDebugOverlay },
    { key = 'f', mods = mod.SUPER, action = act.Search({ CaseInSensitiveString = '' }) },
 

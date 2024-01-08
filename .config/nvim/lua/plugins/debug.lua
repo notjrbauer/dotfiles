@@ -218,6 +218,14 @@ function M.debug_test()
   return true
 end
 
+local function filtered_pick_process()
+  local opts = {}
+  vim.ui.input({ prompt = 'Search by process name (lua pattern), or hit enter to select from the process list: ' }, function(input)
+    opts['filter'] = input or ''
+  end)
+  return require('dap.utils').pick_process(opts)
+end
+
 return {
   -- NOTE: Yes, you can install new plugins here!
   'mfussenegger/nvim-dap',
@@ -259,6 +267,13 @@ return {
               type = 'server',
             },
             configurations = {
+              {
+                type = 'delve',
+                name = 'Attach',
+                mode = 'local',
+                request = 'attach',
+                processId = filtered_pick_process,
+              },
               {
                 name = 'LOL Delve: Debug',
                 program = '${file}',
@@ -303,8 +318,8 @@ return {
         'delve',
       },
     }
-
     -- Basic debugging keymaps, feel free to change to your liking!
+    vim.keymap.set('n', '<leader>i', require('dapui').eval, { desc = 'Debug: Start/Continue' })
     vim.keymap.set('n', '<F5>', dap.continue, { desc = 'Debug: Start/Continue' })
     vim.keymap.set('n', '<F1>', dap.step_into, { desc = 'Debug: Step Into' })
     vim.keymap.set('n', '<F2>', dap.step_over, { desc = 'Debug: Step Over' })
