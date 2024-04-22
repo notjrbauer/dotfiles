@@ -28,4 +28,7 @@ source <(afx init)
 source <(afx completion zsh)
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
+
+export PATH="/opt/homebrew/opt/go@1.21/bin:/opt/homebrew/opt/openjdk/bin:$HOME/.npm-packages/bin:$PATH"
+# export PATH="/opt/homebrew/opt/openjdk/bin:$HOME/.npm-packages/bin:$PATH"
+source /Users/johnbauer/.config/op/plugins.sh

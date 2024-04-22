@@ -5,9 +5,12 @@ local fonts = require('config.fonts')
 return {
    force_reverse_video_cursor = true,
    animation_fps = 200,
+   bold_brightens_ansi_colors = true,
    max_fps = 200,
    front_end = 'WebGpu',
    webgpu_power_preference = 'HighPerformance',
+   enable_tab_bar = false,
+   adjust_window_size_when_changing_font_size = false,
    freetype_load_target = fonts.freetype_load_target,
    freetype_render_target = fonts.freetype_render_target,
 
@@ -36,7 +39,6 @@ return {
    enable_scroll_bar = false,
 
    -- tab bar
-   enable_tab_bar = true,
    hide_tab_bar_if_only_one_tab = false,
    use_fancy_tab_bar = false,
    tab_max_width = 25,

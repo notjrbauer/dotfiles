@@ -90,7 +90,8 @@ vim.o.dictionary = vim.fn.stdpath('config') .. '/misc/dict/english.txt' -- Use s
 
 -- Folds ======================================================================
 vim.o.foldmethod  = 'indent' -- Set 'indent' folding method
-vim.o.foldlevel   = 2        -- Display all folds except top ones
+vim.o.foldlevel = 99
+-- vim.o.foldlevel   = 2        -- Display all folds except top ones
 vim.o.foldnestmax = 10       -- Create folds only for some number of nested levels
 
 -- Custom autocommands ========================================================

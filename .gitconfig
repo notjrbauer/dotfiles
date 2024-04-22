@@ -56,8 +56,13 @@
   defaultBranch = main
 
 [merge]
-	tool = nvimdiff
-	conflictstyle = diff3
+  tool = diffview
+
+[mergetool]
+  prompt = false
+  keepBackup = false
+[mergetool "diffview"]
+  cmd = nvim -n -c "DiffviewOpen" "$MERGE"
 
 [commit]
   template = ~/.gitmessage

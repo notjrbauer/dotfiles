@@ -23,12 +23,22 @@ return {
     },
     config = function(_, opts)
       require('catppuccin').setup(opts)
-      vim.cmd.colorscheme 'catppuccin-mocha'
+      -- vim.cmd.colorscheme 'catppuccin-mocha'
+      vim.cmd 'colorscheme catppuccin-mocha'
     end,
   },
   { 'shaunsingh/oxocarbon.nvim' },
   { 'ellisonleao/gruvbox.nvim' },
   { 'rose-pine/neovim', name = 'rose-pine' },
+  {
+    'zootedb0t/citruszest.nvim',
+    lazy = false,
+    name = 'citruszest',
+    config = function(_, opts)
+      -- require('citruszest').setup(opts)
+      -- vim.cmd 'colorscheme citruszest'
+    end,
+  },
   -- {
   --   'tokyonight.nvim',
   --   priority = 1000,
