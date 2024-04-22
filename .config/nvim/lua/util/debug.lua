@@ -1,19 +1,19 @@
-- selene: allow(global_usage)
+-- selene: allow(global_usage)
 
 local M = {}
 
 function M.get_loc()
-  local me = debug.getinfo(1, "S")
+  local me = debug.getinfo(1, 'S')
   local level = 2
-  local info = debug.getinfo(level, "S")
-  while info and (info.source == me.source or info.source == "@" .. vim.env.MYVIMRC or info.what ~= "Lua") do
+  local info = debug.getinfo(level, 'S')
+  while info and (info.source == me.source or info.source == '@' .. vim.env.MYVIMRC or info.what ~= 'Lua') do
     level = level + 1
-    info = debug.getinfo(level, "S")
+    info = debug.getinfo(level, 'S')
   end
   info = info or me
   local source = info.source:sub(2)
-  source = vim.loop.fs_realpath(source) or source
-  return source .. ":" .. info.linedefined
+  source = vim.uv.fs_realpath(source) or source
+  return source .. ':' .. info.linedefined
 end
 
 ---@param value any
@@ -26,20 +26,20 @@ function M._dump(value, opts)
       M._dump(value, opts)
     end)
   end
-  opts.loc = vim.fn.fnamemodify(opts.loc, ":~:.")
+  opts.loc = vim.fn.fnamemodify(opts.loc, ':~:.')
   local msg = vim.inspect(value)
   if opts.bt then
-    msg = msg .. "\n" .. debug.traceback("", 2)
+    msg = msg .. '\n' .. debug.traceback('', 2)
   end
   vim.notify(msg, vim.log.levels.INFO, {
-    title = "Debug: " .. opts.loc,
+    title = 'Debug: ' .. opts.loc,
     on_open = function(win)
       vim.wo[win].conceallevel = 3
-      vim.wo[win].concealcursor = ""
+      vim.wo[win].concealcursor = ''
       vim.wo[win].spell = false
       local buf = vim.api.nvim_win_get_buf(win)
-      if not pcall(vim.treesitter.start, buf, "lua") then
-        vim.bo[buf].filetype = "lua"
+      if not pcall(vim.treesitter.start, buf, 'lua') then
+        vim.bo[buf].filetype = 'lua'
       end
     end,
   })
@@ -106,13 +106,13 @@ function estimateSize(value, visited)
     visited[value] = true
   end
 
-  if type(value) == "boolean" or value == nil then
+  if type(value) == 'boolean' or value == nil then
     bytes = 4
-  elseif type(value) == "number" then
+  elseif type(value) == 'number' then
     bytes = 8
-  elseif type(value) == "string" then
+  elseif type(value) == 'string' then
     bytes = string.len(value) + 24
-  elseif type(value) == "function" then
+  elseif type(value) == 'function' then
     bytes = 32 -- base size for a function
     -- add size of upvalues
     local i = 1
@@ -124,7 +124,7 @@ function estimateSize(value, visited)
       bytes = bytes + estimateSize(val, visited)
       i = i + 1
     end
-  elseif type(value) == "table" then
+  elseif type(value) == 'table' then
     bytes = 40 -- base size for a table entry
     for k, v in pairs(value) do
       bytes = bytes + estimateSize(k, visited) + estimateSize(v, visited)
@@ -141,7 +141,7 @@ function M.module_leaks(filter)
   local sizes = {}
   for modname, mod in pairs(package.loaded) do
     if not filter or modname:match(filter) then
-      local root = modname:match("^([^%.]+)%..*$") or modname
+      local root = modname:match '^([^%.]+)%..*$' or modname
       -- root = modname
       sizes[root] = sizes[root] or { mod = root, size = 0 }
       sizes[root].size = sizes[root].size + estimateSize(mod) / 1024 / 1024
@@ -174,10 +174,10 @@ function M.trace_require()
   local r = require
   _G.require = function(modname)
     if not done[modname] then
-      local Util = package.loaded["lazy.core.util"]
+      local Util = package.loaded['lazy.core.util']
       done[modname] = true
       if Util then
-        Util.track({ require = modname })
+        Util.track { require = modname }
       end
       requires[#requires + 1] = modname
       local ret, err = r(modname)

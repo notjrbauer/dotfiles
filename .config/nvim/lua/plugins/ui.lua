@@ -27,6 +27,7 @@ return {
   -- auto-resize windows
   {
     'anuvyklack/windows.nvim',
+    enabled = false,
     event = 'WinNew',
     dependencies = {
       { 'anuvyklack/middleclass' },

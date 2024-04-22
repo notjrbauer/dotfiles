@@ -78,6 +78,8 @@ export FZF_DEFAULT_OPTS="--extended --ansi --multi"
 
 export FZF_PREVIEW_COMMAND="COLORTERM=truecolor bat --style=numbers --color=always {}"
 
+export DOCKER_HOST="unix:///var/run/docker.sock"
+
 # Cask
 #export HOMEBREW_CASK_OPTS="--appdir=/Applications"
 
