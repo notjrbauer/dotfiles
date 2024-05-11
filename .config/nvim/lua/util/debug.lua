@@ -45,6 +45,10 @@ function M._dump(value, opts)
   })
 end
 
+function M.dump_lsp()
+  M._dump(vim.lsp.get_clients())
+end
+
 function M.dump(...)
   local value = { ... }
   if vim.tbl_isempty(value) then

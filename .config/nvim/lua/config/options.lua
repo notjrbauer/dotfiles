@@ -1,6 +1,7 @@
 --stylua: ignore start
 -- Leader key =================================================================
 vim.g.mapleader = ' '
+vim.g.maplocalleader= ' '
 
 -- General ====================================================================
 vim.o.backup       = false          -- Don't store backup
@@ -32,6 +33,7 @@ vim.o.signcolumn    = 'yes'     -- Always show signcolumn or it would frequently
 vim.o.splitbelow    = true      -- Horizontal splits will be below
 vim.o.splitright    = true      -- Vertical splits will be to the right
 vim.o.termguicolors = true      -- Enable gui colors
+vim.cmd('let g:nvcode_termcolors=256')
 vim.o.winblend      = 10        -- Make floating windows slightly transparent
 vim.o.wrap          = false     -- Display long lines as just one line
 

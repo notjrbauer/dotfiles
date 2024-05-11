@@ -14,7 +14,7 @@ return {
    freetype_load_target = fonts.freetype_load_target,
    freetype_render_target = fonts.freetype_render_target,
 
-   -- window_decorations = 'NONE',
+   window_decorations = 'RESIZE',
 
    -- color scheme
    -- colors = colors,
@@ -47,16 +47,20 @@ return {
 
    -- window
    window_padding = {
-      left = 5,
-      right = 10,
-      top = 12,
-      bottom = 7,
+      left = 0,
+      right = 0,
+      top = 0,
+      bottom = 0,
    },
    window_close_confirmation = 'NeverPrompt',
    window_frame = {
       active_titlebar_bg = '#090909',
       font = fonts.font,
       font_size = fonts.font_size,
+      animation_fps = 200,
+      max_fps = 200,
+      front_end = 'WebGpu',
+      webgpu_power_preference = 'HighPerformance',
    },
    inactive_pane_hsb = { saturation = 1.0, brightness = 1.0 },
 }

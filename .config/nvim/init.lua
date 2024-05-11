@@ -7,33 +7,37 @@ if vim.loader then
   vim.loader.enable()
 end
 
+_G.dlsp = function()
+  require('util.debug').dump_lsp()
+end
+
 _G.dd = function(...)
-  require("util.debug").dump(...)
+  require('util.debug').dump(...)
 end
 _G.bt = function(...)
-  require("util.debug").bt(...)
+  require('util.debug').bt(...)
 end
 vim.print = _G.dd
 
 -- require("util.profiler").start()
 
-pcall(require, "config.env")
+pcall(require, 'config.env')
 
-require("config.lazy")({
+require 'config.lazy' {
   debug = false,
   profiling = {
     loader = false,
     require = false,
   },
-})
+}
 
-_G.lv = require("lazyvim.util")
+_G.lv = require 'lazyvim.util'
 
 -- require("util.dashboard").setup()
 
-vim.api.nvim_create_autocmd("User", {
-  pattern = "VeryLazy",
+vim.api.nvim_create_autocmd('User', {
+  pattern = 'VeryLazy',
   callback = function()
-    require("util").version()
+    require('util').version()
   end,
 })

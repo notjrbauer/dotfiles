@@ -229,15 +229,26 @@ end
 return {
   -- NOTE: Yes, you can install new plugins here!
   'mfussenegger/nvim-dap',
-  lazy = false,
+  lazy = true,
+  cmd = {
+    'DapSetLogLevel',
+    'DapShowLog',
+    'DapContinue',
+    'DapToggleBreakpoint',
+    'DapToggleRepl',
+    'DapStepOver',
+    'DapStepInto',
+    'DapStepOut',
+    'DapTerminate',
+  },
   -- NOTE: And you can specify dependencies as well
   dependencies = {
     -- Creates a beautiful debugger UI
     'rcarriga/nvim-dap-ui',
 
     -- Installs the debug adapters for you
-    'williamboman/mason.nvim',
-    'jay-babu/mason-nvim-dap.nvim',
+    -- 'williamboman/mason.nvim',
+    -- 'jay-babu/mason-nvim-dap.nvim',
     'nvim-neotest/nvim-nio',
 
     -- Add your own debuggers here
@@ -247,78 +258,78 @@ return {
     local dap = require 'dap'
     local dapui = require 'dapui'
 
-    require('mason-nvim-dap').setup {
-      -- Makes a best effort to setup the various debuggers with
-      -- reasonable debug configurations
-      automatic_setup = true,
-
-      -- You can provide additional configuration to the handlers,
-      -- see mason-nvim-dap README for more information
-      handlers = {
-        delve = function(config)
-          config = {
-            adapters = {
-              executable = {
-                command = 'b5env',
-                args = { '-d', './config/environments/lcl', '-c', 'dlv dap -l 127.0.0.1:${port}' },
-                -- args = { "dap", "-l", "127.0.0.1:${port}" },
-                -- command = "/Users/johnbauer/.local/share/nvim/mason/bin/dlv",
-              },
-              port = '${port}',
-              type = 'server',
-            },
-            configurations = {
-              {
-                type = 'delve',
-                name = 'Attach',
-                mode = 'local',
-                request = 'attach',
-                processId = filtered_pick_process,
-              },
-              {
-                name = 'LOL Delve: Debug',
-                program = '${file}',
-                request = 'launch',
-                type = 'delve',
-              },
-              {
-                mode = 'test',
-                name = 'Delve: Debug test',
-                program = '${file}',
-                request = 'launch',
-                type = 'delve',
-              },
-              {
-                mode = 'test',
-                name = 'Delve: Debug test (go.mod)',
-                program = './${relativeFileDirname}',
-                request = 'launch',
-                type = 'delve',
-              },
-              {
-                type = 'delve',
-                name = 'Closest Function',
-                request = 'launch',
-                mode = 'test',
-                program = './${relativeFileDirname}',
-                args = get_test,
-                -- args = { '-test.run', '^TestSubscribeV3CustomerExists$' },
-              },
-            },
-            filetypes = { 'go' },
-            name = 'delve',
-          }
-          require('mason-nvim-dap').default_setup(config) -- don't forget this!
-        end,
-      },
-
-      -- You'll need to check that you have the required things installed
-      -- online, please don't ask me how to install them :)
-      ensure_installed = {
-        -- Update this to ensure that you have the debuggers for the langs you want
-        'delve',
-      },
-    }
+    -- require('mason-nvim-dap').setup {
+    --   -- Makes a best effort to setup the various debuggers with
+    --   -- reasonable debug configurations
+    --   automatic_setup = true,
+    --
+    --   -- You can provide additional configuration to the handlers,
+    --   -- see mason-nvim-dap README for more information
+    --   handlers = {
+    --     delve = function(config)
+    --       config = {
+    --         adapters = {
+    --           executable = {
+    --             command = 'b5env',
+    --             args = { '-d', './config/environments/lcl', '-c', 'dlv dap -l 127.0.0.1:${port}' },
+    --             -- args = { "dap", "-l", "127.0.0.1:${port}" },
+    --             -- command = "/Users/johnbauer/.local/share/nvim/mason/bin/dlv",
+    --           },
+    --           port = '${port}',
+    --           type = 'server',
+    --         },
+    --         configurations = {
+    --           {
+    --             type = 'delve',
+    --             name = 'Attach',
+    --             mode = 'local',
+    --             request = 'attach',
+    --             processId = filtered_pick_process,
+    --           },
+    --           {
+    --             name = 'LOL Delve: Debug',
+    --             program = '${file}',
+    --             request = 'launch',
+    --             type = 'delve',
+    --           },
+    --           {
+    --             mode = 'test',
+    --             name = 'Delve: Debug test',
+    --             program = '${file}',
+    --             request = 'launch',
+    --             type = 'delve',
+    --           },
+    --           {
+    --             mode = 'test',
+    --             name = 'Delve: Debug test (go.mod)',
+    --             program = './${relativeFileDirname}',
+    --             request = 'launch',
+    --             type = 'delve',
+    --           },
+    --           {
+    --             type = 'delve',
+    --             name = 'Closest Function',
+    --             request = 'launch',
+    --             mode = 'test',
+    --             program = './${relativeFileDirname}',
+    --             args = get_test,
+    --             -- args = { '-test.run', '^TestSubscribeV3CustomerExists$' },
+    --           },
+    --         },
+    --         filetypes = { 'go' },
+    --         name = 'delve',
+    --       }
+    --       require('mason-nvim-dap').default_setup(config) -- don't forget this!
+    --     end,
+    --   },
+    --
+    --   -- You'll need to check that you have the required things installed
+    --   -- online, please don't ask me how to install them :)
+    --   ensure_installed = {
+    --     -- Update this to ensure that you have the debuggers for the langs you want
+    --     'delve',
+    --   },
+    -- }
     -- Basic debugging keymaps, feel free to change to your liking!
     vim.keymap.set('n', '<leader>i', require('dapui').eval, { desc = 'Debug: Start/Continue' })
     vim.keymap.set('n', '<F5>', dap.continue, { desc = 'Debug: Start/Continue' })
