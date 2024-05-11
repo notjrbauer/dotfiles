@@ -42,6 +42,8 @@ export LS_COLORS='di=34:ln=35:so=32:pi=33:ex=31:bd=46;34:cd=43;34:su=41;30:sg=46
 
 export PATH=~/bin:/opt/homebrew/bin:$PATH
 export PATH="/opt/homebrew/opt/node@16/bin:$PATH"
+export PATH="/opt/homebrew/opt/ruby/bin:$PATH"
+export PKG_CONFIG_PATH="/opt/homebrew/opt/ruby/lib/pkgconfig"
 # export PATH="$PATH:/Applications/WezTerm.app/Contents/MacOS"
 
 export GOPATH=$HOME

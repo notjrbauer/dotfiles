@@ -1,48 +1,46 @@
 return {
-
-  -- add folding range to capabilities
+  { 'justinsgithub/wezterm-types' },
   {
-    'neovim/nvim-lspconfig',
+    'folke/flash.nvim',
+    keys = {
+      { 's', mode = { 'n', 'x', 'o' }, false },
+      { 'S', mode = { 'n', 'o', 'x' }, false },
+      { 'r', mode = 'o', false },
+      { 'R', mode = { 'o', 'x' }, false },
+      { '<c-s>', mode = { 'c' }, false },
+      {
+        'S',
+        mode = { 'n', 'o', 'x' },
+        function()
+          require('flash').treesitter()
+        end,
+        desc = 'Flash Treesitter',
+      },
+    },
     opts = {
-      capabilities = {
-        textDocument = {
-          foldingRange = {
-            dynamicRegistration = false,
-            lineFoldingOnly = true,
+      -- labels = "#abcdef",
+      modes = {
+        char = { jump_labels = true },
+        -- treesitter = {
+        --   label = {
+        --     rainbow = { enabled = true },
+        --   },
+        -- },
+        treesitter_search = {
+          label = {
+            rainbow = { enabled = true },
+            -- format = function(opts)
+            --   local label = opts.match.label
+            --   if opts.after then
+            --     label = label .. ">"
+            --   else
+            --     label = "<" .. label
+            --   end
+            --   return { { label, opts.hl_group } }
+            -- end,
           },
         },
       },
     },
-  },
-
-  -- add nvim-ufo
-  {
-    'kevinhwang91/nvim-ufo',
-    dependencies = 'kevinhwang91/promise-async',
-    event = 'BufReadPost',
-    enabled = false,
-    opts = {},
-
-    init = function()
-      -- Using ufo provider need remap `zR` and `zM`. If Neovim is 0.6.1, remap yourself
-      vim.keymap.set('n', 'zR', function()
-        require('ufo').openAllFolds()
-      end)
-      vim.keymap.set('n', 'zM', function()
-        require('ufo').closeAllFolds()
-      end)
-    end,
-  },
-  {
-    'andymass/vim-matchup',
-    event = 'BufReadPost',
-    enabled = true,
-    init = function()
-      vim.o.matchpairs = '(:),{:},[:],<:>'
-    end,
-    config = function()
-      vim.g.matchup_matchparen_deferred = 1
-      vim.g.matchup_matchparen_offscreen = { method = 'status_manual' }
-    end,
   },
 }

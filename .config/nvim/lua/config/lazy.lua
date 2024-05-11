@@ -15,7 +15,7 @@ return function(opts)
         'LazyVim/LazyVim',
         import = 'lazyvim.plugins',
         opts = {
-          -- colorscheme = "rose-pine",
+          colorscheme = 'catppuccin-mocha',
           news = {
             lazyvim = true,
             neovim = true,
@@ -24,23 +24,26 @@ return function(opts)
       },
       { import = 'plugins' },
     },
-    install = { colorscheme = { 'catppuccin', 'habamax' } },
+    defaults = { lazy = true },
     checker = { enabled = true },
     diff = {
       cmd = 'diffview.nvim',
     },
     performance = {
       cache = {
-        enabled = true,
+        enabled = false,
         -- disable_events = {},
       },
       rtp = {
         disabled_plugins = {
           'gzip',
-          -- "matchit",
-          -- "matchparen",
-          -- "netrwPlugin",
+          'health',
+          'man',
+          'matchit',
+          'matchparen',
+          'netrwPlugin',
           'rplugin',
+          'spellfile',
           'tarPlugin',
           'tohtml',
           'tutor',
