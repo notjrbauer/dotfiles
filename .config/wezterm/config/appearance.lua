@@ -57,10 +57,6 @@ return {
       active_titlebar_bg = '#090909',
       font = fonts.font,
       font_size = fonts.font_size,
-      animation_fps = 200,
-      max_fps = 200,
-      front_end = 'WebGpu',
-      webgpu_power_preference = 'HighPerformance',
    },
    inactive_pane_hsb = { saturation = 1.0, brightness = 1.0 },
 }
