@@ -27,6 +27,7 @@ return {
   -- better diffing
   {
     'sindrets/diffview.nvim',
+    lazy = false,
     keys = { { '<leader>gd', '<cmd>DiffviewOpen<cr>', desc = 'DiffView' } },
   },
 
