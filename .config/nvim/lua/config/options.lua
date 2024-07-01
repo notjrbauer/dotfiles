@@ -83,7 +83,7 @@ vim.o.completeopt = 'menuone,noinsert,noselect' -- Customize completions
 vim.o.formatlistpat = [[^\s*[0-9\-\+\*]\+[\.\)]*\s\+]]
 
 -- Spelling ===================================================================
-vim.o.spelllang    = 'en,ru,uk'   -- Define spelling dictionaries
+vim.o.spelllang    = 'en'   -- Define spelling dictionaries
 vim.o.spelloptions = 'camel'      -- Treat parts of camelCase words as seprate words
 vim.opt.complete:append('kspell') -- Add spellcheck options for autocomplete
 vim.opt.complete:remove('t')      -- Don't use tags for completion
@@ -105,6 +105,19 @@ vim.cmd([[augroup CustomSettings]])
   vim.cmd([[autocmd FileType * setlocal formatoptions-=c formatoptions-=o]])
 vim.cmd([[augroup END]])
 --stylua: ignore end
+-- Grepprg {{{
+
+-- Use faster grep alternatives if possible
+if vim.fn.executable 'rg' then
+  vim.o.grepprg = 'rg --smart-case --vimgrep $*'
+  vim.o.grepformat = '%f:%l:%c:%m'
+elseif vim.fn.executable 'ag' then
+  vim.o.grepprg = [[ag --nogroup --nocolor --vimgrep]]
+  vim.o.grepformat = '%f:%l:%c:%m'
+end
+
+vim.g.root_spec = { 'cwd' }
+-- }}}
 --
 -- vim.g.mapleader = ' '
 -- vim.g.maplocalleader = ' '

@@ -4,11 +4,10 @@ local fonts = require('config.fonts')
 
 return {
    force_reverse_video_cursor = true,
-   animation_fps = 200,
+   animation_fps = 240,
    bold_brightens_ansi_colors = true,
-   max_fps = 200,
+   max_fps = 240,
    front_end = 'WebGpu',
-   webgpu_power_preference = 'HighPerformance',
    enable_tab_bar = false,
    adjust_window_size_when_changing_font_size = false,
    freetype_load_target = fonts.freetype_load_target,
@@ -34,7 +33,7 @@ return {
    },
 
    default_cursor_style = 'BlinkingBlock',
-   cursor_blink_rate = 600,
+   cursor_blink_rate = 500,
    -- scrollbar
    enable_scroll_bar = false,
 
@@ -47,10 +46,10 @@ return {
 
    -- window
    window_padding = {
-      left = 0,
-      right = 0,
-      top = 0,
-      bottom = 0,
+      left = 5,
+      right = 10,
+      top = 12,
+      bottom = 7,
    },
    window_close_confirmation = 'NeverPrompt',
    window_frame = {
@@ -58,5 +57,5 @@ return {
       font = fonts.font,
       font_size = fonts.font_size,
    },
-   inactive_pane_hsb = { saturation = 1.0, brightness = 1.0 },
+   inactive_pane_hsb = { saturation = 1.0, brightness = 0.7 },
 }
