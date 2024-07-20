@@ -1,6 +1,6 @@
 return {
   {
-    'telescope.nvim',
+    'nvim-telescope/telescope.nvim',
     dependencies = {
       {
         'debugloop/telescope-undo.nvim',
