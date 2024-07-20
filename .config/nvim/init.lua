@@ -31,7 +31,7 @@ require 'config.lazy' {
   },
 }
 
-_G.lv = require 'lazyvim.util'
+-- _G.lv = require 'lazyvim.util'
 
 -- require("util.dashboard").setup()
 
