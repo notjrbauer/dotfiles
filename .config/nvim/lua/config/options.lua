@@ -4,14 +4,23 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader= ' '
 
 -- General ====================================================================
-vim.o.backup       = false          -- Don't store backup
+vim.o.backup       = true -- Don't store backup
 vim.o.mouse        = 'a'            -- Enable mouse
 vim.o.mousescroll  = 'ver:25,hor:6' -- Customize mouse scroll
 vim.o.switchbuf    = 'usetab'       -- Use already opened buffers when switching
-vim.o.writebackup  = false          -- Don't store backup
+vim.o.writebackup  = true -- Don't store backup
 
-vim.o.undodir  = vim.fn.stdpath('config') .. '/misc/undodir' -- Set directory for persistent undo
-vim.o.undofile = true                                        -- Enable persistent undo
+-- vim.o.undodir  = vim.fn.stdpath('config') .. '/misc/undodir' -- Set directory for persistent undo
+-- vim.o.undofile = true                                        -- Enable persistent undo
+-- vim.opt.undodir = os.getenv("HOME") .. "/.vim/undodir"
+-- vim.opt.undofile = true
+local prefix = vim.env.XDG_CONFIG_HOME or vim.fn.expand("~/.config")
+
+vim.opt.undodir = { prefix .. "/nvim/.undo//"}
+
+vim.opt.backupdir = {prefix .. "/nvim/.backup//"}
+
+vim.opt.directory = { prefix .. "/nvim/.swp//"}
 
 vim.cmd('filetype plugin indent on') -- Enable all filetype plugins
 

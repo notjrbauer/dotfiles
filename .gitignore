@@ -4,3 +4,10 @@
 .zsh/history
 .config/AWSVPNClient/*
 .config/*/*.log
+bin/**/*
+.swp
+.backup
+.undo
+.config/op
+.config/stripe
+.config/AWS*

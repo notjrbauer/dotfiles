@@ -1,5 +1,9 @@
 return {
   {
+    {
+      'ibhagwan/fzf-lua',
+      dev = false,
+    },
     'nvim-telescope/telescope.nvim',
     dependencies = {
       {

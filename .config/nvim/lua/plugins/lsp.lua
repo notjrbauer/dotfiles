@@ -15,8 +15,9 @@ return {
     lazy = false,
     opts = {
       formatters_by_ft = {
-        ['markdown'] = { { 'prettierd', 'prettier' } },
-        ['markdown.mdx'] = { { 'prettierd', 'prettier' } },
+        ['sh'] = { 'shfmt' },
+        ['markdown'] = { 'prettierd' },
+        ['markdown.mdx'] = { 'prettierd' },
         ['json'] = { 'jq' },
         ['javascript'] = { 'dprint' },
         ['javascriptreact'] = { 'dprint' },
@@ -25,7 +26,7 @@ return {
         ['go'] = { 'gofumpt', 'goimports' },
       },
       -- Set up format-on-save
-      format = { timeout_ms = 2000, lsp_fallback = true, async = false, quiet = false },
+      default_format_opts = { timeout_ms = 2000, lsp_fallback = true, async = false, quiet = false },
       formatters = {
         shfmt = {
           prepend_args = { '-i', '2', '-ci' },

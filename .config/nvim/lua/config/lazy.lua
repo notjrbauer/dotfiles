@@ -1,10 +1,15 @@
-local use_dev = true
-
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
-if not vim.uv.fs_stat(lazypath) then
-  vim.fn.system { 'git', 'clone', '--filter=blob:none', 'https://github.com/folke/lazy.nvim.git', lazypath }
-  -- vim.fn.system { 'git', '-C', lazypath, 'checkout', 'tags/stable' } -- last stable release
+if not vim.loop.fs_stat(lazypath) then
+  vim.fn.system {
+    'git',
+    'clone',
+    '--filter=blob:none',
+    'https://github.com/folke/lazy.nvim.git',
+    '--branch=stable', -- latest stable release
+    lazypath,
+  }
 end
+
 vim.opt.rtp:prepend(lazypath)
 
 ---@param opts LazyConfig
@@ -24,11 +29,12 @@ return function(opts)
       },
       { import = 'plugins' },
     },
-    defaults = { lazy = true },
+    defaults = { lazy = true, version = false },
     checker = { enabled = true },
     diff = {
       cmd = 'diffview.nvim',
     },
+    rocks = { hererocks = true },
     performance = {
       cache = {
         enabled = false,
@@ -39,9 +45,9 @@ return function(opts)
           'gzip',
           'health',
           'man',
-          'matchit',
-          'matchparen',
-          'netrwPlugin',
+          -- 'matchit',
+          -- 'matchparen',
+          -- 'netrwPlugin',
           'rplugin',
           'spellfile',
           'tarPlugin',
