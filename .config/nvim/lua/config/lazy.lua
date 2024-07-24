@@ -1,3 +1,4 @@
+-- local colorscheme = require 'lazyvim.plugins.colorscheme'
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
 if not vim.loop.fs_stat(lazypath) then
   vim.fn.system {
@@ -20,7 +21,7 @@ return function(opts)
         'LazyVim/LazyVim',
         import = 'lazyvim.plugins',
         opts = {
-          colorscheme = 'catppuccin-mocha',
+          -- colorscheme = 'catppuccin-macchiato',
           news = {
             lazyvim = true,
             neovim = true,
