@@ -23,11 +23,28 @@ return {
   --     })
   --   end,
   -- },
-
+  {
+    'catppuccin/nvim',
+    name = 'catppuccin',
+    lazy = false,
+    priority = 1000,
+    opts = {
+      flavour = 'mocha',
+      transparent_background = true,
+      term_colors = true,
+      dim_inactive = { enabled = false },
+    },
+  },
+  {
+    'LazyVim/LazyVim',
+    opts = {
+      colorscheme = 'catppuccin',
+    },
+  },
   -- auto-resize windows
   {
     'anuvyklack/windows.nvim',
-    enabled = false,
+    enabled = true,
     event = 'WinNew',
     dependencies = {
       { 'anuvyklack/middleclass' },

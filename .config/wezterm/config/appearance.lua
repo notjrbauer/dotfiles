@@ -1,5 +1,6 @@
 local wezterm = require('wezterm')
 local colors = require('colors.custom')
+-- local colors = require('colors.cyberdream')
 local fonts = require('config.fonts')
 
 return {
@@ -16,8 +17,8 @@ return {
    window_decorations = 'RESIZE',
 
    -- color scheme
-   -- colors = colors,
-   color_scheme = 'Catppuccin Mocha',
+   -- color_scheme = 'Catppuccin Mocha',
+   colors = colors,
 
    -- background
    background = {
