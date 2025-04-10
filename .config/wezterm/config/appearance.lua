@@ -1,62 +1,76 @@
-local wezterm = require('wezterm')
+local gpu_adapters = require('utils.gpu')
+local backdrops = require('utils.backdrops')
 local colors = require('colors.custom')
--- local colors = require('colors.cyberdream')
 local fonts = require('config.fonts')
 
 return {
-   force_reverse_video_cursor = true,
-   animation_fps = 240,
-   bold_brightens_ansi_colors = true,
-   max_fps = 240,
-   front_end = 'WebGpu',
-   enable_tab_bar = false,
-   adjust_window_size_when_changing_font_size = false,
-   freetype_load_target = fonts.freetype_load_target,
-   freetype_render_target = fonts.freetype_render_target,
+  -- Performance
+  max_fps = 120,
+  animation_fps = 120,
+  front_end = 'WebGpu',
+  webgpu_power_preference = 'HighPerformance',
+  webgpu_preferred_adapter = gpu_adapters:pick_best(),
+  -- webgpu_preferred_adapter = gpu_adapters:pick_manual('Dx12', 'IntegratedGpu'),
+  -- webgpu_preferred_adapter = gpu_adapters:pick_manual('Gl', 'Other'),
 
-   window_decorations = 'RESIZE',
+  -- Cursor
+  default_cursor_style = 'BlinkingBlock',
+  cursor_blink_rate = 650,
+  cursor_blink_ease_in = 'EaseOut',
+  cursor_blink_ease_out = 'EaseOut',
+  force_reverse_video_cursor = true,
 
-   -- color scheme
-   -- color_scheme = 'Catppuccin Mocha',
-   colors = colors,
+  -- Styling
+  bold_brightens_ansi_colors = true,
+  underline_thickness = '1.5pt',
+  colors = colors,
+  font = fonts.font,
+  font_size = fonts.font_size,
 
-   -- background
-   background = {
-      {
-         source = { File = wezterm.config_dir .. '/backdrops/space.jpg' },
-      },
-      {
-         source = { Color = colors.background },
-         height = '100%',
-         width = '100%',
-         opacity = 0.90,
-      },
-   },
+  -- Background
+  background = backdrops:initial_options(false), -- set to true for focus mode
 
-   default_cursor_style = 'BlinkingBlock',
-   cursor_blink_rate = 500,
-   -- scrollbar
-   enable_scroll_bar = false,
+  -- Window
+  window_padding = {
+    left = 0,
+    right = 0,
+    top = 10,
+    bottom = 7.5,
+  },
+  initial_rows = 35,
+  initial_cols = 100,
+  window_decorations = 'RESIZE',
+  window_close_confirmation = 'NeverPrompt',
+  adjust_window_size_when_changing_font_size = false,
+  window_frame = {
+    active_titlebar_bg = '#090909',
+    font = fonts.font,
+    font_size = fonts.font_size,
+  },
 
-   -- tab bar
-   hide_tab_bar_if_only_one_tab = false,
-   use_fancy_tab_bar = false,
-   tab_max_width = 25,
-   show_tab_index_in_tab_bar = false,
-   switch_to_last_active_tab_when_closing_tab = true,
+  -- Tabs
+  enable_tab_bar = false,
+  hide_tab_bar_if_only_one_tab = false,
+  use_fancy_tab_bar = false,
+  tab_max_width = 25,
+  show_tab_index_in_tab_bar = false,
+  switch_to_last_active_tab_when_closing_tab = true,
 
-   -- window
-   window_padding = {
-      left = 5,
-      right = 10,
-      top = 12,
-      bottom = 7,
-   },
-   window_close_confirmation = 'NeverPrompt',
-   window_frame = {
-      active_titlebar_bg = '#090909',
-      font = fonts.font,
-      font_size = fonts.font_size,
-   },
-   inactive_pane_hsb = { saturation = 1.0, brightness = 0.7 },
+  -- Scrollbar
+  enable_scroll_bar = false,
+
+  -- Inactive pane styling
+  inactive_pane_hsb = {
+    saturation = 0.9,
+    brightness = 0.65,
+  },
+
+  -- Visual bell
+  visual_bell = {
+    fade_in_function = 'EaseIn',
+    fade_in_duration_ms = 250,
+    fade_out_function = 'EaseOut',
+    fade_out_duration_ms = 250,
+    target = 'CursorColor',
+  },
 }
