@@ -1,3 +1,0 @@
- -  Cat
- - People
-
