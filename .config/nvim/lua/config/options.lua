@@ -12,22 +12,31 @@ vim.opt.backupdir = { prefix .. "/nvim/.backup//" }
 vim.opt.directory = { prefix .. "/nvim/.swp//" }
 
 -- General
+vim.opt.encoding = "utf-8"
 vim.opt.mouse = 'a'
 vim.opt.mousescroll = 'ver:25,hor:6'
 vim.opt.switchbuf = 'usetab'
-vim.opt.updatetime = 200
+vim.opt.updatetime = 250
 vim.opt.timeoutlen = 300
 vim.opt.clipboard = 'unnamedplus'
 vim.cmd('filetype plugin indent on')
 
 -- UI
+vim.o.winborder = "rounded"
+vim.opt.showmatch = true
+vim.opt.colorcolumn = "80"
 vim.opt.breakindent = true
-vim.opt.colorcolumn = '+1'
 vim.opt.cursorline = true
 vim.opt.laststatus = 2
 vim.opt.linebreak = true
 vim.opt.list = true
+
+-- Sidebar
 vim.opt.number = true
+vim.opt.numberwidth = 3
+vim.opt.showcmd = true
+vim.opt.modelines = 0
+
 vim.opt.pumblend = 10
 vim.opt.pumheight = 10
 vim.opt.ruler = false
@@ -38,7 +47,7 @@ vim.opt.splitbelow = true
 vim.opt.splitright = true
 vim.opt.termguicolors = true
 vim.opt.winblend = 10
-vim.opt.wrap = false
+vim.opt.wrap = true
 vim.opt.scrolloff = 8
 vim.opt.sidescrolloff = 8
 vim.cmd('let g:nvcode_termcolors=256')
@@ -84,8 +93,9 @@ vim.opt.shiftwidth = 2
 vim.opt.smartcase = true
 vim.opt.smartindent = true
 vim.opt.tabstop = 2
+vim.opt.softtabstop = 2
 vim.opt.virtualedit = 'block'
-vim.opt.completeopt = 'menuone,noinsert,noselect'
+vim.opt.completeopt = "menuone,noinsert,popup,fuzzy"
 vim.opt.iskeyword:append('-')
 vim.g.editorconfig = false
 vim.opt.matchtime = 2
@@ -121,6 +131,20 @@ vim.diagnostic.config({
     spacing = 4,
     prefix = "●",
   },
+  severity_sort = true,
+})
+
+  -- float = { border = "single" },
+  -- float = { border = "rounded" },
+vim.diagnostic.config({
+  float = { border = "none" },
+  underline = true,
+  virtual_text = {
+    spacing = 0,
+    prefix = "●",
+  },
+  signs = { text = { "", "", "", "" } },
+  update_in_insert = true,
   severity_sort = true,
 })
 
