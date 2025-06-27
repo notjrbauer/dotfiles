@@ -1,23 +1,6 @@
 -- Modern Neovim 0.11+ Configuration
 -- ~/.config/nvim/init.lua
 
--- Bootstrap lazy.nvim
-local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not (vim.uv or vim.loop).fs_stat(lazypath) then
-  local lazyrepo = "https://github.com/folke/lazy.nvim.git"
-  local out = vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath })
-  if vim.v.shell_error ~= 0 then
-    vim.api.nvim_echo({
-      { "Failed to clone lazy.nvim:\n", "ErrorMsg" },
-      { out,                            "WarningMsg" },
-      { "\nPress any key to exit..." },
-    }, true, {})
-    vim.fn.getchar()
-    os.exit(1)
-  end
-end
-vim.opt.rtp:prepend(lazypath)
-
 -- Leader keys (must be set before lazy)
 vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
@@ -52,6 +35,23 @@ vim.g.loaded_optwin = 1
 vim.g.loaded_compiler = 1
 vim.g.loaded_bugreport = 1
 vim.g.loaded_ftplugin = 1
+
+-- Bootstrap lazy.nvim
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not (vim.uv or vim.loop).fs_stat(lazypath) then
+  local lazyrepo = "https://github.com/folke/lazy.nvim.git"
+  local out = vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath })
+  if vim.v.shell_error ~= 0 then
+    vim.api.nvim_echo({
+      { "Failed to clone lazy.nvim:\n", "ErrorMsg" },
+      { out,                            "WarningMsg" },
+      { "\nPress any key to exit..." },
+    }, true, {})
+    vim.fn.getchar()
+    os.exit(1)
+  end
+end
+vim.opt.rtp:prepend(lazypath)
 
 -- Core settings
 local opt = vim.opt
@@ -144,10 +144,9 @@ opt.wildignore:append({
   "*/node_modules/*", "*/target/*", "*/.cargo/*"
 })
 
--- LSP server configurations (minimal, focused)
+-- LSP server configurations
 local servers = {
   lua_ls = {
-    filetypes = { "lua" },
     settings = {
       Lua = {
         completion = { callSnippet = "Replace" },
@@ -163,7 +162,6 @@ local servers = {
     },
   },
   gopls = {
-    filetypes = { "go", "gomod", "gowork", "gotmpl" },
     settings = {
       gopls = {
         gofumpt = true,
@@ -181,7 +179,6 @@ local servers = {
     },
   },
   rust_analyzer = {
-    filetypes = { "rust" },
     settings = {
       ["rust-analyzer"] = {
         cargo = { allFeatures = true },
@@ -191,7 +188,6 @@ local servers = {
     },
   },
   clangd = {
-    filetypes = { "c", "cpp", "objc", "objcpp", "cuda", "proto" },
     cmd = {
       "clangd",
       "--background-index",
@@ -201,13 +197,8 @@ local servers = {
       "--function-arg-placeholders",
     },
   },
-  zls = {
-    filetypes = { "zig" },
-  },
-  marksman = {
-    filetypes = { "markdown", "md" },
-    single_file_support = true
-  },
+  zls = {},
+  marksman = { single_file_support = true },
 }
 
 -- Utility functions
@@ -219,7 +210,7 @@ local function augroup(name)
   return vim.api.nvim_create_augroup("user_" .. name, { clear = true })
 end
 
--- Diagnostic configuration (before LSP setup)
+-- Diagnostic configuration
 vim.diagnostic.config({
   underline = true,
   update_in_insert = false,
@@ -261,11 +252,11 @@ local function on_attach(client, bufnr)
 
   -- Diagnostics
   map("n", "<leader>cd", vim.diagnostic.open_float, opts("Line Diagnostics"))
-  map("n", "]d", vim.diagnostic.get_next, opts("Next Diagnostic"))
-  map("n", "[d", vim.diagnostic.get_prev, opts("Prev Diagnostic"))
-  map("n", "]e", function() vim.diagnostic.get_next({ severity = vim.diagnostic.severity.ERROR }) end,
+  map("n", "]d", vim.diagnostic.goto_next, opts("Next Diagnostic"))
+  map("n", "[d", vim.diagnostic.goto_prev, opts("Prev Diagnostic"))
+  map("n", "]e", function() vim.diagnostic.goto_next({ severity = vim.diagnostic.severity.ERROR }) end,
     opts("Next Error"))
-  map("n", "[e", function() vim.diagnostic.get_prev({ severity = vim.diagnostic.severity.ERROR }) end,
+  map("n", "[e", function() vim.diagnostic.goto_prev({ severity = vim.diagnostic.severity.ERROR }) end,
     opts("Prev Error"))
 
   -- Format on save
@@ -341,24 +332,10 @@ require("lazy").setup({
     },
   },
 
-  -- Mason
-  {
-    "mason-org/mason.nvim",
-    cmd = "Mason",
-    keys = { { "<leader>cm", "<cmd>Mason<cr>", desc = "Mason" } },
-    build = ":MasonUpdate",
-    opts = {
-      ui = {
-        border = "rounded",
-        icons = { package_installed = "✓", package_pending = "➜", package_uninstalled = "✗" }
-      }
-    },
-  },
-
   -- Mason LSP Config
   {
     "mason-org/mason-lspconfig.nvim",
-    dependencies = { "mason-org/mason.nvim" },
+    dependencies = { { "mason-org/mason.nvim", opts = {} }, "neovim/nvim-lspconfig" },
     event = { "BufReadPost", "BufNewFile" },
     opts = {
       ensure_installed = vim.tbl_keys(servers),
@@ -513,39 +490,29 @@ require("lazy").setup({
       { "<leader>gc",       "<cmd>FzfLua git_commits<cr>",           desc = "Git Commits" },
       { "<leader>sw",       "<cmd>FzfLua grep_cword<cr>",            desc = "Search Word",          mode = "n" },
       { "<leader>sw",       "<cmd>FzfLua grep_visual<cr>",           desc = "Search Selection",     mode = "v" },
-      -- Diagnostics
       { "<leader>xd",       "<cmd>FzfLua diagnostics_document<cr>",  desc = "Buffer Diagnostics" },
       { "<leader>xw",       "<cmd>FzfLua diagnostics_workspace<cr>", desc = "Workspace Diagnostics" },
     },
     opts = {
       fzf_colors = true,
       fzf_opts = {
-        -- options are sent as `<left>=<right>`
-        -- set to `false` to remove a flag
-        -- set to `true` for a no-value flag
-        -- for raw args use `fzf_args` instead
         ["--ansi"]           = true,
-        ["--info"]           = "inline-right", -- fzf < v0.42 = "inline"
+        ["--info"]           = "inline-right",
         ["--height"]         = "100%",
         ["--layout"]         = "reverse",
         ["--border"]         = "none",
-        ["--highlight-line"] = true, -- fzf >= v0.53
+        ["--highlight-line"] = true,
       },
       defaults = { formatter = "path.filename_first" },
       winopts = {
-        true,
         preview = { border = "border", layout = "flex", flip_columns = 120 },
       },
       keymap = {
         builtin = {
-          true, -- inherit all the defaults (F1 = toggle-help, etc.)
-          -- Add your preferred C-u/C-d scrolling for builtin previewer
           ["<C-u>"] = "preview-page-up",
           ["<C-d>"] = "preview-page-down",
         },
         fzf = {
-          true, -- inherit all the defaults
-          -- Override fzf's default ctrl-u/ctrl-d for preview scrolling
           ["ctrl-u"] = "preview-page-up",
           ["ctrl-d"] = "preview-page-down",
         },
@@ -570,12 +537,36 @@ require("lazy").setup({
     end,
   },
 }, {
-  checker = { enabled = false }, -- Disable plugin update checker
+  checker = { enabled = false },
   performance = {
     rtp = {
       disabled_plugins = {
-        "gzip", "matchit", "matchparen", "netrwPlugin", "tarPlugin",
-        "tohtml", "tutor", "zipPlugin",
+        "2html_plugin",
+        "getscript",
+        "getscriptPlugin",
+        "gzip",
+        "logipat",
+        "netrw",
+        "netrwPlugin",
+        "netrwSettings",
+        "netrwFileHandlers",
+        "matchit",
+        "tar",
+        "tarPlugin",
+        "rrhelper",
+        "spellfile_plugin",
+        "vimball",
+        "vimballPlugin",
+        "zip",
+        "zipPlugin",
+        "tutor",
+        "rplugin",
+        "syntax",
+        "synmenu",
+        "optwin",
+        "compiler",
+        "bugreport",
+        "ftplugin",
       },
     },
   },
@@ -632,27 +623,6 @@ map("v", ">", ">gv")
 
 -- Utilities
 map("n", "<leader>l", "<cmd>Lazy<cr>", { desc = "Lazy" })
-map("n", "<leader>li", function()
-  local clients = vim.lsp.get_clients()
-  local output = vim.inspect(clients, { indent = "  " })
-
-  -- Write to temp file and open with bat in terminal
-  local tmpfile = os.tmpname() .. ".lua"
-  local file = io.open(tmpfile, "w")
-  if file then
-    file:write("-- LSP Clients Info\n" .. output)
-    file:close()
-
-    -- Open in Neovim terminal with bat
-    vim.cmd("split")
-    vim.cmd(string.format("terminal bat --style=numbers,changes --language=lua --paging=always %s", tmpfile))
-
-    -- Clean up temp file after a delay
-    vim.defer_fn(function() os.remove(tmpfile) end, 1000)
-  else
-    vim.notify("Failed to create temp file")
-  end
-end, { desc = "LSP Info (bat)" })
 map("n", "<leader>fp", function()
   local path = vim.fn.expand("%:p")
   vim.fn.setreg("+", path)
@@ -732,15 +702,11 @@ vim.api.nvim_create_autocmd("BufWritePre", {
   pattern = "*.go",
   callback = function()
     local bufnr = vim.api.nvim_get_current_buf()
-
-    -- Get the first available client for encoding
     local clients = vim.lsp.get_clients({ bufnr = bufnr })
     if #clients == 0 then return end
 
     local client = clients[1]
     local encoding = client.offset_encoding or "utf-16"
-
-    -- Build params object properly - don't inject into make_range_params result
     local range_params = vim.lsp.util.make_range_params(0, encoding)
     local params = vim.tbl_extend("force", range_params, {
       context = { only = { "source.organizeImports" } }
