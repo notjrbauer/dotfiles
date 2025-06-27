@@ -261,11 +261,11 @@ local function on_attach(client, bufnr)
 
   -- Diagnostics
   map("n", "<leader>cd", vim.diagnostic.open_float, opts("Line Diagnostics"))
-  map("n", "]d", vim.diagnostic.goto_next, opts("Next Diagnostic"))
-  map("n", "[d", vim.diagnostic.goto_prev, opts("Prev Diagnostic"))
-  map("n", "]e", function() vim.diagnostic.goto_next({ severity = vim.diagnostic.severity.ERROR }) end,
+  map("n", "]d", vim.diagnostic.get_next, opts("Next Diagnostic"))
+  map("n", "[d", vim.diagnostic.get_prev, opts("Prev Diagnostic"))
+  map("n", "]e", function() vim.diagnostic.get_next({ severity = vim.diagnostic.severity.ERROR }) end,
     opts("Next Error"))
-  map("n", "[e", function() vim.diagnostic.goto_prev({ severity = vim.diagnostic.severity.ERROR }) end,
+  map("n", "[e", function() vim.diagnostic.get_prev({ severity = vim.diagnostic.severity.ERROR }) end,
     opts("Prev Error"))
 
   -- Format on save
