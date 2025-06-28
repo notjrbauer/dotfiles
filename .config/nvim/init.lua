@@ -1,6 +1,10 @@
 -- Modern Neovim 0.11+ Configuration
 -- ~/.config/nvim/init.lua
 
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+-- BOOTSTRAP & SETUP
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 -- Leader keys (must be set before lazy)
 vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
@@ -8,54 +12,6 @@ vim.g.maplocalleader = "\\"
 -- Prevent colorscheme flash
 vim.cmd.colorscheme("habamax")
 
--- Defer command abbreviations until after startup
-vim.schedule(function()
-  local abbrevs = {
-    { "W!",    "w!" },
-    { "Q!",    "q!" },
-    { "Qall!", "qall!" },
-    { "Wq",    "wq" },
-    { "Wa",    "wa" },
-    { "wQ",    "wq" },
-    { "WQ",    "wq" },
-    { "W",     "w" },
-    { "Q",     "q" },
-    { "Qall",  "qall" },
-  }
-
-  for _, abbrev in ipairs(abbrevs) do
-    vim.cmd.cnoreabbrev(abbrev[1], abbrev[2])
-  end
-end)
-
-
--- Disable built-in plugins for performance
-vim.g.loaded_2html_plugin = 1
-vim.g.loaded_getscript = 1
-vim.g.loaded_getscriptPlugin = 1
-vim.g.loaded_gzip = 1
-vim.g.loaded_logipat = 1
-vim.g.loaded_netrw = 1
-vim.g.loaded_netrwPlugin = 1
-vim.g.loaded_netrwSettings = 1
-vim.g.loaded_netrwFileHandlers = 1
-vim.g.loaded_matchit = 1
-vim.g.loaded_tar = 1
-vim.g.loaded_tarPlugin = 1
-vim.g.loaded_rrhelper = 1
-vim.g.loaded_spellfile_plugin = 1
-vim.g.loaded_vimball = 1
-vim.g.loaded_vimballPlugin = 1
-vim.g.loaded_zip = 1
-vim.g.loaded_zipPlugin = 1
-vim.g.loaded_tutor = 1
-vim.g.loaded_rplugin = 1
-vim.g.loaded_syntax = 1
-vim.g.loaded_synmenu = 1
-vim.g.loaded_optwin = 1
-vim.g.loaded_compiler = 1
-vim.g.loaded_bugreport = 1
-vim.g.loaded_ftplugin = 1
 
 -- Bootstrap lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
@@ -74,14 +30,16 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
--- Core settings
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+-- CORE SETTINGS
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 local opt = vim.opt
 
--- UI
+-- UI Settings
 opt.number = true
 opt.relativenumber = true
 opt.signcolumn = "yes:1"
--- opt.colorcolumn = "100"
 opt.cursorline = true
 opt.laststatus = 3
 opt.showmode = false
@@ -89,7 +47,7 @@ opt.cmdheight = 0
 opt.pumheight = 15
 opt.termguicolors = true
 
--- Editor behavior
+-- Editor Behavior
 opt.mouse = "nvi"
 opt.clipboard = "unnamedplus"
 opt.completeopt = "menu,menuone,noinsert,noselect"
@@ -106,7 +64,7 @@ opt.virtualedit = "block"
 opt.winminwidth = 5
 opt.wrap = true
 
--- Files and backups
+-- Files and Backups
 opt.autowrite = true
 opt.backup = false
 opt.swapfile = false
@@ -121,8 +79,6 @@ if not vim.fn.isdirectory(undodir) then
   vim.fn.mkdir(undodir, "p")
 end
 opt.undodir = undodir
-
--- Configure shada for session persistence
 opt.shada = "'100,<50,s10,h,f1"
 
 -- Search
@@ -164,6 +120,22 @@ opt.wildignore:append({
   "*/.git/*", "*/.svn/*", "*/.DS_Store",
   "*/node_modules/*", "*/target/*", "*/.cargo/*"
 })
+
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+-- UTILITY FUNCTIONS
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+local function map(mode, lhs, rhs, opts)
+  vim.keymap.set(mode, lhs, rhs, vim.tbl_extend("force", { silent = true }, opts or {}))
+end
+
+local function augroup(name)
+  return vim.api.nvim_create_augroup("user_" .. name, { clear = true })
+end
+
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+-- LSP CONFIGURATION
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 -- LSP server configurations
 local servers = {
@@ -222,21 +194,10 @@ local servers = {
   marksman = { single_file_support = true },
 }
 
--- Utility functions
-local function map(mode, lhs, rhs, opts)
-  vim.keymap.set(mode, lhs, rhs, vim.tbl_extend("force", { silent = true }, opts or {}))
-end
-
-local function augroup(name)
-  return vim.api.nvim_create_augroup("user_" .. name, { clear = true })
-end
-
 -- Diagnostic configuration
 vim.diagnostic.config({
   underline = false,
   update_in_insert = false,
-  -- virtual_lines = { only_current_line = true },
-  -- virtual_text = false,
   virtual_text = { spacing = 4, source = "if_many", prefix = "●" },
   severity_sort = true,
   signs = {
@@ -258,8 +219,6 @@ local function on_attach(client, bufnr)
   local function opts(desc)
     return { buffer = bufnr, desc = "LSP: " .. desc }
   end
-  -- vim.print(vim.inspect(client))
-  -- vim.print(require("blink.cmp").get_lsp_capabilities())
 
   -- Enable inlay hints if supported
   if vim.lsp.inlay_hint and client.server_capabilities.inlayHintProvider then
@@ -277,8 +236,6 @@ local function on_attach(client, bufnr)
   map("i", "<c-k>", vim.lsp.buf.signature_help, opts("Signature Help"))
   map("n", "<leader>ca", "<cmd>FzfLua lsp_code_actions<cr>", opts("Code Action"))
   map("n", "<leader>cr", vim.lsp.buf.rename, opts("Rename"))
-
-  -- Diagnostics
   map("n", "<leader>cd", vim.diagnostic.open_float, opts("Line Diagnostics"))
 
   -- Format on save
@@ -299,7 +256,10 @@ local function on_attach(client, bufnr)
   end
 end
 
--- Plugin setup
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+-- PLUGIN SETUP
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 require("lazy").setup({
   -- Theme
   {
@@ -319,6 +279,7 @@ require("lazy").setup({
         native_lsp = { enabled = true },
         treesitter = true,
         which_key = true,
+        gitsigns = true,
       },
     },
     config = function(_, opts)
@@ -338,6 +299,7 @@ require("lazy").setup({
         { "<leader>c", group = "code" },
         { "<leader>f", group = "file/find" },
         { "<leader>g", group = "git" },
+        { "<leader>h", group = "git hunks" },
         { "<leader>q", group = "quit/session" },
         { "<leader>s", group = "search" },
         { "<leader>u", group = "ui" },
@@ -371,7 +333,6 @@ require("lazy").setup({
     dependencies = { "mason-org/mason-lspconfig.nvim", "saghen/blink.cmp" },
     event = { "BufReadPre", "BufNewFile" },
     config = function()
-      -- Configure servers using vim.lsp.config
       local capabilities = require("blink.cmp").get_lsp_capabilities()
 
       vim.lsp.config("*", {
@@ -384,68 +345,30 @@ require("lazy").setup({
         vim.lsp.config(server_name, config)
       end
 
-      -- Simply enable all configured servers
-      -- vim.lsp.enable() auto-starts based on filetypes in server config
       vim.lsp.enable(vim.tbl_keys(servers))
     end,
   },
 
-  -- nvim-treesitter: Syntax Highlighting {{{2
+  -- Treesitter
   {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
-    opts = {},
     event = { "BufReadPost", "BufNewFile" },
-    auto_install = false,
-    cmd = {
-      "TSInstall",
-      "TSUpdate",
-      "TSInstallInfo",
-      "TSEnable",
-      "TSDisable",
-      "TSModuleInfo",
-      "TSUninstall",
-    },
+    cmd = { "TSInstall", "TSUpdate", "TSInstallInfo", "TSEnable", "TSDisable", "TSModuleInfo", "TSUninstall" },
     config = function()
       require("nvim-treesitter.configs").setup({
         ensure_installed = {
-          "bash",
-          "html",
-          "javascript",
-          "json",
-          "lua",
-          "make",
-          "markdown",
-          "markdown_inline",
-          "python",
-          "query",
-          "regex",
-          "tsx",
-          "typescript",
-          "vim",
-          "yaml",
-          "go",
-          "css",
-          "gitignore",
-          "rust",
-          "cpp",
-          "c",
-          "vim",
-          "vimdoc",
+          "bash", "html", "javascript", "json", "lua", "make", "markdown", "markdown_inline",
+          "python", "query", "regex", "tsx", "typescript", "vim", "yaml", "go", "css",
+          "gitignore", "rust", "cpp", "c", "vimdoc",
         },
-
         sync_install = false,
-
-        highlight = {
-          enable = true,
-          additional_vim_regex_highlighting = false,
-        },
-        indent = {
-          enable = true,
-        },
+        highlight = { enable = true, additional_vim_regex_highlighting = false },
+        indent = { enable = true },
       })
     end,
   },
+
   -- Completion
   {
     "saghen/blink.cmp",
@@ -496,6 +419,8 @@ require("lazy").setup({
       },
     },
   },
+
+  -- File Explorer
   {
     "stevearc/oil.nvim",
     dependencies = { "echasnovski/mini.icons" },
@@ -508,15 +433,8 @@ require("lazy").setup({
       default_file_explorer = true,
       delete_to_trash = true,
       skip_confirm_for_simple_edits = true,
-      view_options = {
-        show_hidden = true,
-        natural_order = true,
-      },
-      float = {
-        padding = 2,
-        max_width = 90,
-        max_height = 0,
-      },
+      view_options = { show_hidden = true, natural_order = true },
+      float = { padding = 2, max_width = 90, max_height = 0 },
       win_options = {
         wrap = false,
         signcolumn = "no",
@@ -528,15 +446,12 @@ require("lazy").setup({
         concealcursor = "nvic",
       },
       keymaps = {
-        ["<C-h>"] = false, -- Don't override your window nav
-        ["<C-l>"] = false,
-        ["<C-k>"] = false,
-        ["<C-j>"] = false,
+        ["<C-h>"] = false, ["<C-l>"] = false, ["<C-k>"] = false, ["<C-j>"] = false,
       },
     },
   },
 
-  -- 3. GITSIGNS - Git integration in the gutter
+  -- Git Signs
   {
     "lewis6991/gitsigns.nvim",
     event = { "BufReadPost", "BufNewFile" },
@@ -564,15 +479,12 @@ require("lazy").setup({
         gmap("n", "<leader>hr", gs.reset_hunk, "Reset Hunk")
         gmap("v", "<leader>hs", function() gs.stage_hunk({ vim.fn.line("."), vim.fn.line("v") }) end, "Stage Hunk")
         gmap("v", "<leader>hr", function() gs.reset_hunk({ vim.fn.line("."), vim.fn.line("v") }) end, "Reset Hunk")
-
         gmap("n", "<leader>hS", gs.stage_buffer, "Stage Buffer")
         gmap("n", "<leader>hR", gs.reset_buffer, "Reset Buffer")
         gmap("n", "<leader>hu", gs.undo_stage_hunk, "Undo Stage Hunk")
         gmap("n", "<leader>hp", gs.preview_hunk, "Preview Hunk")
         gmap("n", "<leader>hd", gs.diffthis, "Diff This")
         gmap("n", "<leader>hD", function() gs.diffthis("~") end, "Diff This ~")
-
-        -- Text object
         gmap({ "o", "x" }, "ih", ":<C-U>Gitsigns select_hunk<CR>", "GitSigns Select Hunk")
       end,
     },
@@ -601,26 +513,18 @@ require("lazy").setup({
     opts = {
       fzf_colors = true,
       fzf_opts = {
-        ["--ansi"]           = true,
-        ["--info"]           = "inline-right",
-        ["--height"]         = "100%",
-        ["--layout"]         = "reverse",
-        ["--border"]         = "none",
+        ["--ansi"] = true,
+        ["--info"] = "inline-right",
+        ["--height"] = "100%",
+        ["--layout"] = "reverse",
+        ["--border"] = "none",
         ["--highlight-line"] = true,
       },
       defaults = { formatter = "path.filename_first" },
-      winopts = {
-        preview = { border = "border", layout = "flex", flip_columns = 120 },
-      },
+      winopts = { preview = { border = "border", layout = "flex", flip_columns = 120 } },
       keymap = {
-        builtin = {
-          ["<C-u>"] = "preview-page-up",
-          ["<C-d>"] = "preview-page-down",
-        },
-        fzf = {
-          ["ctrl-u"] = "preview-page-up",
-          ["ctrl-d"] = "preview-page-down",
-        },
+        builtin = { ["<C-u>"] = "preview-page-up", ["<C-d>"] = "preview-page-down" },
+        fzf = { ["ctrl-u"] = "preview-page-up", ["ctrl-d"] = "preview-page-down" },
       },
     },
     config = function(_, opts)
@@ -647,43 +551,19 @@ require("lazy").setup({
   performance = {
     rtp = {
       disabled_plugins = {
-        "man",
-        "spellfile",
-        "matchparen",
-        "osc52",
-        "shada",
-        "2html_plugin",
-        "tohtml",
-        "getscript",
-        "getscriptPlugin",
-        "gzip",
-        "logipat",
-        "netrw",
-        "netrwPlugin",
-        "netrwSettings",
-        "netrwFileHandlers",
-        "matchit",
-        "tar",
-        "tarPlugin",
-        "rrhelper",
-        "spellfile_plugin",
-        "vimball",
-        "vimballPlugin",
-        "zip",
-        "zipPlugin",
-        "tutor",
-        "rplugin",
-        "syntax",
-        "synmenu",
-        "optwin",
-        "compiler",
-        "bugreport",
-        "ftplugin",
-        "editorconfig",
+        "man", "spellfile", "matchparen", "osc52", "shada", "2html_plugin", "tohtml",
+        "getscript", "getscriptPlugin", "gzip", "logipat", "netrw", "netrwPlugin",
+        "netrwSettings", "netrwFileHandlers", "matchit", "tar", "tarPlugin", "rrhelper",
+        "spellfile_plugin", "vimball", "vimballPlugin", "zip", "zipPlugin", "tutor",
+        "rplugin", "syntax", "synmenu", "optwin", "compiler", "bugreport", "ftplugin", "editorconfig",
       },
     },
   },
 })
+
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+-- KEYMAPS
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 -- Essential keymaps
 map("n", "<Esc>", "<cmd>nohlsearch<cr>", { desc = "Clear Search Highlights" })
@@ -734,6 +614,14 @@ map("n", "N", "'nN'[v:searchforward].'zv'", { expr = true, desc = "Prev Search R
 map("v", "<", "<gv")
 map("v", ">", ">gv")
 
+-- Diagnostic navigation
+map("n", "]d", vim.diagnostic.goto_next, { desc = "Next Diagnostic" })
+map("n", "[d", vim.diagnostic.goto_prev, { desc = "Prev Diagnostic" })
+map("n", "]e", function() vim.diagnostic.goto_next({ severity = vim.diagnostic.severity.ERROR }) end,
+  { desc = "Next Error" })
+map("n", "[e", function() vim.diagnostic.goto_prev({ severity = vim.diagnostic.severity.ERROR }) end,
+  { desc = "Prev Error" })
+
 -- Utilities
 map("n", "<leader>l", "<cmd>Lazy<cr>", { desc = "Lazy" })
 map("n", "<leader>fp", function()
@@ -742,78 +630,44 @@ map("n", "<leader>fp", function()
   vim.notify("Copied: " .. path)
 end, { desc = "Copy File Path" })
 
--- Disable mouse wheel scrolling
--- for _, mode in ipairs({ "n", "i", "v" }) do
---   map(mode, "<ScrollWheelUp>", "<nop>")
---   map(mode, "<ScrollWheelDown>", "<nop>")
--- end
+-- Toggle functions
+map("n", "<leader>ud", function()
+  local enabled = vim.diagnostic.is_enabled()
+  vim.diagnostic.enable(not enabled)
+  vim.notify("Diagnostics " .. (enabled and "disabled" or "enabled"))
+end, { desc = "Toggle Diagnostics" })
 
--- OPTION 3: Minimal statusline integration
--- If you want to add LSP progress to a statusline, here's a helper function:
-local function get_lsp_progress()
-  local clients = vim.lsp.get_clients({ bufnr = 0 })
-  if #clients == 0 then return "" end
-
-  local progress_msgs = {}
-  for _, client in ipairs(clients) do
-    local progress = vim.lsp.status()
-    if progress and progress[client.id] then
-      for _, p in pairs(progress[client.id]) do
-        if p.kind == "begin" or p.kind == "report" then
-          local msg = p.title or p.message or "Working..."
-          table.insert(progress_msgs, string.format("%s: %s", client.name, msg))
-        end
-      end
-    end
-  end
-
-  return #progress_msgs > 0 and table.concat(progress_msgs, " | ") or ""
+if vim.lsp.inlay_hint then
+  map("n", "<leader>uh", function()
+    local enabled = vim.lsp.inlay_hint.is_enabled({ bufnr = 0 })
+    vim.lsp.inlay_hint.enable(not enabled, { bufnr = 0 })
+    vim.notify("Inlay hints " .. (enabled and "disabled" or "enabled"))
+  end, { desc = "Toggle Inlay Hints" })
 end
 
--- Enhanced LSP server start notification
--- Add this to your LSP config section (around line 285):
-vim.api.nvim_create_autocmd("LspAttach", {
-  group = augroup("lsp_attach_notify"),
-  callback = function(args)
-    local client = vim.lsp.get_client_by_id(args.data.client_id)
-    if client then
-      vim.notify(
-        string.format("🚀 %s ready", client.name),
-        vim.log.levels.INFO,
-        {
-          title = "LSP Server Started",
-          icon = "🔧",
-          timeout = 2000,
-        }
-      )
-    end
-  end,
-})
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+-- AUTOCMDS
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
--- Optional: LSP server shutdown notification
-vim.api.nvim_create_autocmd("LspDetach", {
-  group = augroup("lsp_detach_notify"),
-  callback = function(args)
-    local client = vim.lsp.get_client_by_id(args.data.client_id)
-    if client then
-      vim.notify(
-        string.format("⚠️  %s disconnected", client.name),
-        vim.log.levels.WARN,
-        {
-          title = "LSP Server Stopped",
-          timeout = 1500,
-        }
-      )
-    end
-  end,
-})
+-- Defer command abbreviations until after startup
+vim.schedule(function()
+  local abbrevs = {
+    { "W!", "w!" }, { "Q!", "q!" }, { "Qall!", "qall!" }, { "Wq", "wq" },
+    { "Wa", "wa" }, { "wQ", "wq" }, { "WQ", "wq" }, { "W", "w" },
+    { "Q", "q" }, { "Qall", "qall" },
+  }
+  for _, abbrev in ipairs(abbrevs) do
+    vim.cmd.cnoreabbrev(abbrev[1], abbrev[2])
+  end
+end)
 
--- Essential autocmds
+-- Highlight on yank
 vim.api.nvim_create_autocmd("TextYankPost", {
   group = augroup("highlight_yank"),
   callback = function() vim.highlight.on_yank() end,
 })
 
+-- Resize splits when vim is resized
 vim.api.nvim_create_autocmd("VimResized", {
   group = augroup("resize_splits"),
   callback = function()
@@ -823,6 +677,7 @@ vim.api.nvim_create_autocmd("VimResized", {
   end,
 })
 
+-- Go to last location when opening a buffer
 vim.api.nvim_create_autocmd("BufReadPost", {
   group = augroup("last_loc"),
   callback = function(event)
@@ -840,6 +695,7 @@ vim.api.nvim_create_autocmd("BufReadPost", {
   end,
 })
 
+-- Close some filetypes with <q>
 vim.api.nvim_create_autocmd("FileType", {
   group = augroup("close_with_q"),
   pattern = { "help", "lspinfo", "qf", "query", "startuptime", "checkhealth" },
@@ -851,38 +707,248 @@ vim.api.nvim_create_autocmd("FileType", {
 
 -- Show recording status
 vim.api.nvim_create_autocmd("RecordingEnter", {
-  callback = function()
-    vim.opt.cmdheight = 1
-  end,
+  group = augroup("recording"),
+  callback = function() vim.opt.cmdheight = 1 end,
 })
 
 vim.api.nvim_create_autocmd("RecordingLeave", {
-  callback = function()
-    vim.opt.cmdheight = 0
+  group = augroup("recording"),
+  callback = function() vim.opt.cmdheight = 0 end,
+})
+
+-- LSP notifications
+vim.api.nvim_create_autocmd("LspAttach", {
+  group = augroup("lsp_attach_notify"),
+  callback = function(args)
+    local client = vim.lsp.get_client_by_id(args.data.client_id)
+    if client then
+      vim.notify(
+        string.format("🚀 %s ready", client.name),
+        vim.log.levels.INFO,
+        { title = "LSP Server Started", timeout = 2000 }
+      )
+    end
   end,
 })
 
--- Toggle functions
-map("n", "<leader>ud", function()
-  local enabled = vim.diagnostic.is_enabled()
-  vim.diagnostic.enable(not enabled)
-  vim.notify("Diagnostics " .. (enabled and "disabled" or "enabled"))
-end, { desc = "Toggle Diagnostics" })
+vim.api.nvim_create_autocmd("LspDetach", {
+  group = augroup("lsp_detach_notify"),
+  callback = function(args)
+    local client = vim.lsp.get_client_by_id(args.data.client_id)
+    if client then
+      vim.notify(
+        string.format("⚠️  %s disconnected", client.name),
+        vim.log.levels.WARN,
+        { title = "LSP Server Stopped", timeout = 1500 }
+      )
+    end
+  end,
+})
 
-if vim.lsp.inlay_hint then
-  map("n", "<leader>uh", function()
-    local enabled = vim.lsp.inlay_hint.is_enabled({ bufnr = 0 })
-    vim.lsp.inlay_hint.enable(not enabled, { bufnr = 0 })
-    vim.notify("Inlay hints " .. (enabled and "disabled" or "enabled"))
-  end, { desc = "Toggle Inlay Hints" })
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+-- CUSTOM FUNCTIONS
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+-- Flash jump functions for enhanced f/F movement
+local function flash_jump()
+  local cursor = vim.api.nvim_win_get_cursor(0)
+  local row, col = cursor[1] - 1, cursor[2]
+
+  local line = vim.api.nvim_buf_get_lines(0, row, row + 1, false)[1]
+  if not line then return end
+
+  vim.api.nvim_echo({ { "Flash: ", "Question" } }, false, {})
+  local char_nr = vim.fn.getchar()
+  local char = type(char_nr) == "string" and char_nr or vim.fn.nr2char(char_nr)
+  vim.api.nvim_echo({ { "", "Normal" } }, false, {})
+
+  if char == "\27" or char == "" then return end
+
+  local matches = {}
+  for i = col + 1, #line do
+    if line:sub(i, i) == char then
+      table.insert(matches, i - 1)
+    end
+  end
+
+  if #matches == 0 then
+    vim.notify("No matches found", vim.log.levels.WARN)
+    return
+  elseif #matches == 1 then
+    vim.api.nvim_win_set_cursor(0, { row + 1, matches[1] })
+    return
+  end
+
+  local ns_id = vim.api.nvim_create_namespace("flash_jump")
+  local labels = "abcdefghijklmnopqrstuvwxyz"
+
+  for i, match_col in ipairs(matches) do
+    if i <= #labels then
+      local label = labels:sub(i, i)
+      vim.api.nvim_buf_set_extmark(0, ns_id, row, match_col, {
+        virt_text = { { label, "IncSearch" } },
+        virt_text_pos = "overlay",
+        priority = 200,
+      })
+    end
+  end
+
+  vim.api.nvim_echo({ { "Select: ", "Question" } }, false, {})
+  local label_nr = vim.fn.getchar()
+  local selected_label = type(label_nr) == "string" and label_nr or vim.fn.nr2char(label_nr)
+
+  vim.api.nvim_buf_clear_namespace(0, ns_id, 0, -1)
+  vim.api.nvim_echo({ { "", "Normal" } }, false, {})
+
+  if selected_label == "\27" or selected_label == "" then return end
+
+  for i = 1, #labels do
+    if labels:sub(i, i) == selected_label and i <= #matches then
+      vim.api.nvim_win_set_cursor(0, { row + 1, matches[i] })
+      break
+    end
+  end
 end
 
+local function flash_jump_backward()
+  local cursor = vim.api.nvim_win_get_cursor(0)
+  local row, col = cursor[1] - 1, cursor[2]
+
+  local line = vim.api.nvim_buf_get_lines(0, row, row + 1, false)[1]
+  if not line then return end
+
+  vim.api.nvim_echo({ { "Flash backward: ", "Question" } }, false, {})
+  local char_nr = vim.fn.getchar()
+  local char = type(char_nr) == "string" and char_nr or vim.fn.nr2char(char_nr)
+  vim.api.nvim_echo({ { "", "Normal" } }, false, {})
+
+  if char == "\27" or char == "" then return end
+
+  local matches = {}
+  for i = 1, col do
+    if line:sub(i, i) == char then
+      table.insert(matches, 1, i - 1)
+    end
+  end
+
+  if #matches == 0 then
+    vim.notify("No matches found", vim.log.levels.WARN)
+    return
+  elseif #matches == 1 then
+    vim.api.nvim_win_set_cursor(0, { row + 1, matches[1] })
+    return
+  end
+
+  local ns_id = vim.api.nvim_create_namespace("flash_jump_backward")
+  local labels = "abcdefghijklmnopqrstuvwxyz"
+
+  for i, match_col in ipairs(matches) do
+    if i <= #labels then
+      local label = labels:sub(i, i)
+      vim.api.nvim_buf_set_extmark(0, ns_id, row, match_col, {
+        virt_text = { { label, "IncSearch" } },
+        virt_text_pos = "overlay",
+        priority = 200,
+      })
+    end
+  end
+
+  vim.api.nvim_echo({ { "Select: ", "Question" } }, false, {})
+  local label_nr = vim.fn.getchar()
+  local selected_label = type(label_nr) == "string" and label_nr or vim.fn.nr2char(label_nr)
+
+  vim.api.nvim_buf_clear_namespace(0, ns_id, 0, -1)
+  vim.api.nvim_echo({ { "", "Normal" } }, false, {})
+
+  if selected_label == "\27" or selected_label == "" then return end
+
+  for i = 1, #labels do
+    if labels:sub(i, i) == selected_label and i <= #matches then
+      vim.api.nvim_win_set_cursor(0, { row + 1, matches[i] })
+      break
+    end
+  end
+end
+
+local function flash_jump_multiline()
+  vim.api.nvim_echo({ { "Flash (multiline): ", "Question" } }, false, {})
+  local char_nr = vim.fn.getchar()
+  local char = type(char_nr) == "string" and char_nr or vim.fn.nr2char(char_nr)
+  vim.api.nvim_echo({ { "", "Normal" } }, false, {})
+
+  if char == "\27" or char == "" then return end
+
+  local win_info = vim.fn.winsaveview()
+  local top_line = win_info.topline - 1
+  local bot_line = math.min(top_line + vim.api.nvim_win_get_height(0), vim.api.nvim_buf_line_count(0))
+  local lines = vim.api.nvim_buf_get_lines(0, top_line, bot_line, false)
+  local matches = {}
+
+  for line_idx, line in ipairs(lines) do
+    local actual_row = top_line + line_idx - 1
+    for col = 1, #line do
+      if line:sub(col, col) == char then
+        table.insert(matches, { actual_row, col - 1 })
+      end
+    end
+  end
+
+  if #matches == 0 then
+    vim.notify("No matches found", vim.log.levels.WARN)
+    return
+  elseif #matches == 1 then
+    vim.api.nvim_win_set_cursor(0, { matches[1][1] + 1, matches[1][2] })
+    return
+  end
+
+  local ns_id = vim.api.nvim_create_namespace("flash_jump_multiline")
+  local labels = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+  for i, match in ipairs(matches) do
+    if i <= #labels then
+      local label = labels:sub(i, i)
+      vim.api.nvim_buf_set_extmark(0, ns_id, match[1], match[2], {
+        virt_text = { { label, "IncSearch" } },
+        virt_text_pos = "overlay",
+        priority = 200,
+      })
+    end
+  end
+
+  vim.api.nvim_echo({ { "Select: ", "Question" } }, false, {})
+  local label_nr = vim.fn.getchar()
+  local selected_label = type(label_nr) == "string" and label_nr or vim.fn.nr2char(label_nr)
+
+  vim.api.nvim_buf_clear_namespace(0, ns_id, 0, -1)
+  vim.api.nvim_echo({ { "", "Normal" } }, false, {})
+
+  if selected_label == "\27" or selected_label == "" then return end
+
+  for i = 1, #labels do
+    if labels:sub(i, i) == selected_label and i <= #matches then
+      local target = matches[i]
+      vim.api.nvim_win_set_cursor(0, { target[1] + 1, target[2] })
+      break
+    end
+  end
+end
+
+-- Flash jump keymaps
+map("n", "f", flash_jump, { desc = "Flash Jump Forward" })
+map("n", "F", flash_jump_backward, { desc = "Flash Jump Backward" })
+map("n", "<leader>s", flash_jump_multiline, { desc = "Flash Jump (Multiline)" })
+
+-- Keep original f/F behavior available
+map("n", "<leader>of", "f", { desc = "Original f" })
+map("n", "<leader>oF", "F", { desc = "Original F" })
+
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+-- FINAL SETUP
+-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+-- Enable modern UI
 require('vim._extui').enable({
-  enable = true, -- Whether to enable or disable the UI.
-  msg = {        -- Options related to the message module.
-    ---@type 'cmd'|'msg' Where to place regular messages, either in the
-    ---cmdline or in a separate ephemeral message window.
-    target = 'msg',
-    timeout = 4000, -- Time a message is visible in the message window.
-  },
+  enable = true,
+  msg = { target = 'msg', timeout = 4000 },
 })
+
