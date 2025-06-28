@@ -81,7 +81,7 @@ local opt = vim.opt
 opt.number = true
 opt.relativenumber = true
 opt.signcolumn = "yes:1"
-opt.colorcolumn = "100"
+-- opt.colorcolumn = "100"
 opt.cursorline = true
 opt.laststatus = 3
 opt.showmode = false
@@ -309,7 +309,7 @@ require("lazy").setup({
     lazy = false,
     opts = {
       flavour = "mocha",
-      transparent_background = false,
+      transparent_background = true,
       show_end_of_buffer = true,
       term_colors = true,
       integrations = {
@@ -496,6 +496,87 @@ require("lazy").setup({
       },
     },
   },
+  {
+    "stevearc/oil.nvim",
+    dependencies = { "echasnovski/mini.icons" },
+    cmd = "Oil",
+    keys = {
+      { "<leader>e",  "<cmd>Oil<cr>", desc = "Open File Explorer" },
+      { "<leader>fe", "<cmd>Oil<cr>", desc = "Open File Explorer" },
+    },
+    opts = {
+      default_file_explorer = true,
+      delete_to_trash = true,
+      skip_confirm_for_simple_edits = true,
+      view_options = {
+        show_hidden = true,
+        natural_order = true,
+      },
+      float = {
+        padding = 2,
+        max_width = 90,
+        max_height = 0,
+      },
+      win_options = {
+        wrap = false,
+        signcolumn = "no",
+        cursorcolumn = false,
+        foldcolumn = "0",
+        spell = false,
+        list = false,
+        conceallevel = 3,
+        concealcursor = "nvic",
+      },
+      keymaps = {
+        ["<C-h>"] = false, -- Don't override your window nav
+        ["<C-l>"] = false,
+        ["<C-k>"] = false,
+        ["<C-j>"] = false,
+      },
+    },
+  },
+
+  -- 3. GITSIGNS - Git integration in the gutter
+  {
+    "lewis6991/gitsigns.nvim",
+    event = { "BufReadPost", "BufNewFile" },
+    opts = {
+      signs = {
+        add = { text = "▎" },
+        change = { text = "▎" },
+        delete = { text = "" },
+        topdelete = { text = "" },
+        changedelete = { text = "▎" },
+        untracked = { text = "▎" },
+      },
+      on_attach = function(buffer)
+        local gs = package.loaded.gitsigns
+        local function gmap(mode, l, r, desc)
+          vim.keymap.set(mode, l, r, { buffer = buffer, desc = desc })
+        end
+
+        -- Navigation
+        gmap("n", "]h", gs.next_hunk, "Next Hunk")
+        gmap("n", "[h", gs.prev_hunk, "Prev Hunk")
+
+        -- Actions
+        gmap("n", "<leader>hs", gs.stage_hunk, "Stage Hunk")
+        gmap("n", "<leader>hr", gs.reset_hunk, "Reset Hunk")
+        gmap("v", "<leader>hs", function() gs.stage_hunk({ vim.fn.line("."), vim.fn.line("v") }) end, "Stage Hunk")
+        gmap("v", "<leader>hr", function() gs.reset_hunk({ vim.fn.line("."), vim.fn.line("v") }) end, "Reset Hunk")
+
+        gmap("n", "<leader>hS", gs.stage_buffer, "Stage Buffer")
+        gmap("n", "<leader>hR", gs.reset_buffer, "Reset Buffer")
+        gmap("n", "<leader>hu", gs.undo_stage_hunk, "Undo Stage Hunk")
+        gmap("n", "<leader>hp", gs.preview_hunk, "Preview Hunk")
+        gmap("n", "<leader>hd", gs.diffthis, "Diff This")
+        gmap("n", "<leader>hD", function() gs.diffthis("~") end, "Diff This ~")
+
+        -- Text object
+        gmap({ "o", "x" }, "ih", ":<C-U>Gitsigns select_hunk<CR>", "GitSigns Select Hunk")
+      end,
+    },
+  },
 
   -- FZF
   {
@@ -667,6 +748,66 @@ end, { desc = "Copy File Path" })
 --   map(mode, "<ScrollWheelDown>", "<nop>")
 -- end
 
+-- OPTION 3: Minimal statusline integration
+-- If you want to add LSP progress to a statusline, here's a helper function:
+local function get_lsp_progress()
+  local clients = vim.lsp.get_clients({ bufnr = 0 })
+  if #clients == 0 then return "" end
+
+  local progress_msgs = {}
+  for _, client in ipairs(clients) do
+    local progress = vim.lsp.status()
+    if progress and progress[client.id] then
+      for _, p in pairs(progress[client.id]) do
+        if p.kind == "begin" or p.kind == "report" then
+          local msg = p.title or p.message or "Working..."
+          table.insert(progress_msgs, string.format("%s: %s", client.name, msg))
+        end
+      end
+    end
+  end
+
+  return #progress_msgs > 0 and table.concat(progress_msgs, " | ") or ""
+end
+
+-- Enhanced LSP server start notification
+-- Add this to your LSP config section (around line 285):
+vim.api.nvim_create_autocmd("LspAttach", {
+  group = augroup("lsp_attach_notify"),
+  callback = function(args)
+    local client = vim.lsp.get_client_by_id(args.data.client_id)
+    if client then
+      vim.notify(
+        string.format("🚀 %s ready", client.name),
+        vim.log.levels.INFO,
+        {
+          title = "LSP Server Started",
+          icon = "🔧",
+          timeout = 2000,
+        }
+      )
+    end
+  end,
+})
+
+-- Optional: LSP server shutdown notification
+vim.api.nvim_create_autocmd("LspDetach", {
+  group = augroup("lsp_detach_notify"),
+  callback = function(args)
+    local client = vim.lsp.get_client_by_id(args.data.client_id)
+    if client then
+      vim.notify(
+        string.format("⚠️  %s disconnected", client.name),
+        vim.log.levels.WARN,
+        {
+          title = "LSP Server Stopped",
+          timeout = 1500,
+        }
+      )
+    end
+  end,
+})
+
 -- Essential autocmds
 vim.api.nvim_create_autocmd("TextYankPost", {
   group = augroup("highlight_yank"),
@@ -736,12 +877,12 @@ if vim.lsp.inlay_hint then
   end, { desc = "Toggle Inlay Hints" })
 end
 
--- require('vim._extui').enable({
---   enable = true, -- Whether to enable or disable the UI.
---   msg = {        -- Options related to the message module.
---     ---@type 'cmd'|'msg' Where to place regular messages, either in the
---     ---cmdline or in a separate ephemeral message window.
---     target = 'msg',
---     timeout = 4000, -- Time a message is visible in the message window.
---   },
--- })
+require('vim._extui').enable({
+  enable = true, -- Whether to enable or disable the UI.
+  msg = {        -- Options related to the message module.
+    ---@type 'cmd'|'msg' Where to place regular messages, either in the
+    ---cmdline or in a separate ephemeral message window.
+    target = 'msg',
+    timeout = 4000, -- Time a message is visible in the message window.
+  },
+})
