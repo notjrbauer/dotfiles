@@ -17,6 +17,7 @@ help:
 	@echo "  make bench-reset     - 🔄 Benchmark before/after reset"
 	@echo "  make bench-noplugins - 🚀 Benchmark without plugins (--clean)"
 	@echo "  make bench-vs        - ⚔️  Compare with/without plugins"
+	@echo "  make bench-clean     - ♻️  Clean bench directory"
 	@echo "  make help            - 🆘 Show this help message"
 
 clean:
@@ -99,9 +100,11 @@ bench-compare: $(BENCH_DIR)
 		grep -A 4 "Timing Summary" "$$file2"; \
 		echo ""; \
 		echo "📈 Comparison:"; \
-		paste <(grep "Average:" "$$file1" | awk '{print $$2}' | sed 's/s//') \
-		      <(grep "Average:" "$$file2" | awk '{print $$2}' | sed 's/s//') | \
-		awk '{diff = $$2 - $$1; percent = (diff / $$1) * 100; \
+		avg1=$$(grep "Average:" "$$file1" | awk '{print $$2}' | sed 's/s//'); \
+		avg2=$$(grep "Average:" "$$file2" | awk '{print $$2}' | sed 's/s//'); \
+		awk -v a1="$$avg1" -v a2="$$avg2" 'BEGIN { \
+			diff = a2 - a1; \
+			percent = (diff / a1) * 100; \
 			if (diff > 0) { \
 				printf "⚠️  Slower by %.3fs (%.1f%% increase)\n", diff, percent; \
 			} else if (diff < 0) { \
@@ -111,7 +114,7 @@ bench-compare: $(BENCH_DIR)
 			} \
 		}'; \
 	else \
-		echo "❌ Invalid selection."; \
+		echo "❌ Invalid selection. File1: [$$file1] File2: [$$file2]"; \
 	fi
 
 # Benchmark before and after reset
@@ -128,23 +131,29 @@ bench-reset: $(BENCH_DIR)
 	@$(MAKE) bench-save
 	@echo ""
 	@echo "🔍 Comparing results..."
-	@file1=$$(ls -1t $(BENCH_DIR)/bench_*.txt | sed -n '2p'); \
-	file2=$$(ls -1t $(BENCH_DIR)/bench_*.txt | sed -n '1p'); \
-	echo "Before reset: $$(grep "Average:" "$$file1" | awk '{print $$2}')"; \
-	echo "After reset:  $$(grep "Average:" "$$file2" | awk '{print $$2}')"; \
-	echo ""; \
-	paste <(grep "Average:" "$$file1" | awk '{print $$2}' | sed 's/s//') \
-	      <(grep "Average:" "$$file2" | awk '{print $$2}' | sed 's/s//') | \
-	awk '{diff = $$2 - $$1; percent = (diff / $$1) * 100; \
-		if (diff > 0) { \
-			printf "⚠️  Slower by %.3fs (%.1f%% increase)\n", diff, percent; \
-		} else if (diff < 0) { \
-			printf "🚀 Faster by %.3fs (%.1f%% improvement)\n", -diff, -percent; \
-		} else { \
-			printf "🟰 No significant change\n"; \
-		} \
-	}'
-
+	@files=$$(ls -1t $(BENCH_DIR)/bench_*.txt | head -n 2); \
+	file1=$$(echo "$$files" | sed -n '1p'); \
+	file2=$$(echo "$$files" | sed -n '2p'); \
+	if [ -f "$$file1" ] && [ -f "$$file2" ]; then \
+		echo "Before reset: $$(grep "Average:" "$$file2" | awk '{print $$2}')"; \
+		echo "After reset:  $$(grep "Average:" "$$file1" | awk '{print $$2}')"; \
+		echo ""; \
+		before=$$(grep "Average:" "$$file2" | awk '{print $$2}' | sed 's/s//'); \
+		after=$$(grep "Average:" "$$file1" | awk '{print $$2}' | sed 's/s//'); \
+		awk -v b="$$before" -v a="$$after" 'BEGIN { \
+			diff = a - b; \
+			percent = (diff / b) * 100; \
+			if (diff > 0) { \
+				printf "⚠️  Slower by %.3fs (%.1f%% increase)\n", diff, percent; \
+			} else if (diff < 0) { \
+				printf "🚀 Faster by %.3fs (%.1f%% improvement)\n", -diff, -percent; \
+			} else { \
+				printf "🟰 No significant change\n"; \
+			} \
+		}'; \
+	else \
+		echo "❌ Could not find benchmark files for comparison"; \
+	fi
 # Benchmark without plugins
 bench-noplugins:
 	@echo "🚀 Running Neovim startup benchmark (no plugins)..."
@@ -189,5 +198,10 @@ bench-vs:
 		} \
 	}' /tmp/nvim_bench_with.tmp /tmp/nvim_bench_without.tmp
 	@rm /tmp/nvim_bench_with.tmp /tmp/nvim_bench_without.tmp
+
+bench-clean:
+	@echo "🧹 Cleaning Benchmark files..."
+	@rm -rf $(BENCH_DIR)
+	@echo "✅ Done cleaning."
 
 reset: clean upgrade

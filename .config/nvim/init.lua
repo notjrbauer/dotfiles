@@ -8,6 +8,27 @@ vim.g.maplocalleader = "\\"
 -- Prevent colorscheme flash
 vim.cmd.colorscheme("habamax")
 
+-- Defer command abbreviations until after startup
+vim.schedule(function()
+  local abbrevs = {
+    { "W!",    "w!" },
+    { "Q!",    "q!" },
+    { "Qall!", "qall!" },
+    { "Wq",    "wq" },
+    { "Wa",    "wa" },
+    { "wQ",    "wq" },
+    { "WQ",    "wq" },
+    { "W",     "w" },
+    { "Q",     "q" },
+    { "Qall",  "qall" },
+  }
+
+  for _, abbrev in ipairs(abbrevs) do
+    vim.cmd.cnoreabbrev(abbrev[1], abbrev[2])
+  end
+end)
+
+
 -- Disable built-in plugins for performance
 vim.g.loaded_2html_plugin = 1
 vim.g.loaded_getscript = 1
@@ -212,8 +233,10 @@ end
 
 -- Diagnostic configuration
 vim.diagnostic.config({
-  underline = true,
+  underline = false,
   update_in_insert = false,
+  -- virtual_lines = { only_current_line = true },
+  -- virtual_text = false,
   virtual_text = { spacing = 4, source = "if_many", prefix = "●" },
   severity_sort = true,
   signs = {
@@ -224,7 +247,10 @@ vim.diagnostic.config({
       [vim.diagnostic.severity.INFO] = " ",
     },
   },
-  float = { border = "rounded", source = true },
+  float = {
+    source = true,
+    border = 'rounded',
+  },
 })
 
 -- LSP attach function
@@ -232,6 +258,8 @@ local function on_attach(client, bufnr)
   local function opts(desc)
     return { buffer = bufnr, desc = "LSP: " .. desc }
   end
+  -- vim.print(vim.inspect(client))
+  -- vim.print(require("blink.cmp").get_lsp_capabilities())
 
   -- Enable inlay hints if supported
   if vim.lsp.inlay_hint and client.server_capabilities.inlayHintProvider then
@@ -252,12 +280,6 @@ local function on_attach(client, bufnr)
 
   -- Diagnostics
   map("n", "<leader>cd", vim.diagnostic.open_float, opts("Line Diagnostics"))
-  map("n", "]d", vim.diagnostic.goto_next, opts("Next Diagnostic"))
-  map("n", "[d", vim.diagnostic.goto_prev, opts("Prev Diagnostic"))
-  map("n", "]e", function() vim.diagnostic.goto_next({ severity = vim.diagnostic.severity.ERROR }) end,
-    opts("Next Error"))
-  map("n", "[e", function() vim.diagnostic.goto_prev({ severity = vim.diagnostic.severity.ERROR }) end,
-    opts("Prev Error"))
 
   -- Format on save
   if client.server_capabilities.documentFormattingProvider then
@@ -336,7 +358,7 @@ require("lazy").setup({
   {
     "mason-org/mason-lspconfig.nvim",
     dependencies = { { "mason-org/mason.nvim", opts = {} }, "neovim/nvim-lspconfig" },
-    event = { "BufReadPost", "BufNewFile" },
+    event = { "BufReadPre", "BufNewFile" },
     opts = {
       ensure_installed = vim.tbl_keys(servers),
       automatic_installation = true,
@@ -347,23 +369,19 @@ require("lazy").setup({
   {
     "neovim/nvim-lspconfig",
     dependencies = { "mason-org/mason-lspconfig.nvim", "saghen/blink.cmp" },
-    event = { "BufReadPost", "BufNewFile" },
+    event = { "BufReadPre", "BufNewFile" },
     config = function()
+      -- Configure servers using vim.lsp.config
       local capabilities = require("blink.cmp").get_lsp_capabilities()
 
-      -- Configure servers using vim.lsp.config
+      vim.lsp.config("*", {
+        capabilities = capabilities,
+        root_markers = { '.git' },
+        on_attach = on_attach
+      })
+
       for server_name, config in pairs(servers) do
-        local server_config = vim.tbl_deep_extend("force", {
-          on_attach = on_attach,
-          capabilities = capabilities,
-        }, config)
-
-        -- Special handling for clangd
-        if server_name == "clangd" then
-          server_config.capabilities.offsetEncoding = "utf-16"
-        end
-
-        vim.lsp.config(server_name, server_config)
+        vim.lsp.config(server_name, config)
       end
 
       -- Simply enable all configured servers
@@ -372,56 +390,62 @@ require("lazy").setup({
     end,
   },
 
-  -- Treesitter
+  -- nvim-treesitter: Syntax Highlighting {{{2
   {
     "nvim-treesitter/nvim-treesitter",
-    version = false,
     build = ":TSUpdate",
-    event = { "VeryLazy" },
-    lazy = vim.fn.argc(-1) == 0,
-    init = function(plugin)
-      require("lazy.core.loader").add_to_rtp(plugin)
-      require("nvim-treesitter.query_predicates")
-    end,
-    dependencies = { "nvim-treesitter/nvim-treesitter-textobjects" },
-    cmd = { "TSUpdateSync", "TSUpdate", "TSInstall" },
-    keys = {
-      { "<c-space>", desc = "Increment Selection" },
-      { "<bs>",      desc = "Decrement Selection", mode = "x" },
+    opts = {},
+    event = { "BufReadPost", "BufNewFile" },
+    auto_install = false,
+    cmd = {
+      "TSInstall",
+      "TSUpdate",
+      "TSInstallInfo",
+      "TSEnable",
+      "TSDisable",
+      "TSModuleInfo",
+      "TSUninstall",
     },
-    opts = {
-      highlight = { enable = true },
-      indent = { enable = true },
-      ensure_installed = {
-        "bash", "c", "diff", "html", "javascript", "jsdoc", "json", "jsonc",
-        "lua", "luadoc", "luap", "markdown", "markdown_inline", "python",
-        "query", "regex", "toml", "tsx", "typescript", "vim", "vimdoc",
-        "yaml", "go", "gomod", "gowork", "gotmpl", "rust", "zig",
-      },
-      incremental_selection = {
-        enable = true,
-        keymaps = {
-          init_selection = "<C-space>",
-          node_incremental = "<C-space>",
-          scope_incremental = false,
-          node_decremental = "<bs>",
+    config = function()
+      require("nvim-treesitter.configs").setup({
+        ensure_installed = {
+          "bash",
+          "html",
+          "javascript",
+          "json",
+          "lua",
+          "make",
+          "markdown",
+          "markdown_inline",
+          "python",
+          "query",
+          "regex",
+          "tsx",
+          "typescript",
+          "vim",
+          "yaml",
+          "go",
+          "css",
+          "gitignore",
+          "rust",
+          "cpp",
+          "c",
+          "vim",
+          "vimdoc",
         },
-      },
-      textobjects = {
-        move = {
+
+        sync_install = false,
+
+        highlight = {
           enable = true,
-          goto_next_start = { ["]f"] = "@function.outer", ["]c"] = "@class.outer" },
-          goto_next_end = { ["]F"] = "@function.outer", ["]C"] = "@class.outer" },
-          goto_previous_start = { ["[f"] = "@function.outer", ["[c"] = "@class.outer" },
-          goto_previous_end = { ["[F"] = "@function.outer", ["[C"] = "@class.outer" },
+          additional_vim_regex_highlighting = false,
         },
-      },
-    },
-    config = function(_, opts)
-      require("nvim-treesitter.configs").setup(opts)
+        indent = {
+          enable = true,
+        },
+      })
     end,
   },
-
   -- Completion
   {
     "saghen/blink.cmp",
@@ -520,6 +544,7 @@ require("lazy").setup({
     },
     config = function(_, opts)
       require("fzf-lua").setup(opts)
+      require("fzf-lua").register_ui_select()
     end,
   },
 
@@ -630,10 +655,10 @@ map("n", "<leader>fp", function()
 end, { desc = "Copy File Path" })
 
 -- Disable mouse wheel scrolling
-for _, mode in ipairs({ "n", "i", "v" }) do
-  map(mode, "<ScrollWheelUp>", "<nop>")
-  map(mode, "<ScrollWheelDown>", "<nop>")
-end
+-- for _, mode in ipairs({ "n", "i", "v" }) do
+--   map(mode, "<ScrollWheelUp>", "<nop>")
+--   map(mode, "<ScrollWheelDown>", "<nop>")
+-- end
 
 -- Essential autocmds
 vim.api.nvim_create_autocmd("TextYankPost", {
@@ -676,51 +701,16 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
--- Language-specific settings
-vim.api.nvim_create_autocmd("FileType", {
-  group = augroup("go_settings"),
-  pattern = "go",
+-- Show recording status
+vim.api.nvim_create_autocmd("RecordingEnter", {
   callback = function()
-    vim.opt_local.tabstop = 4
-    vim.opt_local.shiftwidth = 4
-    vim.opt_local.expandtab = false
+    vim.opt.cmdheight = 1
   end,
 })
 
-vim.api.nvim_create_autocmd("FileType", {
-  group = augroup("large_indent"),
-  pattern = { "python", "rust", "c", "cpp", "zig" },
+vim.api.nvim_create_autocmd("RecordingLeave", {
   callback = function()
-    vim.opt_local.tabstop = 4
-    vim.opt_local.shiftwidth = 4
-  end,
-})
-
--- Go import organization
-vim.api.nvim_create_autocmd("BufWritePre", {
-  group = augroup("go_organize_imports"),
-  pattern = "*.go",
-  callback = function()
-    local bufnr = vim.api.nvim_get_current_buf()
-    local clients = vim.lsp.get_clients({ bufnr = bufnr })
-    if #clients == 0 then return end
-
-    local client = clients[1]
-    local encoding = client.offset_encoding or "utf-16"
-    local range_params = vim.lsp.util.make_range_params(0, encoding)
-    local params = vim.tbl_extend("force", range_params, {
-      context = { only = { "source.organizeImports" } }
-    })
-
-    local result = vim.lsp.buf_request_sync(bufnr, "textDocument/codeAction", params, 1000)
-    for cid, res in pairs(result or {}) do
-      for _, r in pairs(res.result or {}) do
-        if r.edit then
-          local enc = (vim.lsp.get_client_by_id(cid) or {}).offset_encoding or "utf-16"
-          vim.lsp.util.apply_workspace_edit(r.edit, enc)
-        end
-      end
-    end
+    vim.opt.cmdheight = 0
   end,
 })
 
@@ -738,3 +728,13 @@ if vim.lsp.inlay_hint then
     vim.notify("Inlay hints " .. (enabled and "disabled" or "enabled"))
   end, { desc = "Toggle Inlay Hints" })
 end
+
+-- require('vim._extui').enable({
+--   enable = true, -- Whether to enable or disable the UI.
+--   msg = {        -- Options related to the message module.
+--     ---@type 'cmd'|'msg' Where to place regular messages, either in the
+--     ---cmdline or in a separate ephemeral message window.
+--     target = 'msg',
+--     timeout = 4000, -- Time a message is visible in the message window.
+--   },
+-- })
