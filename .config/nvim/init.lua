@@ -566,7 +566,13 @@ require("lazy").setup({
   performance = {
     rtp = {
       disabled_plugins = {
+        "man",
+        "spellfile",
+        "matchparen",
+        "osc52",
+        "shada",
         "2html_plugin",
+        "tohtml",
         "getscript",
         "getscriptPlugin",
         "gzip",
@@ -592,6 +598,7 @@ require("lazy").setup({
         "compiler",
         "bugreport",
         "ftplugin",
+        "editorconfig",
       },
     },
   },
