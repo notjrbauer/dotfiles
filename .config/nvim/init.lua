@@ -142,15 +142,31 @@ local servers = {
   lua_ls = {
     settings = {
       Lua = {
-        completion = { callSnippet = "Replace" },
         diagnostics = { globals = { "vim", "capabilities" } },
-        hint = { enable = false },
         runtime = { version = "LuaJIT" },
+        hover = { expandAlias = false },
+        type = {
+          castNumberToInteger = true,
+          inferParamType = true,
+        },
         workspace = {
           checkThirdParty = false,
-          library = { vim.env.VIMRUNTIME, "${3rd}/luv/library" },
+          library = {
+            vim.env.VIMRUNTIME,
+          },
         },
         telemetry = { enable = false },
+        hint = {
+          enable = true,
+          setType = false,
+          paramType = true,
+          paramName = "Disable",
+          semicolon = "Disable",
+          arrayIndex = "Disable",
+        },
+        codeLens = {
+          enable = true,
+        },
       },
     },
   },
@@ -216,27 +232,10 @@ vim.diagnostic.config({
 
 -- LSP attach function
 local function on_attach(client, bufnr)
-  local function opts(desc)
-    return { buffer = bufnr, desc = "LSP: " .. desc }
-  end
-
   -- Enable inlay hints if supported
   if vim.lsp.inlay_hint and client.server_capabilities.inlayHintProvider then
     vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
   end
-
-  -- Essential LSP keymaps
-  map("n", "gd", "<cmd>FzfLua lsp_definitions<cr>", opts("Goto Definition"))
-  map("n", "gr", "<cmd>FzfLua lsp_references<cr>", opts("References"))
-  map("n", "gI", "<cmd>FzfLua lsp_implementations<cr>", opts("Goto Implementation"))
-  map("n", "gy", "<cmd>FzfLua lsp_typedefs<cr>", opts("Goto Type Definition"))
-  map("n", "gD", vim.lsp.buf.declaration, opts("Goto Declaration"))
-  map("n", "K", vim.lsp.buf.hover, opts("Hover"))
-  map("n", "gK", vim.lsp.buf.signature_help, opts("Signature Help"))
-  map("i", "<c-k>", vim.lsp.buf.signature_help, opts("Signature Help"))
-  map("n", "<leader>ca", "<cmd>FzfLua lsp_code_actions<cr>", opts("Code Action"))
-  map("n", "<leader>cr", vim.lsp.buf.rename, opts("Rename"))
-  map("n", "<leader>cd", vim.diagnostic.open_float, opts("Line Diagnostics"))
 
   -- Format on save
   if client.server_capabilities.documentFormattingProvider then
@@ -374,7 +373,7 @@ require("lazy").setup({
     "saghen/blink.cmp",
     lazy = false,
     dependencies = "rafamadriz/friendly-snippets",
-    version = '1.*',
+    version = '*',
     opts = {
       keymap = {
         preset = "default",
@@ -496,21 +495,155 @@ require("lazy").setup({
     dependencies = { "nvim-tree/nvim-web-devicons" },
     cmd = "FzfLua",
     keys = {
-      { "<leader><leader>", "<cmd>FzfLua files<cr>",                 desc = "Find Files" },
-      { "<leader>/",        "<cmd>FzfLua live_grep<cr>",             desc = "Live Grep" },
-      { "<leader>ff",       "<cmd>FzfLua files<cr>",                 desc = "Find Files" },
-      { "<leader>fg",       "<cmd>FzfLua live_grep<cr>",             desc = "Live Grep" },
-      { "<leader>fb",       "<cmd>FzfLua buffers<cr>",               desc = "Find Buffers" },
-      { "<leader>fh",       "<cmd>FzfLua help_tags<cr>",             desc = "Help Tags" },
-      { "<leader>fo",       "<cmd>FzfLua oldfiles<cr>",              desc = "Recent Files" },
-      { "<leader>gs",       "<cmd>FzfLua git_status<cr>",            desc = "Git Status" },
-      { "<leader>gc",       "<cmd>FzfLua git_commits<cr>",           desc = "Git Commits" },
-      { "<leader>sw",       "<cmd>FzfLua grep_cword<cr>",            desc = "Search Word",          mode = "n" },
-      { "<leader>sw",       "<cmd>FzfLua grep_visual<cr>",           desc = "Search Selection",     mode = "v" },
-      { "<leader>xd",       "<cmd>FzfLua diagnostics_document<cr>",  desc = "Buffer Diagnostics" },
-      { "<leader>xw",       "<cmd>FzfLua diagnostics_workspace<cr>", desc = "Workspace Diagnostics" },
+      {
+        'grr',
+        function()
+          require('fzf-lua').lsp_references()
+        end,
+        desc = 'Find LSP References',
+      },
+      {
+        'gd',
+        function()
+          require('fzf-lua').lsp_definitions()
+        end,
+        desc = 'Goto Definition',
+      },
+      {
+        'gI',
+        function()
+          require('fzf-lua').lsp_implementations()
+        end,
+        desc = 'Goto Implementation',
+      },
+      {
+        '<leader>D',
+        function()
+          require('fzf-lua').lsp_typedefs()
+        end,
+        desc = 'Type Definition',
+      },
+      {
+        '<leader>ds',
+        function()
+          require('fzf-lua').lsp_document_symbols()
+        end,
+        desc = 'Document Symbols',
+      },
+      {
+        '<leader>ws',
+        function()
+          require('fzf-lua').lsp_live_workspace_symbols()
+        end,
+        desc = 'Workspace Symbols',
+      },
+      {
+        '<leader>cr',
+        vim.lsp.buf.rename,
+        desc = 'Rename',
+      },
+      {
+        '<leader>ca',
+        vim.lsp.buf.code_action,
+        desc = 'Code Action',
+      },
+      {
+        'gD',
+        vim.lsp.buf.declaration,
+        desc = 'Goto Declaration',
+      },
+      {
+        '<leader>fc',
+        function()
+          require('fzf-lua').files { cwd = vim.fn.stdpath 'config' }
+        end,
+        desc = 'Find in neovim configuration',
+      },
+      {
+        '<leader>fh',
+        function()
+          require('fzf-lua').helptags()
+        end,
+        desc = '[F]ind [H]elp',
+      },
+      {
+        '<leader>fk',
+        function()
+          require('fzf-lua').keymaps()
+        end,
+        desc = '[F]ind [K]eymaps',
+      },
+      {
+        '<leader>fb',
+        function()
+          require('fzf-lua').builtin()
+        end,
+        desc = '[F]ind [B]uiltin FZF',
+      },
+      {
+        '<leader>fw',
+        function()
+          require('fzf-lua').grep_cword()
+        end,
+        desc = '[F]ind current [W]ord',
+      },
+      {
+        '<leader>fW',
+        function()
+          require('fzf-lua').grep_cWORD()
+        end,
+        desc = '[F]ind current [W]ORD',
+      },
+      {
+        '<leader>fd',
+        function()
+          require('fzf-lua').diagnostics_document()
+        end,
+        desc = '[F]ind [D]iagnostics',
+      },
+      {
+        '<leader>fr',
+        function()
+          require('fzf-lua').resume()
+        end,
+        desc = '[F]ind [R]esume',
+      },
+      {
+        '<leader>fo',
+        function()
+          require('fzf-lua').oldfiles()
+        end,
+        desc = '[F]ind [O]ld Files',
+      },
+      {
+        '<leader><leader>',
+        function()
+          require('fzf-lua').buffers()
+        end,
+        desc = '[,] Find existing buffers',
+      },
+      {
+        '<leader>/',
+        function()
+          require('fzf-lua').lgrep_curbuf()
+        end,
+        desc = '[/] Live grep the current buffer',
+      },
     },
     opts = {
+      oldfiles = {
+        -- In Telescope, when I used <leader>fr, it would load old buffers.
+        -- fzf lua does the same, but by default buffers visited in the current
+        -- session are not included. I use <leader>fr all the time to switch
+        -- back to buffers I was just in. If you missed this from Telescope,
+        -- give it a try.
+        include_current_session = true,
+      },
+      previewers = {
+        builtin = {
+          syntax_limit_b = 1024 * 100, -- 100KB
+        },
+      },
       fzf_colors = true,
       fzf_opts = {
         ["--ansi"] = true,
@@ -524,7 +657,12 @@ require("lazy").setup({
       winopts = { preview = { border = "border", layout = "flex", flip_columns = 120 } },
       keymap = {
         builtin = { ["<C-u>"] = "preview-page-up", ["<C-d>"] = "preview-page-down" },
-        fzf = { ["ctrl-u"] = "preview-page-up", ["ctrl-d"] = "preview-page-down" },
+        fzf = {
+          -- use cltr-q to select all items and convert to quickfix list
+          ["ctrl-q"] = "select-all+accept",
+          ["ctrl-u"] = "preview-page-up",
+          ["ctrl-d"] = "preview-page-down"
+        },
       },
     },
     config = function(_, opts)
@@ -614,13 +752,6 @@ map("n", "N", "'nN'[v:searchforward].'zv'", { expr = true, desc = "Prev Search R
 map("v", "<", "<gv")
 map("v", ">", ">gv")
 
--- Diagnostic navigation
-map("n", "]d", vim.diagnostic.goto_next, { desc = "Next Diagnostic" })
-map("n", "[d", vim.diagnostic.goto_prev, { desc = "Prev Diagnostic" })
-map("n", "]e", function() vim.diagnostic.goto_next({ severity = vim.diagnostic.severity.ERROR }) end,
-  { desc = "Next Error" })
-map("n", "[e", function() vim.diagnostic.goto_prev({ severity = vim.diagnostic.severity.ERROR }) end,
-  { desc = "Prev Error" })
 
 -- Utilities
 map("n", "<leader>l", "<cmd>Lazy<cr>", { desc = "Lazy" })
@@ -736,6 +867,7 @@ vim.api.nvim_create_autocmd("LspDetach", {
   callback = function(args)
     local client = vim.lsp.get_client_by_id(args.data.client_id)
     if client then
+      vim.lsp.stop_client(client.id, true)
       vim.notify(
         string.format("⚠️  %s disconnected", client.name),
         vim.log.levels.WARN,
@@ -951,4 +1083,3 @@ require('vim._extui').enable({
   enable = true,
   msg = { target = 'msg', timeout = 4000 },
 })
-
