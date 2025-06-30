@@ -318,19 +318,12 @@ require("lazy").setup({
   -- Mason LSP Config
   {
     "mason-org/mason-lspconfig.nvim",
-    dependencies = { { "mason-org/mason.nvim", opts = {} }, "neovim/nvim-lspconfig" },
-    event = { "BufReadPre", "BufNewFile" },
-    opts = {
-      ensure_installed = vim.tbl_keys(servers),
-      automatic_installation = true,
-    },
-  },
-
-  -- LSP setup using modern 0.11+ API
-  {
-    "neovim/nvim-lspconfig",
-    dependencies = { "mason-org/mason-lspconfig.nvim", "saghen/blink.cmp" },
-    event = { "BufReadPre", "BufNewFile" },
+    dependencies = { "mason-org/mason.nvim", "neovim/nvim-lspconfig", "saghen/blink.cmp" },
+    event = { "BufReadPre" },
+    -- opts = {
+    --   ensure_installed = vim.tbl_keys(servers),
+    --   automatic_installation = true,
+    -- },
     config = function()
       local capabilities = require("blink.cmp").get_lsp_capabilities()
 
@@ -348,11 +341,33 @@ require("lazy").setup({
     end,
   },
 
+  -- LSP setup using modern 0.11+ API
+  -- {
+  --   "neovim/nvim-lspconfig",
+  --   dependencies = { "mason-org/mason-lspconfig.nvim",
+  --   event = { "BufReadPre" },
+  --   config = function()
+  --     local capabilities = require("blink.cmp").get_lsp_capabilities()
+  --
+  --     vim.lsp.config("*", {
+  --       capabilities = capabilities,
+  --       root_markers = { '.git' },
+  --       on_attach = on_attach
+  --     })
+  --
+  --     for server_name, config in pairs(servers) do
+  --       vim.lsp.config(server_name, config)
+  --     end
+  --
+  --     vim.lsp.enable(vim.tbl_keys(servers))
+  --   end,
+  -- },
+
   -- Treesitter
   {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
-    event = { "BufReadPre", "BufNewFile" },
+    event = { "BufReadPost", "BufNewFile" },
     cmd = { "TSInstall", "TSUpdate", "TSInstallInfo", "TSEnable", "TSDisable", "TSModuleInfo", "TSUninstall" },
     config = function()
       require("nvim-treesitter.configs").setup({
@@ -422,6 +437,7 @@ require("lazy").setup({
   -- File Explorer
   {
     "stevearc/oil.nvim",
+    event = "VeryLazy",
     dependencies = { "echasnovski/mini.icons" },
     cmd = "Oil",
     keys = {
@@ -492,6 +508,7 @@ require("lazy").setup({
   -- FZF
   {
     "ibhagwan/fzf-lua",
+    event = "VeryLazy",
     dependencies = { "nvim-tree/nvim-web-devicons" },
     cmd = "FzfLua",
     keys = {
@@ -674,8 +691,8 @@ require("lazy").setup({
   -- Icons
   {
     "echasnovski/mini.icons",
+    event = "VeryLazy",
     opts = {},
-    lazy = true,
     specs = { { "nvim-tree/nvim-web-devicons", enabled = false, optional = true } },
     init = function()
       package.preload["nvim-web-devicons"] = function()
