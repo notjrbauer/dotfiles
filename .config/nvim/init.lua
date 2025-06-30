@@ -318,12 +318,16 @@ require("lazy").setup({
   -- Mason LSP Config
   {
     "mason-org/mason-lspconfig.nvim",
-    dependencies = { "mason-org/mason.nvim", "neovim/nvim-lspconfig", "saghen/blink.cmp" },
+    dependencies = {
+      {
+        "mason-org/mason.nvim",
+        opts = {
+          ensure_installed = vim.tbl_keys(servers),
+          automatic_installation = true,
+        }
+      },
+      "neovim/nvim-lspconfig" },
     event = { "BufReadPre" },
-    -- opts = {
-    --   ensure_installed = vim.tbl_keys(servers),
-    --   automatic_installation = true,
-    -- },
     config = function()
       local capabilities = require("blink.cmp").get_lsp_capabilities()
 
