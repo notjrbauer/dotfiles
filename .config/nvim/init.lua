@@ -9,10 +9,6 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
 
--- Prevent colorscheme flash
-vim.cmd.colorscheme("habamax")
-
-
 -- Bootstrap lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
@@ -232,10 +228,12 @@ vim.diagnostic.config({
 
 -- LSP attach function
 local function on_attach(client, bufnr)
+  client.server_capabilities.semanticTokensProvider = nil
+  client.server_capabilities.inlayHintProvider = nil
   -- Enable inlay hints if supported
-  if vim.lsp.inlay_hint and client.server_capabilities.inlayHintProvider then
-    vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
-  end
+  -- if vim.lsp.inlay_hint and client.server_capabilities.inlayHintProvider then
+  --   vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
+  -- end
 
   -- Format on save
   if client.server_capabilities.documentFormattingProvider then
@@ -244,15 +242,6 @@ local function on_attach(client, bufnr)
       callback = function() vim.lsp.buf.format({ bufnr = bufnr }) end,
     })
   end
-
-  -- Codelens
-  --   if client.server_capabilities.codeLensProvider then
-  --     vim.api.nvim_create_autocmd({ "TextChanged", "InsertLeave" }, {
-  --       buffer = bufnr,
-  --       callback = vim.lsp.codelens.refresh,
-  --     })
-  --     vim.lsp.codelens.refresh()
-  --   end
 end
 
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -290,7 +279,7 @@ require("lazy").setup({
   -- Which-key
   {
     "folke/which-key.nvim",
-    lazy = true,
+    event = "VeryLazy",
     opts = {
       preset = "modern",
       delay = function(ctx) return ctx.plugin and 0 or 100 end,
@@ -341,7 +330,7 @@ require("lazy").setup({
         nerd_font_variant = "mono",
       },
       sources = {
-        default = { "lsp", "path", "snippets", "buffer" },
+        default = { "lsp", "path", "buffer", "snippets" },
         providers = { buffer = { max_items = 10 } },
       },
       completion = {
