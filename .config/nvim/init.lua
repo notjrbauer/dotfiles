@@ -165,7 +165,7 @@ local servers = {
           arrayIndex = "Disable",
         },
         codeLens = {
-          enable = true,
+          enable = false,
         },
       },
     },
@@ -246,13 +246,13 @@ local function on_attach(client, bufnr)
   end
 
   -- Codelens
-  if client.server_capabilities.codeLensProvider then
-    vim.api.nvim_create_autocmd({ "TextChanged", "InsertLeave" }, {
-      buffer = bufnr,
-      callback = vim.lsp.codelens.refresh,
-    })
-    vim.lsp.codelens.refresh()
-  end
+  --   if client.server_capabilities.codeLensProvider then
+  --     vim.api.nvim_create_autocmd({ "TextChanged", "InsertLeave" }, {
+  --       buffer = bufnr,
+  --       callback = vim.lsp.codelens.refresh,
+  --     })
+  --     vim.lsp.codelens.refresh()
+  --   end
 end
 
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -290,7 +290,7 @@ require("lazy").setup({
   -- Which-key
   {
     "folke/which-key.nvim",
-    event = "VeryLazy",
+    lazy = true,
     opts = {
       preset = "modern",
       delay = function(ctx) return ctx.plugin and 0 or 100 end,
@@ -315,6 +315,78 @@ require("lazy").setup({
     },
   },
 
+  -- Completion
+  {
+    "saghen/blink.cmp",
+    event = "InsertEnter",
+    dependencies = "rafamadriz/friendly-snippets",
+    version = '*',
+    opts = {
+      keymap = {
+        preset = "default",
+        ["<C-space>"] = { "show", "show_documentation", "hide_documentation" },
+        ["<C-e>"] = { "hide" },
+        ["<CR>"] = { "accept", "fallback" },
+        ["<Tab>"] = { "snippet_forward", "select_next", "fallback" },
+        ["<S-Tab>"] = { "snippet_backward", "select_prev", "fallback" },
+        ["<Up>"] = { "select_prev", "fallback" },
+        ["<Down>"] = { "select_next", "fallback" },
+        ["<C-p>"] = { "select_prev", "fallback" },
+        ["<C-n>"] = { "select_next", "fallback" },
+        ["<C-u>"] = { "scroll_documentation_up", "fallback" },
+        ["<C-d>"] = { "scroll_documentation_down", "fallback" },
+      },
+      appearance = {
+        use_nvim_cmp_as_default = true,
+        nerd_font_variant = "mono",
+      },
+      sources = {
+        default = { "lsp", "path", "snippets", "buffer" },
+        providers = { buffer = { max_items = 10 } },
+      },
+      completion = {
+        accept = { auto_brackets = { enabled = true } },
+        documentation = {
+          auto_show = true,
+          auto_show_delay_ms = 250,
+          treesitter_highlighting = true,
+          window = { border = "rounded" },
+        },
+        ghost_text = { enabled = true },
+        menu = {
+          border = "rounded",
+          draw = {
+            treesitter = { "lsp" },
+            columns = {
+              { "kind_icon", "label", gap = 1 },
+              { "kind" },
+            },
+            components = {
+              kind_icon = {
+                text = function(ctx)
+                  local kind_icon, _, _ = require('mini.icons').get('lsp', ctx.kind)
+                  return kind_icon
+                end,
+                -- (optional) use highlights from mini.icons
+                highlight = function(ctx)
+                  local _, hl, _ = require('mini.icons').get('lsp', ctx.kind)
+                  return hl
+                end,
+              },
+              kind = {
+                -- (optional) use highlights from mini.icons
+                highlight = function(ctx)
+                  local _, hl, _ = require('mini.icons').get('lsp', ctx.kind)
+                  return hl
+                end,
+              }
+            }
+          },
+        },
+      },
+    },
+  },
+
   -- Mason LSP Config
   {
     "mason-org/mason-lspconfig.nvim",
@@ -326,8 +398,10 @@ require("lazy").setup({
           automatic_installation = true,
         }
       },
-      "neovim/nvim-lspconfig" },
-    event = { "BufReadPre" },
+      "saghen/blink.cmp",
+      "neovim/nvim-lspconfig"
+    },
+    event = { "BufReadPre", "BufNewFile" },
     config = function()
       local capabilities = require("blink.cmp").get_lsp_capabilities()
 
@@ -371,7 +445,8 @@ require("lazy").setup({
   {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
-    event = { "BufReadPost", "BufNewFile" },
+    event = "VeryLazy",
+    lazy = vim.fn.argc(-1) == 0, -- load treesitter early when opening a file from the cmdline
     cmd = { "TSInstall", "TSUpdate", "TSInstallInfo", "TSEnable", "TSDisable", "TSModuleInfo", "TSUninstall" },
     config = function()
       require("nvim-treesitter.configs").setup({
@@ -385,57 +460,6 @@ require("lazy").setup({
         indent = { enable = true },
       })
     end,
-  },
-
-  -- Completion
-  {
-    "saghen/blink.cmp",
-    lazy = false,
-    dependencies = "rafamadriz/friendly-snippets",
-    version = '*',
-    opts = {
-      keymap = {
-        preset = "default",
-        ["<C-space>"] = { "show", "show_documentation", "hide_documentation" },
-        ["<C-e>"] = { "hide" },
-        ["<CR>"] = { "accept", "fallback" },
-        ["<Tab>"] = { "snippet_forward", "select_next", "fallback" },
-        ["<S-Tab>"] = { "snippet_backward", "select_prev", "fallback" },
-        ["<Up>"] = { "select_prev", "fallback" },
-        ["<Down>"] = { "select_next", "fallback" },
-        ["<C-p>"] = { "select_prev", "fallback" },
-        ["<C-n>"] = { "select_next", "fallback" },
-        ["<C-u>"] = { "scroll_documentation_up", "fallback" },
-        ["<C-d>"] = { "scroll_documentation_down", "fallback" },
-      },
-      appearance = {
-        use_nvim_cmp_as_default = true,
-        nerd_font_variant = "mono",
-      },
-      sources = {
-        default = { "lsp", "path", "snippets", "buffer" },
-        providers = { buffer = { max_items = 10 } },
-      },
-      completion = {
-        accept = { auto_brackets = { enabled = true } },
-        menu = {
-          draw = {
-            treesitter = { "lsp" },
-            columns = { { "kind_icon" }, { "label", "label_description", gap = 1 } },
-            components = {
-              kind_icon = {
-                text = function(ctx) return require("mini.icons").get("lsp", ctx.kind) end,
-                highlight = function(ctx)
-                  local _, hl = require("mini.icons").get("lsp", ctx.kind); return hl
-                end,
-              }
-            }
-          },
-        },
-        documentation = { auto_show = true },
-        ghost_text = { enabled = true },
-      },
-    },
   },
 
   -- File Explorer
