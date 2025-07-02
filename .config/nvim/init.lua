@@ -208,16 +208,16 @@ local servers = {
 
 -- Diagnostic configuration
 vim.diagnostic.config({
-  underline = false,
+  underline = true,
   update_in_insert = false,
-  virtual_text = { spacing = 4, source = "if_many", prefix = "●" },
+  virtual_text = { spacing = 2, source = "if_many", prefix = "●" },
   severity_sort = true,
   signs = {
     text = {
-      [vim.diagnostic.severity.ERROR] = " ",
-      [vim.diagnostic.severity.WARN] = " ",
-      [vim.diagnostic.severity.HINT] = " ",
-      [vim.diagnostic.severity.INFO] = " ",
+      [vim.diagnostic.severity.ERROR] = "",
+      [vim.diagnostic.severity.WARN] = "",
+      [vim.diagnostic.severity.HINT] = " ",
+      [vim.diagnostic.severity.INFO] = " ",
     },
   },
   float = {
@@ -861,12 +861,42 @@ vim.api.nvim_create_autocmd("BufReadPost", {
 })
 
 -- Close some filetypes with <q>
-vim.api.nvim_create_autocmd("FileType", {
+vim.api.nvim_create_autocmd("BufEnter", {
   group = augroup("close_with_q"),
-  pattern = { "help", "lspinfo", "qf", "query", "startuptime", "checkhealth" },
   callback = function(event)
-    vim.bo[event.buf].buflisted = false
-    map("n", "q", "<cmd>close<cr>", { buffer = event.buf })
+    local bufnr = event.buf
+    local filetype = vim.bo[bufnr].filetype
+    local types = {
+      help = true,
+      lspinfo = true,
+      qf = true,
+      query = true,
+      startuptime = true,
+      checkhealth = true,
+      vim = true
+    }
+    if vim.fn.has_key(types, filetype) or filetype == "" then
+      vim.bo[bufnr].buflisted = false
+      map("n", "q", "<cmd>close<cr>", { buffer = bufnr })
+    end
+  end,
+})
+
+vim.api.nvim_create_autocmd({ "InsertLeave", "WinEnter" }, {
+  callback = function()
+    if vim.w.auto_cursorline then
+      vim.wo.cursorline = true
+      vim.w.auto_cursorline = nil
+    end
+  end,
+})
+
+vim.api.nvim_create_autocmd({ "InsertEnter", "WinLeave" }, {
+  callback = function()
+    if vim.wo.cursorline then
+      vim.w.auto_cursorline = true
+      vim.wo.cursorline = false
+    end
   end,
 })
 
