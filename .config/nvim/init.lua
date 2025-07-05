@@ -5,11 +5,29 @@
 -- BOOTSTRAP & SETUP
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
--- Leader keys (must be set before lazy)
 vim.g.mapleader = " "
 vim.g.maplocalleader = "\\"
 
--- Bootstrap lazy.nvim
+-- Disable builtin plugins for better performance
+vim.g.loaded_gzip = 1
+vim.g.loaded_zip = 1
+vim.g.loaded_zipPlugin = 1
+vim.g.loaded_tar = 1
+vim.g.loaded_tarPlugin = 1
+vim.g.loaded_getscript = 1
+vim.g.loaded_getscriptPlugin = 1
+vim.g.loaded_vimball = 1
+vim.g.loaded_vimballPlugin = 1
+vim.g.loaded_2html_plugin = 1
+vim.g.loaded_matchit = 1
+vim.g.loaded_matchparen = 1
+vim.g.loaded_logiPat = 1
+vim.g.loaded_rrhelper = 1
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
+vim.g.loaded_netrwSettings = 1
+vim.g.loaded_netrwFileHandlers = 1
+
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
   local lazyrepo = "https://github.com/folke/lazy.nvim.git"
@@ -97,11 +115,10 @@ opt.splitbelow = true
 opt.splitright = true
 opt.splitkeep = "screen"
 
--- Timing
 opt.timeout = true
-opt.timeoutlen = 250
-opt.updatetime = 100
-opt.ttimeoutlen = 5
+opt.timeoutlen = 300
+opt.updatetime = 250
+opt.ttimeoutlen = 10
 
 -- Scrolling
 opt.scrolloff = 8
@@ -430,12 +447,14 @@ require("lazy").setup({
   --   end,
   -- },
 
+
   -- Treesitter
   {
     "nvim-treesitter/nvim-treesitter",
     build = ":TSUpdate",
     event = "VeryLazy",
-    lazy = vim.fn.argc(-1) == 0, -- load treesitter early when opening a file from the cmdline
+    dependencies = { "OXY2DEV/markview.nvim" },
+    lazy = false,
     cmd = { "TSInstall", "TSUpdate", "TSInstallInfo", "TSEnable", "TSDisable", "TSModuleInfo", "TSUninstall" },
     config = function()
       require("nvim-treesitter.configs").setup({
@@ -710,7 +729,7 @@ require("lazy").setup({
     "echasnovski/mini.icons",
     event = "VeryLazy",
     opts = {},
-    specs = { { "nvim-tree/nvim-web-devicons", enabled = false, optional = true } },
+    specs = { { "nvim-tree/nvim-web-devicons", optional = true } },
     init = function()
       package.preload["nvim-web-devicons"] = function()
         require("mini.icons").mock_nvim_web_devicons()
@@ -826,6 +845,33 @@ vim.schedule(function()
   end
 end)
 
+
+map("n", "<space>o", function()
+  vim.ui.input({ prompt = "Shell command: " }, function(c)
+    if c and c ~= "" then
+      vim.cmd("noswapfile vnew")
+      vim.bo.buftype = "nofile"
+      vim.bo.bufhidden = "wipe"
+      vim.bo.filetype = "shelloutput" -- Custom filetype for syntax
+
+      -- Set a descriptive buffer name
+      vim.api.nvim_buf_set_name(0, "Shell: " .. c)
+
+      -- Add the command output
+      local output = vim.fn.systemlist(c)
+      vim.api.nvim_buf_set_lines(0, 0, -1, false, output)
+
+      -- Add useful keymaps
+      vim.keymap.set('n', 'q', '<cmd>close<cr>', { buffer = true })
+      vim.keymap.set('n', 'r', function()
+        -- Re-run the command
+        local new_output = vim.fn.systemlist(c)
+        vim.api.nvim_buf_set_lines(0, 0, -1, false, new_output)
+      end, { buffer = true, desc = "Re-run command" })
+    end
+  end)
+end)
+
 -- Highlight on yank
 vim.api.nvim_create_autocmd("TextYankPost", {
   group = augroup("highlight_yank"),
@@ -875,7 +921,7 @@ vim.api.nvim_create_autocmd("BufEnter", {
       checkhealth = true,
       vim = true
     }
-    if vim.fn.has_key(types, filetype) or filetype == "" then
+    if types[filetype] or filetype == "" then
       vim.bo[bufnr].buflisted = false
       map("n", "q", "<cmd>close<cr>", { buffer = bufnr })
     end
@@ -901,19 +947,29 @@ vim.api.nvim_create_autocmd({ "InsertEnter", "WinLeave" }, {
 })
 
 -- Show recording status
+local recording_group = augroup("recording")
+
 vim.api.nvim_create_autocmd("RecordingEnter", {
-  group = augroup("recording"),
-  callback = function() vim.opt.cmdheight = 1 end,
+  group = recording_group,
+  callback = function()
+    vim.print("recording")
+    vim.opt.cmdheight = 1
+  end,
 })
 
 vim.api.nvim_create_autocmd("RecordingLeave", {
-  group = augroup("recording"),
-  callback = function() vim.opt.cmdheight = 0 end,
+  group = recording_group,
+  callback = function()
+    vim.print("finished recording")
+    vim.opt.cmdheight = 0
+  end,
 })
 
 -- LSP notifications
+local lsp_attach_group = augroup("lsp_attach_group")
+
 vim.api.nvim_create_autocmd("LspAttach", {
-  group = augroup("lsp_attach_notify"),
+  group = lsp_attach_group,
   callback = function(args)
     local client = vim.lsp.get_client_by_id(args.data.client_id)
     if client then
@@ -927,7 +983,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
 })
 
 vim.api.nvim_create_autocmd("LspDetach", {
-  group = augroup("lsp_detach_notify"),
+  group = lsp_attach_group,
   callback = function(args)
     local client = vim.lsp.get_client_by_id(args.data.client_id)
     if client then
@@ -1133,10 +1189,6 @@ end
 map("n", "f", flash_jump, { desc = "Flash Jump Forward" })
 map("n", "F", flash_jump_backward, { desc = "Flash Jump Backward" })
 map("n", "<leader>s", flash_jump_multiline, { desc = "Flash Jump (Multiline)" })
-
--- Keep original f/F behavior available
-map("n", "<leader>of", "f", { desc = "Original f" })
-map("n", "<leader>oF", "F", { desc = "Original F" })
 
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 -- FINAL SETUP

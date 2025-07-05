@@ -18,6 +18,7 @@ help:
 	@echo "  make bench-noplugins - 🚀 Benchmark without plugins (--clean)"
 	@echo "  make bench-vs        - ⚔️  Compare with/without plugins"
 	@echo "  make bench-clean     - ♻️  Clean bench directory"
+	@echo "  make debug           - 🆘 Start without deps"
 	@echo "  make help            - 🆘 Show this help message"
 
 clean:
@@ -203,5 +204,8 @@ bench-clean:
 	@echo "🧹 Cleaning Benchmark files..."
 	@rm -rf $(BENCH_DIR)
 	@echo "✅ Done cleaning."
+
+debug:
+	vim -u NONE -U NONE -N -i NONE init.lua
 
 reset: clean upgrade
