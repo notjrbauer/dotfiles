@@ -451,10 +451,9 @@ require("lazy").setup({
   -- Treesitter
   {
     "nvim-treesitter/nvim-treesitter",
+    event = "BufReadPost",
     build = ":TSUpdate",
-    event = "VeryLazy",
     dependencies = { "OXY2DEV/markview.nvim" },
-    lazy = false,
     cmd = { "TSInstall", "TSUpdate", "TSInstallInfo", "TSEnable", "TSDisable", "TSModuleInfo", "TSUninstall" },
     config = function()
       require("nvim-treesitter.configs").setup({
@@ -604,6 +603,13 @@ require("lazy").setup({
         'gD',
         vim.lsp.buf.declaration,
         desc = 'Goto Declaration',
+      },
+      {
+        '<leader>fz',
+        function()
+          require('fzf-lua').files()
+        end,
+        desc = 'Find in neovim configuration',
       },
       {
         '<leader>fc',
