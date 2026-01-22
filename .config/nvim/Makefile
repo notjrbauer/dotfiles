@@ -18,8 +18,9 @@ help:
 	@echo "  make bench-noplugins - 🚀 Benchmark without plugins (--clean)"
 	@echo "  make bench-vs        - ⚔️  Compare with/without plugins"
 	@echo "  make bench-clean     - ♻️  Clean bench directory"
-	@echo "  make debug           - 🆘 Start without deps"
-	@echo "  make help            - 🆘 Show this help message"
+	@echo "  make wezterm         - ♻️  Clean and upgrade wezterm"   
+	@echo "  make debug           - 🆘  Start without deps"
+	@echo "  make help            - 🆘  Show this help message"
 
 clean:
 	@echo "🧹 Cleaning Neovim files..."
@@ -207,5 +208,8 @@ bench-clean:
 
 debug:
 	vim -u NONE -U NONE -N -i NONE init.lua
+
+wezterm:
+	brew upgrade --cask wezterm@nightly --no-quarantine --greedy-latest
 
 reset: clean upgrade
