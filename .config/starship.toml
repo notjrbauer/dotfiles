@@ -14,9 +14,13 @@ $jobs\
 $character"""
 
 [directory]
-truncation_length = 0        # spaceship DIR_TRUNC=0 — show the full path
-truncate_to_repo = false
+truncation_length = 3          # show at most 3 trailing path components
+truncate_to_repo = true        # inside a repo, the path starts at the repo root
+truncation_symbol = "…/"       # marker shown when the path was shortened
 style = "blue"
+repo_root_style = "bold blue"  # make the repo name stand out
+read_only = " "
+read_only_style = "red"
 
 [git_branch]
 symbol = " "

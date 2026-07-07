@@ -12,7 +12,8 @@ ZSH_AUTOSUGGEST_STRATEGY=(history)   # read by zsh-autosuggestions
 # ---- Toolchain env ----
 export GOPATH="$HOME"
 export BUNPATH="$HOME/.bun"
-export CPPFLAGS="-I/usr/local/opt/openjdk/include"
+# Only leak the openjdk include path into builds where it actually exists.
+[ -d /usr/local/opt/openjdk/include ] && export CPPFLAGS="-I/usr/local/opt/openjdk/include"
 
 # ---- PATH ----
 # PATH additions live in .zprofile, NOT here. macOS's /etc/zprofile runs
