@@ -1,0 +1,113 @@
+; vim: ft=gitconfig
+
+[user]
+    name = john b
+    email = notjrbauer@gmail.com
+
+[core]
+    editor = nvim
+	autocrlf = false
+	pager = delta
+	filemode = false
+
+[gpg]
+	program = gpg
+
+[commit]
+  verbose = true
+  ;gpgsign = true
+
+[branch]
+  autosetupmerge = always
+  autosetuprebase = always
+
+[branch "master"]
+  rebase = true
+
+[pull]
+  rebase = true
+
+[push]
+  default = simple
+  followTags = true
+
+[fetch]
+  prune = true
+
+[rebase]
+  autosquash = true
+  instructionFormat = [%cn <%ce> %G?] %s
+  autoStash = true
+
+[diff]
+  # Detect copies as well as renames
+  renames = copies
+  algorithm = patience
+  tool = nvimdiff
+  indentHeuristic = true
+  colorMoved = zebra
+
+[difftool]
+  prompt = false
+  trustExitCode = true
+
+[merge]
+  # Include summaries of merged commits in newly created merge commit messages
+  log = 1000
+  tool = nvimdiff
+	conflictStyle = zdiff3
+
+[diff "nvimdiff"]
+  cmd = nvim -d \"$LOCAL\" \"$REMOTE\"
+
+[mergetool "nvimdiff"]
+  cmd = nvim -d \"$LOCAL\" \"$REMOTE\" \"$MERGED\" -c 'wincmd w' -c 'wincmd J'
+  trustExitCode = true
+  keepBackup = false
+
+[log]
+  decorate = short
+  date = local
+
+[status]
+  submodulesummary = true
+  color = true
+
+[tag]
+  forceSignAnnotated = true
+
+[apply]
+  whitespace = nowarn
+
+[color]
+  ui = true
+
+; https://github.com/so-fancy/diff-so-fancy/issues/296
+; [interactive]
+;   diffFilter = diff-so-fancy --patch-mode | less --tabs=4 -RFX
+
+[alias]
+  amend = commit --amend --no-edit
+  force = push --force-with-lease
+  fam = "!f() { git add . && git amend && git force; }; f"
+  blm = blame -wMC
+  br = branch --sort=-committerdate --verbose --format='%(HEAD) %(color:red)%(objectname:short)%(color:reset) - %(color:yellow)%(refname:short)%(color:reset) - %(contents:subject) - %(color:green)(%(committerdate:relative))%(color:reset) %(color:blue)<%(authorname)>%(color:reset)'
+  brs = br -a
+  cb = checkout -b
+  cm = commit
+  co = checkout
+  d = diff --patch-with-stat
+  dc = d --staged
+  dm = d --word-diff-regex=.
+  doctor = remote -v show origin
+  fl = l -u
+  stat = --no-pager diff --stat
+  st = status -sb
+  stashes = stash list
+
+[init]
+	defaultBranch = main
+[interactive]
+	diffFilter = delta --color-only
+[delta]
+	navigate = true

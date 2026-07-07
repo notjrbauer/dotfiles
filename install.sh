@@ -38,5 +38,9 @@ link "$DOTFILES/.config/starship.toml" "$XDG_CONFIG_HOME/starship.toml"
 link "$DOTFILES/.config/nvim"        "$XDG_CONFIG_HOME/nvim"
 link "$DOTFILES/.config/wezterm"     "$XDG_CONFIG_HOME/wezterm"
 
+# --- Git / CLI -----------------------------------------------------------
+link "$DOTFILES/.gitconfig"          "$HOME/.gitconfig"
+link "$DOTFILES/.psqlrc"             "$HOME/.psqlrc"
+
 echo ""
 echo "Done. Start a new shell (or run: exec zsh -l) to pick up the changes."
