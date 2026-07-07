@@ -9,6 +9,8 @@
 	autocrlf = false
 	pager = delta
 	filemode = false
+	fsmonitor = true
+	untrackedCache = true
 
 [gpg]
 	program = gpg
@@ -20,6 +22,7 @@
 [branch]
   autosetupmerge = always
   autosetuprebase = always
+  sort = -committerdate
 
 [branch "master"]
   rebase = true
@@ -30,6 +33,7 @@
 [push]
   default = simple
   followTags = true
+  autoSetupRemote = true
 
 [fetch]
   prune = true
@@ -38,6 +42,7 @@
   autosquash = true
   instructionFormat = [%cn <%ce> %G?] %s
   autoStash = true
+  updateRefs = true
 
 [diff]
   # Detect copies as well as renames
@@ -75,16 +80,13 @@
 
 [tag]
   forceSignAnnotated = true
+  sort = version:refname
 
 [apply]
   whitespace = nowarn
 
 [color]
   ui = true
-
-; https://github.com/so-fancy/diff-so-fancy/issues/296
-; [interactive]
-;   diffFilter = diff-so-fancy --patch-mode | less --tabs=4 -RFX
 
 [alias]
   amend = commit --amend --no-edit
@@ -111,3 +113,13 @@
 	diffFilter = delta --color-only
 [delta]
 	navigate = true
+
+[rerere]
+	enabled = true
+	autoupdate = true
+
+[column]
+	ui = auto
+
+[help]
+	autocorrect = prompt
