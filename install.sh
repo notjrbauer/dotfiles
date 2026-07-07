@@ -33,6 +33,7 @@ link() {
 link "$DOTFILES/.zshenv"             "$HOME/.zshenv"
 link "$DOTFILES/.config/zsh"         "$XDG_CONFIG_HOME/zsh"
 link "$DOTFILES/.config/zunder-zsh"  "$XDG_CONFIG_HOME/zunder-zsh"
+link "$DOTFILES/.config/starship.toml" "$XDG_CONFIG_HOME/starship.toml"
 
 # --- Editor / terminal ---------------------------------------------------
 link "$DOTFILES/.config/nvim"        "$XDG_CONFIG_HOME/nvim"

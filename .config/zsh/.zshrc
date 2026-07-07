@@ -32,8 +32,7 @@ ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
 
 plug-defer zdharma-continuum/fast-syntax-highlighting
 
-# Load your prompt last
-plug spaceship-prompt/spaceship-prompt
+# Prompt is starship, initialized at the end of this file.
 
 # ================================
 # 🧩 Platform Tweaks
@@ -162,3 +161,6 @@ fpath=("$HOME/.docker/completions" $fpath)
 
 # fnm (Node version manager) — PATH entries for opencode/etc. live in .zshenv
 eval "$(fnm env --use-on-cd --shell zsh)"
+
+# Prompt — load last so nothing overrides it.
+eval "$(starship init zsh)"

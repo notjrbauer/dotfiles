@@ -7,7 +7,6 @@ skip_global_compinit=1
 
 # ---- zunder-zsh framework flags ----
 DISABLE_AUTOSUGGESTIONS=false
-DISABLE_SPACESHIP_PROMPT=false
 DISABLE_EXA=false
 # Allowed values: "none", "fast-syntax-highlighting"
 SYNTAX_HIGHLIGHTING_PROVIDER="fast-syntax-highlighting"

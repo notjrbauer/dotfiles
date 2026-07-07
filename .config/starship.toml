@@ -1,0 +1,44 @@
+# ~/.config/starship.toml
+# Mirrors the old spaceship layout. Colours use named ANSI slots, so they
+# inherit the terminal's catppuccin-mocha palette automatically.
+
+add_newline = false
+
+format = """
+$directory\
+$git_branch\
+$git_status\
+$python\
+$cmd_duration\
+$jobs\
+$character"""
+
+[directory]
+truncation_length = 0        # spaceship DIR_TRUNC=0 — show the full path
+truncate_to_repo = false
+style = "blue"
+
+[git_branch]
+symbol = " "
+style = "purple"
+
+[git_status]
+style = "red"
+
+[cmd_duration]
+min_time = 500               # only show for commands slower than 500ms
+format = "[$duration]($style) "
+style = "yellow"
+
+[python]
+symbol = " "
+format = 'using [${symbol}${version}]($style) '
+style = "green"
+
+[jobs]
+symbol = "✦ "
+
+[character]
+success_symbol = "[❯](green)"
+error_symbol = "[❯](red)"
+vimcmd_symbol = "[❮](green)"
