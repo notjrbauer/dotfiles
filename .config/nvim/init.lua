@@ -248,7 +248,7 @@ local function setup_gopls_on_save(client, bufnr)
               vim.lsp.util.apply_workspace_edit(action.edit, client.offset_encoding)
             end
             if action.command then
-              vim.lsp.buf.execute_command(action.command)
+              client:exec_cmd(action.command, { bufnr = bufnr })
             end
           end
         end

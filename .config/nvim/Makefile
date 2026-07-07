@@ -1,4 +1,4 @@
-.PHONY: clean upgrade reset help bench bench-save bench-compare bench-reset bench-noplugins bench-vs
+.PHONY: clean upgrade plugins reset help bench bench-save bench-compare bench-reset bench-noplugins bench-vs bench-clean wezterm debug
 
 # Benchmark directory
 BENCH_DIR := ./.benchmarks
@@ -27,8 +27,7 @@ clean:
 	rm -rf \
 		~/.local/share/nvim \
 		~/.local/state/nvim \
-		~/.cache/nvim \
-		~/.config/nvim/lazy-lock.json
+		~/.cache/nvim
 	@echo "✅ Done cleaning."
 
 upgrade:
@@ -38,7 +37,9 @@ upgrade:
 
 plugins:
 	@echo "📦 Installing Plugins..."
-	nvim --headless "+Lazy! sync" +qa
+	# Config uses vim.pack: a headless startup runs vim.pack.add and installs
+	# any missing plugins, then quits. (Old lazy.nvim "+Lazy! sync" is gone.)
+	nvim --headless "+lua print('plugins ready')" +qa
 	@echo "✅ Plugins installed."
 
 # Create benchmark directory if it doesn't exist

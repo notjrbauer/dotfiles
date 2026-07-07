@@ -3,7 +3,6 @@
 # ================================
 # 🧠 Config Paths
 # ================================
-ZUNDER_ZSH_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/zunder-zsh"
 CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
 ZAP_DIR="${XDG_DATA_HOME:-${HOME}/.local/share}/zap"
 ZCOMPDUMP_PATH="$CACHE_DIR/.zcompdump"
@@ -19,8 +18,15 @@ ZCOMPDUMP_PATH="$CACHE_DIR/.zcompdump"
 # 🔌 Plugin System
 # ================================
 plug romkatv/zsh-defer
-autoload plug-defer
-fpath+=("$ZUNDER_ZSH_DIR/functions")
+
+# Deferred plugin loader: git-clone into zap's plugin dir if missing, then
+# source with zsh-defer for instant-prompt startup. (Inlined from zunder-zsh.)
+plug-defer() {
+  local repo="$1" dir="$ZAP_PLUGIN_DIR/${1:t}"
+  [[ -d "$dir" ]] || git clone -q --depth 1 "https://github.com/$repo.git" "$dir"
+  local files=("$dir"/*.plugin.zsh(N) "$dir"/*.zsh(N))
+  (( $#files )) && zsh-defer source "$files[1]"
+}
 
 # ================================
 # 🧠 Prompt + Visuals (Load last)
@@ -64,12 +70,6 @@ export BAT_COLOR="ansi"
 export FZF_PREVIEW_COMMAND="COLORTERM=truecolor bat --style=numbers --color=always {}"
 export FZF_CTRL_T_OPTS="--walker-skip .git,node_modules,target --preview 'bat -n --color=always {}' --bind 'ctrl-/:change-preview-window(down|hidden|)'"
 export FZF_CTRL_R_OPTS="--bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort' --header 'Press CTRL-Y to copy command into clipboard'"
-
-# ================================
-# 🔄 Startup Hooks
-# ================================
-[[ -f "$ZUNDER_ZSH_DIR/before.zsh" ]] && source "$ZUNDER_ZSH_DIR/before.zsh"
-[[ -f "$ZUNDER_ZSH_DIR/after.zsh" ]]  && source "$ZUNDER_ZSH_DIR/after.zsh"
 
 # ================================
 # ✅ Completions

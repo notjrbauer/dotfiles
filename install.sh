@@ -32,7 +32,6 @@ link() {
 # ZDOTDIR lives at ~/.config/zsh; ~/.zshenv is just the bootstrap that sets it.
 link "$DOTFILES/.zshenv"             "$HOME/.zshenv"
 link "$DOTFILES/.config/zsh"         "$XDG_CONFIG_HOME/zsh"
-link "$DOTFILES/.config/zunder-zsh"  "$XDG_CONFIG_HOME/zunder-zsh"
 link "$DOTFILES/.config/starship.toml" "$XDG_CONFIG_HOME/starship.toml"
 
 # --- Editor / terminal ---------------------------------------------------
