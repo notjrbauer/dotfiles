@@ -18,15 +18,15 @@ exec zsh -l
 | Path | What |
 |------|------|
 | `.zshenv` | Bootstrap — sets `ZDOTDIR=~/.config/zsh`, then loads the real env |
-| `.config/zsh/` | `ZDOTDIR`: `.zshenv` (env + PATH) and `.zshrc` (interactive) |
-| `.config/zunder-zsh/` | zunder framework hooks + spaceship prompt config |
+| `.config/zsh/` | `ZDOTDIR`: `.zshenv` (env), `.zprofile` (PATH, after `path_helper`), `.zshrc` (interactive) |
+| `.config/starship.toml` | Prompt config |
 | `.config/nvim/` | Neovim 0.12 — native LSP, `vim.pack`, blink.cmp, fzf-lua, treesitter |
 | `.config/wezterm/` | WezTerm — catppuccin mocha, tmux-style `C-a` leader |
 
 ## Stack
 
 - **Shell:** zsh + [zap](https://github.com/zap-zsh/zap), XDG layout via `ZDOTDIR`
-- **Prompt:** spaceship
+- **Prompt:** [starship](https://starship.rs)
 - **Terminal:** [WezTerm](https://wezterm.org)
 - **Editor:** [Neovim](https://neovim.io) 0.12+
 - **Multiplexer:** none — WezTerm native panes
