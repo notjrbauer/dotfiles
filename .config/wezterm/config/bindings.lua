@@ -35,6 +35,8 @@ local keys = {
   { key = 'z', mods = mod.SUPER_REV, action = act.TogglePaneZoomState },
   { key = '-', mods = 'LEADER', action = act.AdjustPaneSize({ 'Down', 10 }) },
   { key = '=', mods = 'LEADER', action = act.AdjustPaneSize({ 'Up', 10 }) },
+  { key = '(', mods = 'LEADER', action = act.AdjustPaneSize({ 'Left', 10 }) },
+  { key = ')', mods = 'LEADER', action = act.AdjustPaneSize({ 'Right', 10 }) },
   -- LEADER r enters a sticky resize mode (h/j/k/l to resize in any direction)
   { key = 'r', mods = 'LEADER', action = act.ActivateKeyTable({ name = 'resize_pane', one_shot = false, timeout_milliseconds = 1000 }) },
   { key = 'w', mods = mod.SUPER, action = act.CloseCurrentPane({ confirm = false }) },
