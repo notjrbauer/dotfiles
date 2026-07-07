@@ -43,12 +43,8 @@ plug-defer zdharma-continuum/fast-syntax-highlighting
 # ================================
 # 🧩 Platform Tweaks
 # ================================
-[[ -f /proc/sys/fs/binfmt_misc/WSLInterop ]] && SYNTAX_HIGHLIGHTING_PROVIDER="none"
-
-if [[ "$TERM" == "linux" ]]; then
-  DISABLE_AUTOSUGGESTIONS=true
-  DISABLE_EXA=true
-fi
+# On a bare Linux console, skip eza's icons (they render as tofu).
+[[ "$TERM" == "linux" ]] && DISABLE_EXA=true
 
 # ================================
 # ⚡ Environment + Tools

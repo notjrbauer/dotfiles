@@ -5,12 +5,9 @@
 # Improves performance on Debian-based distros (skips the global compinit).
 skip_global_compinit=1
 
-# ---- zunder-zsh framework flags ----
-DISABLE_AUTOSUGGESTIONS=false
-DISABLE_EXA=false
-# Allowed values: "none", "fast-syntax-highlighting"
-SYNTAX_HIGHLIGHTING_PROVIDER="fast-syntax-highlighting"
-ZSH_AUTOSUGGEST_STRATEGY=(history)
+# ---- shell flags ----
+DISABLE_EXA=false                    # set true to fall back from eza to plain ls
+ZSH_AUTOSUGGEST_STRATEGY=(history)   # read by zsh-autosuggestions
 
 # ---- Toolchain env ----
 export GOPATH="$HOME"
