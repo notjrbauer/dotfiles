@@ -108,9 +108,9 @@ setopt share_history inc_append_history extended_history \
 # 📁 Aliases
 # ================================
 if [[ "$(uname)" = "Darwin" ]]; then
-  alias ls="ls -G"
+  alias ls="ls -Ga"
 else
-  alias ls="ls --color=auto"
+  alias ls="ls --color=auto -a"
 fi
 
 alias grep="grep --color=auto"
@@ -123,7 +123,7 @@ alias vim="nvim"
 
 if [[ "$DISABLE_EXA" != true && (-n "$commands[eza]" || -n "$commands[exa]") ]]; then
   [[ -n "$commands[eza]" && -z "$commands[exa]" ]] && alias exa="eza"
-  alias ls="exa --icons --group-directories-first"
+  alias ls="exa --icons --group-directories-first -a"
   alias ll="exa --icons --group-directories-first --git -l"
   alias la="exa --icons --group-directories-first -a"
   alias lla="exa --icons --group-directories-first --git -la"
