@@ -9,7 +9,6 @@
 	autocrlf = false
 	pager = delta
 	filemode = false
-	fsmonitor = true
 	untrackedCache = true
 
 [gpg]
