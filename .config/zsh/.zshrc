@@ -70,6 +70,9 @@ export FZF_CTRL_R_OPTS="--bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+ab
 # ================================
 # ✅ Completions
 # ================================
+# Extra completion dirs must be on $fpath BEFORE compinit or they won't load.
+[[ -d "$HOME/.docker/completions" ]] && fpath=("$HOME/.docker/completions" $fpath)
+
 autoload -Uz compinit && compinit -d "$ZCOMPDUMP_PATH"
 [[ "$ZCOMPDUMP_PATH.zwc" -nt "$ZCOMPDUMP_PATH" ]] || zsh-defer zcompile "$ZCOMPDUMP_PATH"
 
@@ -152,11 +155,9 @@ fi
 
 zle_highlight+=(paste:none)
 
-# Docker CLI completions
-fpath=("$HOME/.docker/completions" $fpath)
+# fnm (Node version manager) — guarded so a machine without fnm still loads.
+command -v fnm &>/dev/null && eval "$(fnm env --use-on-cd --shell zsh)"
 
-# fnm (Node version manager) — PATH entries for opencode/etc. live in .zshenv
-eval "$(fnm env --use-on-cd --shell zsh)"
-
-# Prompt — load last so nothing overrides it.
-eval "$(starship init zsh)"
+# Prompt — load last so nothing overrides it. Guarded so a missing starship
+# doesn't leave you with a broken prompt / startup error.
+command -v starship &>/dev/null && eval "$(starship init zsh)"

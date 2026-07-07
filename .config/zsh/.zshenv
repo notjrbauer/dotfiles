@@ -15,19 +15,7 @@ export BUNPATH="$HOME/.bun"
 export CPPFLAGS="-I/usr/local/opt/openjdk/include"
 
 # ---- PATH ----
-# `typeset -U` keeps entries unique; the array form is order-preserving and far
-# easier to read than repeated `export PATH=$PATH:...` lines. Intel mac: Homebrew
-# lives in /usr/local/bin, which is already on the default PATH.
-typeset -U path PATH
-path=(
-  "$HOME/.local/bin"
-  "$HOME/.cargo/bin"
-  "$HOME/.opencode/bin"
-  "$BUNPATH/bin"
-  "$GOPATH/bin"
-  /usr/local/opt/openjdk/bin
-  $path
-)
-
-# Rust env (guarded so machines without Rust don't error out).
-[ -f "$HOME/.cargo/env" ] && source "$HOME/.cargo/env"
+# PATH additions live in .zprofile, NOT here. macOS's /etc/zprofile runs
+# `path_helper` AFTER .zshenv and rebuilds $PATH from /etc/paths, which would
+# clobber anything set here on login shells. See $ZDOTDIR/.zprofile.
+# (Homebrew's /usr/local/bin is on the default PATH via /etc/paths already.)
