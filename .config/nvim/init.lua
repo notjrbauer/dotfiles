@@ -261,6 +261,71 @@ local function setup_gopls_on_save(client, bufnr)
   })
 end
 
+local function ruff_format_opted_in(bufnr)
+  local dir = vim.fs.dirname(vim.api.nvim_buf_get_name(bufnr))
+  if dir == "" then
+    return false
+  end
+
+  local config = vim.fs.find({ "ruff.toml", ".ruff.toml", "pyproject.toml" }, {
+    upward = true,
+    path = dir,
+    stop = vim.uv.os_homedir(),
+  })[1]
+  if not config then
+    return false
+  end
+
+  local ok, lines = pcall(vim.fn.readfile, config)
+  if not ok then
+    return false
+  end
+
+  local is_pyproject = vim.fs.basename(config) == "pyproject.toml"
+  local pattern = is_pyproject and "^%[tool%.ruff%.format%]" or "^%[format%]"
+
+  for _, line in ipairs(lines) do
+    if line:match(pattern) then
+      return true
+    end
+  end
+  return false
+end
+
+local function setup_ruff_on_save(client, bufnr)
+  vim.api.nvim_create_autocmd("BufWritePre", {
+    group = augroup("ruff_format_" .. bufnr),
+    buffer = bufnr,
+    callback = function()
+      if not autoformat_enabled(bufnr) then
+        return
+      end
+      if not ruff_format_opted_in(bufnr) then
+        return
+      end
+
+      if client:supports_method("textDocument/codeAction") then
+        local params = vim.lsp.util.make_range_params(0, client.offset_encoding)
+        params.context = {
+          only = { "source.organizeImports" },
+          diagnostics = {},
+        }
+
+        local resp = client:request_sync("textDocument/codeAction", params, 1000, bufnr)
+        for _, action in ipairs((resp and resp.result) or {}) do
+          if not action.disabled and action.edit then
+            vim.lsp.util.apply_workspace_edit(action.edit, client.offset_encoding)
+          end
+        end
+      end
+
+      if client:supports_method("textDocument/formatting") then
+        vim.lsp.buf.format({ bufnr = bufnr, id = client.id, timeout_ms = 3000 })
+      end
+    end,
+  })
+end
+
 local servers = {
   lua_ls = {
     settings = {
@@ -347,6 +412,32 @@ local servers = {
     },
   },
 
+  pyright = {
+    settings = {
+      pyright = {
+        -- Defer import organization to a dedicated tool (e.g. ruff) if added later.
+        disableOrganizeImports = false,
+      },
+      python = {
+        analysis = {
+          autoSearchPaths = true,
+          useLibraryCodeForTypes = true,
+          -- "openFilesOnly" keeps things fast on large projects; switch to
+          -- "workspace" if you want whole-project diagnostics.
+          diagnosticMode = "openFilesOnly",
+          typeCheckingMode = "basic",
+        },
+      },
+    },
+  },
+
+  ruff = {
+    -- Let pyright own hover/docs; ruff focuses on lint + format + imports.
+    on_attach = function(client)
+      client.server_capabilities.hoverProvider = false
+    end,
+  },
+
   zls = {},
   marksman = {},
 }
@@ -412,6 +503,9 @@ vim.pack.add({
   { src = gh("neovim/nvim-lspconfig") },
   { src = gh("nvim-lua/plenary.nvim") },
   { src = gh("pmizio/typescript-tools.nvim") },
+
+  -- Formatting
+  { src = gh("stevearc/conform.nvim") },
 
   -- Treesitter (main rewrite for Nvim 0.12+)
   { src = gh("nvim-treesitter/nvim-treesitter"),  version = "main" },
@@ -616,6 +710,11 @@ vim.api.nvim_create_autocmd("LspAttach", {
 
     if client.name == "gopls" then
       setup_gopls_on_save(client, ev.buf)
+    elseif client.name == "ruff" then
+      setup_ruff_on_save(client, ev.buf)
+    elseif client.name == "typescript-tools" then
+      -- conform (Prettier) owns TS/JS formatting; never let tsserver format on
+      -- save, since it ignores .prettierrc and reformats the whole buffer.
     else
       setup_format_on_save(client, ev.buf)
     end
@@ -640,6 +739,60 @@ require("typescript-tools").setup({
       includeInlayVariableTypeHints = true,
     },
   },
+})
+
+-- Prettier (via conform) owns web/JS/TS formatting so on-save diffs match the
+-- project's own .prettierrc instead of tsserver's built-in style. Prettier only
+-- runs when the project actually configures it (require_cwd + a prettier config
+-- file), so repos without Prettier are never reformatted. It also prefers the
+-- project-local node_modules/.bin/prettier, matching the repo's exact version.
+local conform = require("conform")
+local conform_util = require("conform.util")
+
+local prettier_root = conform_util.root_file({
+  ".prettierrc",
+  ".prettierrc.json",
+  ".prettierrc.yml",
+  ".prettierrc.yaml",
+  ".prettierrc.json5",
+  ".prettierrc.js",
+  ".prettierrc.cjs",
+  ".prettierrc.mjs",
+  ".prettierrc.ts",
+  ".prettierrc.toml",
+  "prettier.config.js",
+  "prettier.config.cjs",
+  "prettier.config.mjs",
+  "prettier.config.ts",
+})
+
+local prettier = { "prettierd", "prettier", stop_after_first = true }
+
+conform.setup({
+  formatters = {
+    prettierd = { require_cwd = true, cwd = prettier_root },
+    prettier = { require_cwd = true, cwd = prettier_root },
+  },
+  formatters_by_ft = {
+    javascript = prettier,
+    javascriptreact = prettier,
+    typescript = prettier,
+    typescriptreact = prettier,
+    json = prettier,
+    jsonc = prettier,
+    css = prettier,
+    scss = prettier,
+    html = prettier,
+    yaml = prettier,
+    markdown = prettier,
+    graphql = prettier,
+  },
+  format_on_save = function(bufnr)
+    if not autoformat_enabled(bufnr) then
+      return
+    end
+    return { timeout_ms = 3000, lsp_format = "never" }
+  end,
 })
 
 local ts = require("nvim-treesitter")
@@ -851,6 +1004,9 @@ map("n", "<leader>ws", function()
 end, { desc = "Workspace Symbols" })
 map("n", "<leader>cr", vim.lsp.buf.rename, { desc = "Rename" })
 map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Action" })
+map({ "n", "v" }, "<leader>cf", function()
+  require("conform").format({ async = false, lsp_format = "fallback" })
+end, { desc = "Format Buffer" })
 
 -- Files / grep / picker
 map("n", "<leader><leader>", function()
