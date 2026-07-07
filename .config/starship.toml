@@ -4,10 +4,10 @@
 
 add_newline = false
 
-# Give git commands more headroom. The default is 500ms, which the fsmonitor
-# daemon's cold-start scan can exceed on first entry into a repo with a large
-# working tree (e.g. a big node_modules), producing spurious timeout warnings.
-command_timeout = 2000
+# Safety net for git in very large working trees. fsmonitor is disabled
+# globally now, so git_status is a single ~25ms `git status` fork on normal
+# repos (measured); this headroom only matters when cd'ing into a huge repo.
+command_timeout = 1000
 
 format = """
 $directory\
