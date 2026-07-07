@@ -1,15 +1,6 @@
-local platform = require('utils.platform')
-
-local options = {
-  default_prog = {},
+return {
+  -- Login zsh via the stable Homebrew symlink (not the version-pinned
+  -- /usr/local/opt/zsh/bin/zsh-5.9, which breaks on every zsh upgrade).
+  default_prog = { '/usr/local/bin/zsh', '-l' },
   launch_menu = {},
 }
-
--- if platform.is_mac then
-options.default_prog = { '/usr/local/opt/zsh/bin/zsh-5.9', '-l' }
--- options.launch_menu = {
---   { label = 'Zsh', args = { '/usr/local/opt/zsh/bin/zsh-5.9', '-l' } },
--- }
--- end
-
-return options

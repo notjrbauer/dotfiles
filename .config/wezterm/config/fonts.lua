@@ -6,7 +6,7 @@ local use_pragmata = false
 
 -- Base config
 local config = {
-  font_size = platform.is_mac and 12 or 9,
+  font_size = platform.is_mac and 14 or 9,
   -- freetype_load_target = 'Normal', ---@type 'Normal'|'Light'|'Mono'|'HorizontalLcd'
   -- freetype_render_target = 'Normal', ---@type 'Normal'|'Light'|'Mono'|'HorizontalLcd'
   -- harfbuzz_features = { 'liga=1', 'clig=1', 'calt=1' },

@@ -11,3 +11,6 @@ bin/**/*
 .config/op
 .config/stripe
 .config/AWS*
+.config/gcloud
+*.zwc
+*.bak.*

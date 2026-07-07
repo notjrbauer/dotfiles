@@ -1,28 +1,42 @@
 # dotfiles
 
+Personal macOS dev environment. Everything is symlinked into `$HOME` /
+`$XDG_CONFIG_HOME` from this repo by `install.sh`.
 
-Setup guide is here: [setup-mac.md](./etc/docs/setup-mac.md)
+## Install
 
-- Shell: zsh
-  - Package manager: [afx](https://github.com/b4b4r07/afx/)
-- Terminal: [iTerm2](https://iterm2.com/)
-- Editor: [Neovim](https://github.com/neovim/neovim)
-- Multiplexer: [tmux](https://github.com/tmux/tmux)
-  - Plugin manager: [tpm](https://github.com/tmux-plugins/tpm) (Press `prefix` + <kbd>I</kbd> to install)
-- Font: [nerd-fonts](https://github.com/ryanoasis/nerd-fonts#font-installation) (DejaVuSansMono Nerd Font Mono)
+```sh
+git clone <this-repo> ~/dotfiles && ~/dotfiles/install.sh
+exec zsh -l
+```
 
-[![][afx]](https://babarot.me/afx)
-[![][neovim]](https://neovim.io/)
-[![][tmux]](https://github.com/tmux/tmux/wiki)
+`install.sh` is idempotent and backs up any pre-existing real file to
+`<path>.bak.<timestamp>` before linking.
 
-[afx]:    https://img.shields.io/github/v/release/b4b4r07/afx?color=EF2D5E&display_name=release&label=AFX&logo=alchemy&logoColor=EF2D5E&sort=semver
-[tmux]:   https://img.shields.io/github/v/tag/tmux/tmux?color=1BB91F&display_name=release&label=tmux&logo=tmux&logoColor=&sort=semver
-[neovim]: https://img.shields.io/badge/neovim-v0.8.0-57A143.svg?style=popout&logo=neovim&logoColor=
+## Layout
 
-<!--
-[tmux]: https://img.shields.io/badge/tmux-3.3a-1BB91F.svg?style=popout&logo=tmux
-[afx]:  https://img.shields.io/badge/afx-latest-EF2D5E.svg?style=popout&logo=alchemy
+| Path | What |
+|------|------|
+| `.zshenv` | Bootstrap — sets `ZDOTDIR=~/.config/zsh`, then loads the real env |
+| `.config/zsh/` | `ZDOTDIR`: `.zshenv` (env + PATH) and `.zshrc` (interactive) |
+| `.config/zunder-zsh/` | zunder framework hooks + spaceship prompt config |
+| `.config/nvim/` | Neovim 0.12 — native LSP, `vim.pack`, blink.cmp, fzf-lua, treesitter |
+| `.config/wezterm/` | WezTerm — catppuccin mocha, tmux-style `C-a` leader |
 
-[brew]:   https://img.shields.io/badge/brew-mac-FBB040.svg?style=flat&logo=homebrew
-[iterm2]: https://img.shields.io/badge/iTerm2-3.4.19_%28OS_10.15%2B%29-000000.svg?style=popout&logo=iterm2
--->
+## Stack
+
+- **Shell:** zsh + [zap](https://github.com/zap-zsh/zap), XDG layout via `ZDOTDIR`
+- **Prompt:** spaceship
+- **Terminal:** [WezTerm](https://wezterm.org)
+- **Editor:** [Neovim](https://neovim.io) 0.12+
+- **Multiplexer:** none — WezTerm native panes
+- **Tools:** fnm (node) · colima (docker) · zoxide (`j`) · fzf · eza · bat
+
+## Conventions
+
+- **No tmux.** WezTerm panes cover it. `C-a` is the leader: split `s`/`v`,
+  navigate `h/j/k/l`, resize mode `r`, zoom `z`, copy-mode `[`.
+- **No key clash:** bare `C-h/j/k/l` navigates Neovim windows; `C-a h/j/k/l`
+  navigates WezTerm panes.
+- **Docker:** colima (`colima start`). No `DOCKER_HOST` override — the `default`
+  context targets colima; switch with `docker context use <name>`.

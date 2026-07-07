@@ -48,11 +48,18 @@ fi
 # ================================
 # ⚡ Environment + Tools
 # ================================
-export DOCKER_HOST="unix:///var/run/docker.sock"
 if command -v zoxide &>/dev/null; then
   eval "$(zoxide init zsh --cmd j)"
 fi
 [[ -n "$commands[fzf]" ]] && eval "$(fzf --zsh)"
+
+# fzf theme — catppuccin mocha to match the terminal. No `bg` is set (and
+# gutter is -1) so WezTerm's transparent background shows through.
+export FZF_DEFAULT_OPTS="
+  --color=fg:#cdd6f4,fg+:#cdd6f4,bg+:#313244,hl:#f38ba8,hl+:#f38ba8
+  --color=info:#cba6f7,prompt:#cba6f7,pointer:#f5e0dc,marker:#a6e3a1
+  --color=spinner:#f5e0dc,header:#94e2d5,border:#585b70,gutter:-1
+"
 
 export BAT_COLOR="ansi"
 export FZF_PREVIEW_COMMAND="COLORTERM=truecolor bat --style=numbers --color=always {}"
@@ -95,8 +102,9 @@ bindkey -M viins 'jj' vi-cmd-mode
 # ================================
 HISTFILE="$HOME/.zsh_history"
 HISTSIZE=50000
-SAVEHIST=10000
-setopt share_history
+SAVEHIST=50000   # was 10000 — matched to HISTSIZE so history isn't silently truncated on save
+setopt share_history inc_append_history extended_history \
+       hist_ignore_all_dups hist_ignore_space hist_reduce_blanks hist_verify
 
 # ================================
 # 📁 Aliases
@@ -150,5 +158,7 @@ fi
 zle_highlight+=(paste:none)
 
 # Docker CLI completions
-fpath=(/Users/johnbauer/.docker/completions $fpath)
+fpath=("$HOME/.docker/completions" $fpath)
 
+# fnm (Node version manager) — PATH entries for opencode/etc. live in .zshenv
+eval "$(fnm env --use-on-cd --shell zsh)"
