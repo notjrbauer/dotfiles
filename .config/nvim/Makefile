@@ -1,4 +1,4 @@
-.PHONY: clean install nightly stable upgrade plugins plugins-reinstall reset test help bench bench-save bench-compare bench-reset bench-noplugins bench-vs bench-clean wezterm debug
+.PHONY: clean install nightly stable upgrade plugins plugins-reinstall servers reset test help bench bench-save bench-compare bench-reset bench-noplugins bench-vs bench-clean wezterm debug
 
 # Benchmark directory
 BENCH_DIR := ./.benchmarks
@@ -16,7 +16,8 @@ help:
 	@echo "  make stable          - ⬇️  Install the latest Neovim stable release"
 	@echo "  make upgrade         - ⬆️  Re-download the latest Neovim Nightly"
 	@echo "  make plugins         - 📦 Install/sync plugins (fetch missing only)"
-	@echo "  make plugins-reinstall - 📦 Wipe & re-fetch the vim.pack tree (keeps mason/state)"
+	@echo "  make plugins-reinstall - 📦 Wipe & re-fetch the vim.pack tree (keeps state)"
+	@echo "  make servers         - 🔧 Install the LSP servers this config expects (PATH)"
 	@echo "  make reset           - ♻️  Clean and then reinstall Neovim"
 	@echo "  make test            - 🧪 Smoke-test: version, headless load, checkhealth"
 	@echo "  make bench           - ⏱️  Run startup time benchmark"
@@ -62,14 +63,30 @@ plugins:
 	@echo "✅ Plugins installed."
 
 # Force a clean re-fetch of every vim.pack plugin. Removes ONLY the pack tree
-# (~/.local/share/nvim/site/pack/core) so mason server binaries, shada, and
-# state survive; the next headless start re-runs vim.pack.add and clones each
-# spec fresh. Use when a plugin checkout is corrupt or you want a known-good tree.
+# (~/.local/share/nvim/site/pack/core) so shada and state survive; the next
+# headless start re-runs vim.pack.add and clones each spec fresh. Use when a
+# plugin checkout is corrupt or you want a known-good tree.
 plugins-reinstall:
 	@echo "📦 Reinstalling plugins (vim.pack tree only)…"
 	rm -rf ~/.local/share/nvim/site/pack/core
 	nvim --headless "+lua print('plugins reinstalled')" +qa
-	@echo "✅ Plugins reinstalled (mason servers, state, and cache untouched)."
+	@echo "✅ Plugins reinstalled (state and cache untouched)."
+
+# Install the LSP servers this config expects onto your PATH — the replacement
+# for mason's ensure_installed now that mason is gone. nvim-lspconfig resolves
+# each server from PATH and native vim.lsp.enable() enables them. Re-run to
+# upgrade where the underlying tool supports it.
+#   clangd ships with the Xcode Command Line Tools (xcode-select --install).
+#   zls must match your Zig version; brew's zls tracks recent Zig releases.
+servers:
+	@echo "🔧 Installing LSP servers…"
+	brew install lua-language-server marksman zls
+	go install golang.org/x/tools/gopls@latest
+	rustup component add rust-analyzer
+	uv tool install ruff
+	npm install -g pyright
+	@echo "✅ Servers installed. Ensure go/cargo/uv/npm bin dirs are on PATH;"
+	@echo "   clangd comes from the Xcode Command Line Tools."
 
 # Smoke-test the install: binary present, config loads headlessly (bootstraps
 # missing plugins on first run), then a full checkhealth with a summary of any
