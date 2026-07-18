@@ -1,16 +1,24 @@
-.PHONY: clean upgrade plugins reset help bench bench-save bench-compare bench-reset bench-noplugins bench-vs bench-clean wezterm debug
+.PHONY: clean install nightly stable upgrade plugins plugins-reinstall reset test help bench bench-save bench-compare bench-reset bench-noplugins bench-vs bench-clean wezterm debug
 
 # Benchmark directory
 BENCH_DIR := ./.benchmarks
 TIMESTAMP := $(shell date +%Y%m%d_%H%M%S)
 
+# Neovim nightly installer (no Homebrew): downloads the release tarball,
+# extracts it under ~/.local/nvim-<channel>, and symlinks /usr/local/bin/nvim.
+NVIM_INSTALL := ./scripts/install-nvim-nightly.sh
+
 # Display available commands
 help:
 	@echo "Available commands:"
 	@echo "  make clean           - 🧹 Remove Neovim cache, state, and lock file"
-	@echo "  make upgrade         - ⬆️  Upgrade Neovim Nightly via Homebrew"
-	@echo "  make plugins         - 📦 Install/sync plugins"
-	@echo "  make reset           - ♻️  Clean and then upgrade Neovim"
+	@echo "  make install         - ⬇️  Install Neovim Nightly (download + symlink)"
+	@echo "  make stable          - ⬇️  Install the latest Neovim stable release"
+	@echo "  make upgrade         - ⬆️  Re-download the latest Neovim Nightly"
+	@echo "  make plugins         - 📦 Install/sync plugins (fetch missing only)"
+	@echo "  make plugins-reinstall - 📦 Wipe & re-fetch the vim.pack tree (keeps mason/state)"
+	@echo "  make reset           - ♻️  Clean and then reinstall Neovim"
+	@echo "  make test            - 🧪 Smoke-test: version, headless load, checkhealth"
 	@echo "  make bench           - ⏱️  Run startup time benchmark"
 	@echo "  make bench-save      - 💾 Save benchmark with timestamp"
 	@echo "  make bench-compare   - 📊 Compare two saved benchmarks"
@@ -30,9 +38,20 @@ clean:
 		~/.cache/nvim
 	@echo "✅ Done cleaning."
 
+install nightly:
+	@echo "⬇️  Installing Neovim Nightly..."
+	$(NVIM_INSTALL) nightly
+	@echo "✅ Neovim Nightly installed."
+
+stable:
+	@echo "⬇️  Installing Neovim stable..."
+	$(NVIM_INSTALL) stable
+	@echo "✅ Neovim stable installed."
+
+# Re-download the latest nightly in place (same as install; kept for `reset`).
 upgrade:
 	@echo "⬆️  Upgrading Neovim Nightly..."
-	brew upgrade --cask neovim-nightly --no-quarantine --greedy-latest
+	$(NVIM_INSTALL) nightly
 	@echo "✅ Neovim Nightly upgraded."
 
 plugins:
@@ -41,6 +60,31 @@ plugins:
 	# any missing plugins, then quits. (Old lazy.nvim "+Lazy! sync" is gone.)
 	nvim --headless "+lua print('plugins ready')" +qa
 	@echo "✅ Plugins installed."
+
+# Force a clean re-fetch of every vim.pack plugin. Removes ONLY the pack tree
+# (~/.local/share/nvim/site/pack/core) so mason server binaries, shada, and
+# state survive; the next headless start re-runs vim.pack.add and clones each
+# spec fresh. Use when a plugin checkout is corrupt or you want a known-good tree.
+plugins-reinstall:
+	@echo "📦 Reinstalling plugins (vim.pack tree only)…"
+	rm -rf ~/.local/share/nvim/site/pack/core
+	nvim --headless "+lua print('plugins reinstalled')" +qa
+	@echo "✅ Plugins reinstalled (mason servers, state, and cache untouched)."
+
+# Smoke-test the install: binary present, config loads headlessly (bootstraps
+# missing plugins on first run), then a full checkhealth with a summary of any
+# ERROR/WARNING lines.
+test:
+	@echo "🧪 Neovim smoke test"
+	@command -v nvim >/dev/null 2>&1 || { echo "❌ nvim not found on PATH — run 'make install'"; exit 1; }
+	@nvim --version | head -1
+	@echo "→ loading config headlessly (installs missing plugins on first run)…"
+	@nvim --headless "+lua print('init.lua loaded: ok')" +qa
+	@echo "→ running :checkhealth …"
+	@nvim --headless "+silent! checkhealth" "+silent! write! /tmp/nvim_checkhealth.txt" "+qa!" >/dev/null 2>&1 || true
+	@echo "── checkhealth: ERROR / WARNING lines ──"
+	@grep -nE "ERROR|WARNING" /tmp/nvim_checkhealth.txt 2>/dev/null | head -40 || echo "(report not written)"
+	@echo "✅ Smoke test complete (review any ERROR lines above; WARNINGs are usually optional)."
 
 # Create benchmark directory if it doesn't exist
 $(BENCH_DIR):
