@@ -55,6 +55,13 @@ opt.fillchars = {
   diff = "╱",
 }
 
+-- Treesitter-driven folds (0.11+ native foldexpr; degrades to no folds for
+-- buffers without a parser). foldlevelstart=99 keeps files open on load.
+opt.foldmethod = "expr"
+opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+opt.foldtext = ""
+opt.foldlevelstart = 99
+
 -- Editing / behavior
 opt.mouse = "a"
 opt.clipboard = "unnamedplus"
@@ -198,66 +205,80 @@ local function autoformat_enabled(bufnr)
   return true
 end
 
-local function setup_format_on_save(client, bufnr)
-  if client.name == "gopls" then
-    return
+local function lsp_format(client, bufnr)
+  if client:supports_method("textDocument/formatting") then
+    vim.lsp.buf.format({ bufnr = bufnr, id = client.id, timeout_ms = 3000 })
   end
-  if client:supports_method("textDocument/willSaveWaitUntil") then
-    return
-  end
-  if not client:supports_method("textDocument/formatting") then
-    return
-  end
+end
 
+-- Run source.organizeImports code actions for `client` on `bufnr`.
+--   opts.use_diagnostics : send current buffer diagnostics in the action context
+--                          (gopls wants them; ruff sends none). Evaluated here,
+--                          at format time, so diagnostics are never stale.
+--   opts.run_commands    : also execute action.command (gopls needs it; ruff only
+--                          applies the edit).
+local function organize_imports(client, bufnr, opts)
+  if not client:supports_method("textDocument/codeAction") then
+    return
+  end
+  local params = vim.lsp.util.make_range_params(0, client.offset_encoding)
+  params.context = {
+    only = { "source.organizeImports" },
+    diagnostics = opts.use_diagnostics and vim.diagnostic.get(bufnr) or {},
+  }
+
+  local resp = client:request_sync("textDocument/codeAction", params, 1000, bufnr)
+  for _, action in ipairs((resp and resp.result) or {}) do
+    if not action.disabled then
+      if action.edit then
+        vim.lsp.util.apply_workspace_edit(action.edit, client.offset_encoding)
+      end
+      if opts.run_commands and action.command then
+        client:exec_cmd(action.command, { bufnr = bufnr })
+      end
+    end
+  end
+end
+
+-- Register a BufWritePre formatter for `client` on `bufnr`.
+--   opts.name     : augroup prefix (kept per-server so groups stay distinct)
+--   opts.gate     : optional extra predicate(bufnr) that must pass to run
+--   opts.organize : optional { use_diagnostics, run_commands } for organizeImports
+local function register_format_on_save(client, bufnr, opts)
   vim.api.nvim_create_autocmd("BufWritePre", {
-    group = augroup("lsp_format_" .. bufnr),
+    group = augroup(opts.name .. "_" .. bufnr),
     buffer = bufnr,
     callback = function()
       if not autoformat_enabled(bufnr) then
         return
       end
-      vim.lsp.buf.format({ bufnr = bufnr, id = client.id, timeout_ms = 3000 })
+      if opts.gate and not opts.gate(bufnr) then
+        return
+      end
+      if opts.organize then
+        organize_imports(client, bufnr, opts.organize)
+      end
+      lsp_format(client, bufnr)
     end,
   })
+end
+
+local function setup_format_on_save(client, bufnr)
+  -- gopls/ruff/typescript-tools are dispatched to their own handlers in
+  -- LspAttach; this generic path only runs for everything else.
+  if not client:supports_method("textDocument/formatting") then
+    return
+  end
+  register_format_on_save(client, bufnr, { name = "lsp_format" })
 end
 
 local function setup_gopls_on_save(client, bufnr)
   if not client:supports_method("textDocument/codeAction") and not client:supports_method("textDocument/formatting") then
     return
   end
-
-  vim.api.nvim_create_autocmd("BufWritePre", {
-    group = augroup("gopls_format_" .. bufnr),
-    buffer = bufnr,
-    callback = function()
-      if not autoformat_enabled(bufnr) then
-        return
-      end
-
-      if client:supports_method("textDocument/codeAction") then
-        local params = vim.lsp.util.make_range_params(0, client.offset_encoding)
-        params.context = {
-          only = { "source.organizeImports" },
-          diagnostics = vim.diagnostic.get(bufnr),
-        }
-
-        local resp = client:request_sync("textDocument/codeAction", params, 1000, bufnr)
-        for _, action in ipairs((resp and resp.result) or {}) do
-          if not action.disabled then
-            if action.edit then
-              vim.lsp.util.apply_workspace_edit(action.edit, client.offset_encoding)
-            end
-            if action.command then
-              client:exec_cmd(action.command, { bufnr = bufnr })
-            end
-          end
-        end
-      end
-
-      if client:supports_method("textDocument/formatting") then
-        vim.lsp.buf.format({ bufnr = bufnr, id = client.id, timeout_ms = 3000 })
-      end
-    end,
+  register_format_on_save(client, bufnr, {
+    name = "gopls_format",
+    organize = { use_diagnostics = true, run_commands = true },
   })
 end
 
@@ -293,36 +314,10 @@ local function ruff_format_opted_in(bufnr)
 end
 
 local function setup_ruff_on_save(client, bufnr)
-  vim.api.nvim_create_autocmd("BufWritePre", {
-    group = augroup("ruff_format_" .. bufnr),
-    buffer = bufnr,
-    callback = function()
-      if not autoformat_enabled(bufnr) then
-        return
-      end
-      if not ruff_format_opted_in(bufnr) then
-        return
-      end
-
-      if client:supports_method("textDocument/codeAction") then
-        local params = vim.lsp.util.make_range_params(0, client.offset_encoding)
-        params.context = {
-          only = { "source.organizeImports" },
-          diagnostics = {},
-        }
-
-        local resp = client:request_sync("textDocument/codeAction", params, 1000, bufnr)
-        for _, action in ipairs((resp and resp.result) or {}) do
-          if not action.disabled and action.edit then
-            vim.lsp.util.apply_workspace_edit(action.edit, client.offset_encoding)
-          end
-        end
-      end
-
-      if client:supports_method("textDocument/formatting") then
-        vim.lsp.buf.format({ bufnr = bufnr, id = client.id, timeout_ms = 3000 })
-      end
-    end,
+  register_format_on_save(client, bufnr, {
+    name = "ruff_format",
+    gate = ruff_format_opted_in,
+    organize = { use_diagnostics = false, run_commands = false },
   })
 end
 
@@ -447,7 +442,7 @@ vim.diagnostic.config({
   update_in_insert = false,
   severity_sort = true,
   virtual_text = { spacing = 2, source = "if_many", prefix = "●" },
-  float = { border = "rounded", source = true },
+  float = { source = true }, -- border inherits global winborder
   signs = {
     text = {
       [vim.diagnostic.severity.ERROR] = "E",
@@ -498,8 +493,6 @@ vim.pack.add({
   { src = gh("saghen/blink.cmp"),                 version = vim.version.range("1.x") },
 
   -- LSP / tooling
-  { src = gh("williamboman/mason.nvim") },
-  { src = gh("williamboman/mason-lspconfig.nvim") },
   { src = gh("neovim/nvim-lspconfig") },
   { src = gh("nvim-lua/plenary.nvim") },
   { src = gh("pmizio/typescript-tools.nvim") },
@@ -523,7 +516,6 @@ require("catppuccin").setup({
     blink_cmp = true,
     fzf = true,
     gitsigns = true,
-    mason = true,
     native_lsp = { enabled = true },
     which_key = true,
   },
@@ -669,11 +661,9 @@ blink.setup({
       auto_show = true,
       auto_show_delay_ms = 200,
       treesitter_highlighting = true,
-      window = { border = "rounded" },
     },
     ghost_text = { enabled = true },
     menu = {
-      border = "rounded",
       draw = {
         treesitter = { "lsp" },
         columns = {
@@ -684,25 +674,12 @@ blink.setup({
       },
     },
   },
-  signature = { enabled = true, window = { border = "rounded" } },
+  signature = { enabled = true }, -- window border inherits global winborder
 })
 
-require("mason").setup({
-  ui = {
-    border = "rounded",
-    icons = {
-      package_installed = "✓",
-      package_pending = "➜",
-      package_uninstalled = "✗",
-    },
-  },
-})
-
-require("mason-lspconfig").setup({
-  ensure_installed = vim.tbl_keys(servers),
-  automatic_installation = true,
-})
-
+-- LSP servers are installed to the system PATH (brew / go / rustup / uv / npm),
+-- not via mason. nvim-lspconfig supplies the default cmd/root_markers/filetypes
+-- from its lsp/ dir; we enable them explicitly with vim.lsp.enable() below.
 vim.api.nvim_create_autocmd("LspAttach", {
   group = augroup("lsp_attach"),
   callback = function(ev)
@@ -799,7 +776,21 @@ local ts = require("nvim-treesitter")
 ts.setup({
   install_dir = vim.fn.stdpath("data") .. "/site",
 })
-ts.install(ts_languages)
+-- Only install parsers that are actually missing, so warm starts don't schedule
+-- install work every launch. New parsers on plugin update are handled by the
+-- PackChanged handler above.
+do
+  local installed = {}
+  for _, lang in ipairs(ts.get_installed()) do
+    installed[lang] = true
+  end
+  local missing = vim.tbl_filter(function(lang)
+    return not installed[lang]
+  end, ts_languages)
+  if #missing > 0 then
+    ts.install(missing)
+  end
+end
 
 vim.api.nvim_create_autocmd("FileType", {
   group = augroup("treesitter_start"),
@@ -877,7 +868,9 @@ require("gitsigns").setup({
 
     gmap("n", "<leader>hS", gs.stage_buffer, "Stage Buffer")
     gmap("n", "<leader>hR", gs.reset_buffer, "Reset Buffer")
-    gmap("n", "<leader>hu", gs.undo_stage_hunk, "Undo Stage Hunk")
+    -- stage_hunk is a toggle now: on a staged hunk it unstages (replaces the
+    -- deprecated undo_stage_hunk).
+    gmap("n", "<leader>hu", gs.stage_hunk, "Unstage Hunk (toggle)")
     gmap("n", "<leader>hp", gs.preview_hunk_inline, "Preview Hunk Inline")
     gmap("n", "<leader>hb", function()
       gs.blame_line({ full = true })
@@ -904,7 +897,6 @@ local function diagnostic_jump(count, severity)
         vim.diagnostic.open_float({
           bufnr = bufnr,
           scope = "line",
-          border = "rounded",
           source = "if_many",
           focus = false,
         })
@@ -973,8 +965,8 @@ map("n", "]e", diagnostic_jump(1, vim.diagnostic.severity.ERROR), { desc = "Next
 map("n", "[e", diagnostic_jump(-1, vim.diagnostic.severity.ERROR), { desc = "Prev Error" })
 map("n", "]w", diagnostic_jump(1, vim.diagnostic.severity.WARN), { desc = "Next Warning" })
 map("n", "[w", diagnostic_jump(-1, vim.diagnostic.severity.WARN), { desc = "Prev Warning" })
-map("n", "<leader>xx", "<cmd>FzfLua diagnostics_document<CR>", { desc = "Document Diagnostics" })
-map("n", "<leader>xX", "<cmd>FzfLua diagnostics_workspace<CR>", { desc = "Workspace Diagnostics" })
+map("n", "<leader>xx", fzf.diagnostics_document, { desc = "Document Diagnostics" })
+map("n", "<leader>xX", fzf.diagnostics_workspace, { desc = "Workspace Diagnostics" })
 map("n", "<leader>xl", vim.diagnostic.setloclist, { desc = "Location List" })
 map("n", "<leader>xq", vim.diagnostic.setqflist, { desc = "Quickfix List" })
 
@@ -982,78 +974,40 @@ map("n", "<leader>xq", vim.diagnostic.setqflist, { desc = "Quickfix List" })
 map("n", "[q", vim.cmd.cprev, { desc = "Previous Quickfix" })
 map("n", "]q", vim.cmd.cnext, { desc = "Next Quickfix" })
 
--- LSP / symbols
-map("n", "grr", function()
-  fzf.lsp_references()
-end, { desc = "LSP References" })
-map("n", "gd", function()
-  fzf.lsp_definitions()
-end, { desc = "Goto Definition" })
-map("n", "gI", function()
-  fzf.lsp_implementations()
-end, { desc = "Goto Implementation" })
-map("n", "gy", function()
-  fzf.lsp_typedefs()
-end, { desc = "Goto Type Definition" })
+-- LSP / symbols — align with Neovim's native gr* namespace (0.11+) so there's a
+-- single convention; the fzf pickers back the native keys (gri/grt/gO) instead
+-- of living under parallel aliases (gI/gy/<leader>ds).
+map("n", "grr", fzf.lsp_references, { desc = "LSP References" })
+map("n", "gri", fzf.lsp_implementations, { desc = "LSP Implementations" })
+map("n", "grt", fzf.lsp_typedefs, { desc = "LSP Type Definitions" })
+map("n", "gO", fzf.lsp_document_symbols, { desc = "Document Symbols" })
+map("n", "gd", fzf.lsp_definitions, { desc = "Goto Definition" })
 map("n", "gD", vim.lsp.buf.declaration, { desc = "Goto Declaration" })
-map("n", "<leader>ds", function()
-  fzf.lsp_document_symbols()
-end, { desc = "Document Symbols" })
-map("n", "<leader>ws", function()
-  fzf.lsp_live_workspace_symbols()
-end, { desc = "Workspace Symbols" })
+map("n", "<leader>ws", fzf.lsp_live_workspace_symbols, { desc = "Workspace Symbols" })
 map("n", "<leader>cr", vim.lsp.buf.rename, { desc = "Rename" })
 map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Action" })
 map({ "n", "v" }, "<leader>cf", function()
-  require("conform").format({ async = false, lsp_format = "fallback" })
+  conform.format({ async = false, lsp_format = "fallback" })
 end, { desc = "Format Buffer" })
 
 -- Files / grep / picker
-map("n", "<leader><leader>", function()
-  fzf.files()
-end, { desc = "Find Files" })
-map("n", "<leader>ff", function()
-  fzf.files()
-end, { desc = "Find Files" })
+map("n", "<leader><leader>", fzf.files, { desc = "Find Files" })
+map("n", "<leader>ff", fzf.files, { desc = "Find Files" })
 map("n", "<leader>fc", function()
   fzf.files({ cwd = vim.fn.stdpath("config") })
 end, { desc = "Config Files" })
-map("n", "<leader>fr", function()
-  fzf.oldfiles()
-end, { desc = "Recent Files" })
-map("n", "<leader>sg", function()
-  fzf.live_grep()
-end, { desc = "Live Grep" })
-map("n", "<leader>sw", function()
-  fzf.grep_cword()
-end, { desc = "Grep Word" })
-map("n", "<leader>sW", function()
-  fzf.grep_cWORD()
-end, { desc = "Grep WORD" })
-map("n", "<leader>sb", function()
-  fzf.lgrep_curbuf()
-end, { desc = "Grep Buffer" })
-map("n", "<leader>ss", function()
-  fzf.builtin()
-end, { desc = "Search Select" })
-map("n", "<leader>,", function()
-  fzf.buffers()
-end, { desc = "Buffers" })
-map("n", "<leader>/", function()
-  fzf.lgrep_curbuf()
-end, { desc = "Grep Buffer" })
-map("n", "<leader>fh", function()
-  fzf.helptags()
-end, { desc = "Help Tags" })
-map("n", "<leader>fk", function()
-  fzf.keymaps()
-end, { desc = "Keymaps" })
-map("n", "<leader>fd", function()
-  fzf.diagnostics_document()
-end, { desc = "Document Diagnostics" })
-map("n", "<leader>fD", function()
-  fzf.diagnostics_workspace()
-end, { desc = "Workspace Diagnostics" })
+map("n", "<leader>fr", fzf.oldfiles, { desc = "Recent Files" })
+map("n", "<leader>sg", fzf.live_grep, { desc = "Live Grep" })
+map("n", "<leader>sw", fzf.grep_cword, { desc = "Grep Word" })
+map("n", "<leader>sW", fzf.grep_cWORD, { desc = "Grep WORD" })
+map("n", "<leader>sb", fzf.lgrep_curbuf, { desc = "Grep Buffer" })
+map("n", "<leader>ss", fzf.builtin, { desc = "Search Select" })
+map("n", "<leader>,", fzf.buffers, { desc = "Buffers" })
+map("n", "<leader>/", fzf.lgrep_curbuf, { desc = "Grep Buffer" })
+map("n", "<leader>fh", fzf.helptags, { desc = "Help Tags" })
+map("n", "<leader>fk", fzf.keymaps, { desc = "Keymaps" })
+map("n", "<leader>fd", fzf.diagnostics_document, { desc = "Document Diagnostics" })
+map("n", "<leader>fD", fzf.diagnostics_workspace, { desc = "Workspace Diagnostics" })
 
 -- File explorer
 map("n", "-", "<cmd>Oil<CR>", { desc = "Open Parent Directory" })
@@ -1174,7 +1128,7 @@ vim.api.nvim_create_autocmd("VimResized", {
   callback = function()
     local current_tab = vim.fn.tabpagenr()
     vim.cmd("tabdo wincmd =")
-    vim.cmd("tabnext " .. current_tab)
+    vim.cmd.tabnext(current_tab)
   end,
 })
 
@@ -1223,8 +1177,9 @@ vim.on_key(function(char)
   end
 
   local active = hlsearch_keys[vim.fn.keytrans(char)] == true
-  if vim.opt.hlsearch:get() ~= active then
-    vim.opt.hlsearch = active
+  -- scalar accessor: this runs on every keystroke, avoid building an Option obj
+  if vim.o.hlsearch ~= active then
+    vim.o.hlsearch = active
   end
 end, hlsearch_ns)
 
@@ -1245,16 +1200,19 @@ vim.api.nvim_create_autocmd({ "InsertEnter", "WinLeave" }, {
   end,
 })
 
--- Show command line while recording macros (cmdheight is 0 otherwise)
+-- Show command line while recording macros (cmdheight is 0 otherwise).
+-- Both autocmds must share ONE group handle: augroup() clears on each call, so
+-- calling it twice with the same name would delete the RecordingEnter autocmd.
+local macro_group = augroup("macro_cmdheight")
 vim.api.nvim_create_autocmd("RecordingEnter", {
-  group = augroup("macro_cmdheight"),
+  group = macro_group,
   callback = function()
     vim.opt.cmdheight = 1
   end,
 })
 
 vim.api.nvim_create_autocmd("RecordingLeave", {
-  group = augroup("macro_cmdheight"),
+  group = macro_group,
   callback = function()
     vim.defer_fn(function()
       vim.opt.cmdheight = 0
