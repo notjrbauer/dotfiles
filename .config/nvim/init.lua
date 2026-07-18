@@ -490,7 +490,7 @@ vim.pack.add({
 
   -- Completion
   { src = gh("rafamadriz/friendly-snippets") },
-  { src = gh("saghen/blink.cmp"),                 version = vim.version.range("1.x") },
+  { src = gh("saghen/blink.cmp"),                version = vim.version.range("1.x") },
 
   -- LSP / tooling
   { src = gh("neovim/nvim-lspconfig") },
@@ -501,7 +501,7 @@ vim.pack.add({
   { src = gh("stevearc/conform.nvim") },
 
   -- Treesitter (main rewrite for Nvim 0.12+)
-  { src = gh("nvim-treesitter/nvim-treesitter"),  version = "main" },
+  { src = gh("nvim-treesitter/nvim-treesitter"), version = "main" },
 
   -- Git
   { src = gh("lewis6991/gitsigns.nvim") },
