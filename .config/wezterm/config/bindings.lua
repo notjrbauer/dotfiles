@@ -11,6 +11,66 @@ elseif platform.is_win or platform.is_linux then
   mod.SUPER_REV = 'ALT|CTRL'
 end
 
+-- AdjustPaneSize is directional and *boundary-relative*: e.g. 'Down' moves the
+-- active pane's shared split boundary downward, so the very same key grows the
+-- pane when it sits above the boundary but shrinks it when it sits below (and
+-- does nothing coherent with a single pane). That is why LEADER `-`/`=` felt
+-- "inverted" depending on focus / pane count.
+--
+-- `resize` restores a tmux-style, position-independent grow/shrink: it inspects
+-- the tab layout, finds the neighbour to push against, and always makes the
+-- active pane bigger or smaller. With a single pane it is a harmless no-op.
+---@param axis 'v'|'h'  vertical (height) or horizontal (width)
+---@param grow boolean  true = enlarge the active pane, false = shrink it
+---@param amount integer cells to adjust by
+---@return table  an action_callback key assignment
+local function resize(axis, grow, amount)
+  return wezterm.action_callback(function(window, pane)
+    local tab = pane:tab()
+    if tab == nil then
+      return
+    end
+
+    local panes = tab:panes_with_info()
+    local me
+    for _, p in ipairs(panes) do
+      if p.is_active then
+        me = p
+        break
+      end
+    end
+    if me == nil then
+      return
+    end
+
+    -- Is there a neighbouring pane below (vertical) / to the right (horizontal)?
+    local neighbour_after = false
+    for _, p in ipairs(panes) do
+      if axis == 'v' then
+        if p.top >= me.top + me.height and p.left < me.left + me.width and p.left + p.width > me.left then
+          neighbour_after = true
+          break
+        end
+      else
+        if p.left >= me.left + me.width and p.top < me.top + me.height and p.top + p.height > me.top then
+          neighbour_after = true
+          break
+        end
+      end
+    end
+
+    -- Push against whichever boundary actually grows/shrinks the active pane.
+    local towards
+    if axis == 'v' then
+      towards = (grow == neighbour_after) and 'Down' or 'Up'
+    else
+      towards = (grow == neighbour_after) and 'Right' or 'Left'
+    end
+
+    window:perform_action(act.AdjustPaneSize({ towards, amount }), pane)
+  end)
+end
+
 local keys = {
   -- send a literal C-a to the terminal (tmux/readline) with C-a C-a
   { key = 'a', mods = 'LEADER|CTRL', action = act.SendString('\x01') },
@@ -33,8 +93,13 @@ local keys = {
   -- panes: zoom / resize / close
   { key = 'z', mods = 'LEADER', action = act.TogglePaneZoomState },
   { key = 'z', mods = mod.SUPER_REV, action = act.TogglePaneZoomState },
-  { key = '-', mods = 'LEADER', action = act.AdjustPaneSize({ 'Down', 10 }) },
-  { key = '=', mods = 'LEADER', action = act.AdjustPaneSize({ 'Up', 10 }) },
+  -- vertical divider grow/shrink: `-`/`=` = shorter/taller (tmux-style, size-based).
+  { key = '-', mods = 'LEADER', action = resize('v', false, 10) },
+  { key = '=', mods = 'LEADER', action = resize('v', true, 10) },
+  -- horizontal divider: `(`/`)` move the shared vertical divider left/right on
+  -- screen, independent of which side the active pane is on. AdjustPaneSize's
+  -- named direction *is* the direction the divider moves (see AdjustPaneSize.md),
+  -- so plain directional actions are correct here — no neighbour detection needed.
   { key = '(', mods = 'LEADER', action = act.AdjustPaneSize({ 'Left', 10 }) },
   { key = ')', mods = 'LEADER', action = act.AdjustPaneSize({ 'Right', 10 }) },
   -- LEADER r enters a sticky resize mode (h/j/k/l to resize in any direction)
