@@ -680,10 +680,49 @@ blink.setup({
 -- LSP servers are installed to the system PATH (brew / go / rustup / uv / npm),
 -- not via mason. nvim-lspconfig supplies the default cmd/root_markers/filetypes
 -- from its lsp/ dir; we enable them explicitly with vim.lsp.enable() below.
+-- Transient bottom-right popup announcing an LSP server attached to the buffer.
+-- Stacks upward when several attach together; each closes itself after ~1.6s.
+local lsp_notify_slots = 0
+local function notify_lsp_loaded(name)
+  local text = " ● " .. name .. " attached "
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, { text })
+  vim.bo[buf].bufhidden = "wipe"
+
+  local slot = lsp_notify_slots
+  local ok, win = pcall(vim.api.nvim_open_win, buf, false, {
+    relative = "editor",
+    anchor = "SE",
+    row = vim.o.lines - vim.o.cmdheight - 2 - (slot * 3),
+    col = vim.o.columns - 1,
+    width = vim.fn.strdisplaywidth(text),
+    height = 1,
+    style = "minimal",
+    border = "rounded",
+    focusable = false,
+    noautocmd = true,
+    zindex = 200,
+  })
+  if not ok then
+    return
+  end
+
+  lsp_notify_slots = lsp_notify_slots + 1
+  vim.wo[win].winhighlight = "NormalFloat:NormalFloat,FloatBorder:DiagnosticOk"
+  vim.wo[win].winblend = 10
+
+  vim.defer_fn(function()
+    pcall(vim.api.nvim_win_close, win, true)
+    lsp_notify_slots = math.max(0, lsp_notify_slots - 1)
+  end, 1600)
+end
+
 vim.api.nvim_create_autocmd("LspAttach", {
   group = augroup("lsp_attach"),
   callback = function(ev)
     local client = assert(vim.lsp.get_client_by_id(ev.data.client_id))
+
+    notify_lsp_loaded(client.name)
 
     if client.name == "gopls" then
       setup_gopls_on_save(client, ev.buf)
