@@ -62,6 +62,21 @@ opt.foldexpr = "v:lua.vim.treesitter.foldexpr()"
 opt.foldtext = ""
 opt.foldlevelstart = 99
 
+-- Render whitespace uniformly as dots: leading (indent) spaces AND tabs both show
+-- as middle-dots so tab-indented files (Go, Makefiles) look the same as space-
+-- indented ones; trailing whitespace gets a distinct mark. oil.nvim disables list
+-- in its own win_options, so the file explorer stays clean. Inter-word spaces are
+-- left blank via `lead` (not `space`).
+opt.list = true
+opt.listchars = {
+  tab = "··",
+  lead = "·",
+  trail = "•",
+  nbsp = "␣",
+  extends = "›",
+  precedes = "‹",
+}
+
 -- Editing / behavior
 opt.mouse = "a"
 opt.clipboard = "unnamedplus"
@@ -680,20 +695,31 @@ blink.setup({
 -- LSP servers are installed to the system PATH (brew / go / rustup / uv / npm),
 -- not via mason. nvim-lspconfig supplies the default cmd/root_markers/filetypes
 -- from its lsp/ dir; we enable them explicitly with vim.lsp.enable() below.
--- Transient bottom-right popup announcing an LSP server attached to the buffer.
--- Stacks upward when several attach together; each closes itself after ~1.6s.
-local lsp_notify_slots = 0
+-- Transient bottom-right popup announcing an LSP server loaded. Fired once per
+-- server instance (deduped by client id in LspAttach below), not once per buffer.
+-- Several stack upward and repack down as each closes itself after ~1.6s.
+local lsp_toasts = {} -- active float handles, oldest first (bottom-most)
+
+local function lsp_toast_relayout()
+  for i, win in ipairs(lsp_toasts) do
+    if vim.api.nvim_win_is_valid(win) then
+      local cfg = vim.api.nvim_win_get_config(win)
+      cfg.row = math.max(1, vim.o.lines - vim.o.cmdheight - 2 - ((i - 1) * 3))
+      vim.api.nvim_win_set_config(win, cfg)
+    end
+  end
+end
+
 local function notify_lsp_loaded(name)
-  local text = " ● " .. name .. " attached "
+  local text = " ● " .. name .. " loaded "
   local buf = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, { text })
   vim.bo[buf].bufhidden = "wipe"
 
-  local slot = lsp_notify_slots
   local ok, win = pcall(vim.api.nvim_open_win, buf, false, {
     relative = "editor",
     anchor = "SE",
-    row = vim.o.lines - vim.o.cmdheight - 2 - (slot * 3),
+    row = math.max(1, vim.o.lines - vim.o.cmdheight - 2),
     col = vim.o.columns - 1,
     width = vim.fn.strdisplaywidth(text),
     height = 1,
@@ -707,22 +733,34 @@ local function notify_lsp_loaded(name)
     return
   end
 
-  lsp_notify_slots = lsp_notify_slots + 1
   vim.wo[win].winhighlight = "NormalFloat:NormalFloat,FloatBorder:DiagnosticOk"
   vim.wo[win].winblend = 10
+  table.insert(lsp_toasts, win)
+  lsp_toast_relayout()
 
   vim.defer_fn(function()
     pcall(vim.api.nvim_win_close, win, true)
-    lsp_notify_slots = math.max(0, lsp_notify_slots - 1)
+    for i, w in ipairs(lsp_toasts) do
+      if w == win then
+        table.remove(lsp_toasts, i)
+        break
+      end
+    end
+    lsp_toast_relayout()
   end, 1600)
 end
 
+local lsp_toast_seen = {} -- client ids already announced this session
 vim.api.nvim_create_autocmd("LspAttach", {
   group = augroup("lsp_attach"),
   callback = function(ev)
     local client = assert(vim.lsp.get_client_by_id(ev.data.client_id))
 
-    notify_lsp_loaded(client.name)
+    -- One toast per server instance (a restart gets a fresh id -> re-announces).
+    if not lsp_toast_seen[ev.data.client_id] then
+      lsp_toast_seen[ev.data.client_id] = true
+      notify_lsp_loaded(client.name)
+    end
 
     if client.name == "gopls" then
       setup_gopls_on_save(client, ev.buf)
@@ -1071,6 +1109,23 @@ map("n", "<leader>fp", function()
   vim.fn.setreg("+", path)
   vim.notify('Copied "' .. path .. '"', vim.log.levels.INFO)
 end, { desc = "Copy File Path" })
+
+-- :Retab — convert the current buffer's tabs to spaces (expandtab + retab).
+-- Guarded: refuses on filetypes where literal tabs are required (Go, Makefiles),
+-- since converting those corrupts the file. Manual only — never automatic.
+vim.api.nvim_create_user_command("Retab", function()
+  local tab_required = { go = true, gomod = true, gowork = true, make = true }
+  local ft = vim.bo.filetype
+  if tab_required[ft] then
+    vim.notify(("Retab skipped: %s requires literal tabs"):format(ft), vim.log.levels.WARN)
+    return
+  end
+  local view = vim.fn.winsaveview()
+  vim.bo.expandtab = true
+  vim.cmd("retab")
+  vim.fn.winrestview(view)
+  vim.notify("Converted tabs to spaces", vim.log.levels.INFO)
+end, { desc = "Convert buffer tabs to spaces (guarded)" })
 
 -- Toggles
 map("n", "<leader>uf", function()
