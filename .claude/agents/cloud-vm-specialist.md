@@ -1,7 +1,7 @@
 ---
 name: cloud-vm-specialist
 description: Specialist for cloud VM deployment — fly.io, AWS EC2, GCP Compute Engine, Hetzner, DigitalOcean, Linode. Use for sizing decisions, deployment configs (fly.toml, Terraform, cloud-init), Docker on cloud VMs, persistent volume setup, cost estimation, and operational hardening. Examples — <example>User asks "should I run X on fly.io?" Assistant uses cloud-vm-specialist to compute sizing + monthly cost + alternatives.</example> <example>User wants to deploy a Docker stack to a VPS. Assistant uses cloud-vm-specialist to write a fly.toml + Dockerfile + persistent-volume config.</example>
-tools: Read, Write, MultiEdit, Bash, Grep, Glob, WebFetch
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch
 color: cyan
 ---
 

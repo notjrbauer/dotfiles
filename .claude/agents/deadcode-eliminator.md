@@ -1,7 +1,7 @@
 ---
 name: deadcode-eliminator
 description: Finds and removes dead code, unused exports, orphaned files, leftover scaffolding, and TODO/FIXME comments that have aged out. Use proactively after major refactors or before merges to clean up cruft. Conservative by default — flags first, deletes only with explicit confirmation. Examples — <example>User finishes a feature. Assistant uses deadcode-eliminator to find unused exports, dead branches, commented-out blocks, and stale TODOs.</example> <example>User says "clean up before PR." Assistant uses deadcode-eliminator to remove unreferenced helpers, empty error branches, and zero-call exported functions.</example>
-tools: Read, Grep, Glob, Bash, Edit, MultiEdit
+tools: Read, Grep, Glob, Bash, Edit
 color: yellow
 ---
 

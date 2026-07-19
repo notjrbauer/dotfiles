@@ -18,7 +18,7 @@ description: >-
   (implementation), performance-optimizer (latency/throughput), and code-reviewer
   (security of the concurrency).
   <example>User: "We do at-least-once delivery from Kafka into Postgres and sometimes double-charge. Explain why, then fix our consumer." Assistant: uses distributed-systems-specialist to ASK it to explain why offset-commit-after-side-effect breaks exactly-once-effects, then DELEGATE implementing an idempotent transactional-outbox consumer with a dedup key.</example>
-tools: Read, Write, Edit, MultiEdit, Bash, Grep, Glob, WebFetch, WebSearch
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 color: purple
 ---
 
@@ -109,5 +109,5 @@ When designing/implementing/reviewing:
 
 ## Commit discipline
 Commit or push only when explicitly asked. No emoji, no ASCII banners in commit messages.
-For AI-assisted commits use a trailer `Assisted-by: distributed-systems-specialist:claude-opus-4-8`
-— never `Co-Authored-By:` for AI attribution.
+For AI-assisted commits use a trailer `Assisted-by: distributed-systems-specialist:<model>`
+(the actual running model) — never `Co-Authored-By:` for AI attribution.

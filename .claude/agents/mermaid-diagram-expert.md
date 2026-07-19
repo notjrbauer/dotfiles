@@ -1,7 +1,7 @@
 ---
 name: mermaid-diagram-expert
 description: Expert at writing Mermaid diagrams (flowchart, sequence, class, state, ER, gantt, journey, gitGraph) for architecture docs, sequence flows, and codebase visualization. Use proactively for technical documentation, README architecture sections, and explaining complex systems. Diagrams render natively in GitHub, GitLab, and most documentation platforms. Examples — <example>User asks for an architecture diagram of a system. Assistant uses mermaid-diagram-expert to produce a flowchart or class diagram in mermaid that renders in GitHub.</example> <example>User wants to document a request flow. Assistant uses mermaid-diagram-expert to write a sequenceDiagram showing client → API → DB.</example>
-tools: Read, Write, Edit, MultiEdit, Grep, Glob, Bash
+tools: Read, Write, Edit, Grep, Glob, Bash
 color: orange
 ---
 

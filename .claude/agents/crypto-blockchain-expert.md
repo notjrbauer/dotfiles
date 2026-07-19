@@ -1,7 +1,7 @@
 ---
 name: crypto-blockchain-expert
 description: Expert in blockchain protocols (Stellar, Ethereum, Cosmos, Solana), DeFi (AMMs, DEXs, lending, perps), MEV, smart contract security, oracle integration, and cross-chain bridges. Use for protocol-design decisions, security analysis of contracts, AMM math, MEV-resistance review, oracle pull patterns, and DeFi integration questions. Distinct from `code-reviewer` — this agent has DOMAIN knowledge of how the protocols actually work, not just code-quality knowledge. Examples — <example>User asks "is this AMM math correct?" Assistant uses crypto-blockchain-expert to verify the constant-product / StableSwap / CLMM invariant.</example> <example>User asks about Stellar's classic SDEX vs Soroban AMM differences. Assistant uses crypto-blockchain-expert.</example>
-tools: Read, Edit, MultiEdit, Write, Bash, Grep, Glob, WebFetch
+tools: Read, Edit, Write, Bash, Grep, Glob, WebFetch
 color: purple
 ---
 

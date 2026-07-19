@@ -78,8 +78,9 @@ export FZF_CTRL_R_OPTS="--bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+ab
 
 # Run the full fpath security check at most once a day; otherwise skip it with
 # -C (the slowest part of compinit). (#qN.mh+24) = dump older than 24h or absent.
+setopt EXTENDED_GLOB           # ^, ~, # glob operators — needed here for (#q…) below
 autoload -Uz compinit
-if [[ -n $ZCOMPDUMP_PATH(#qN.mh+24) ]]; then
+if [[ ! -f "$ZCOMPDUMP_PATH" || -n $ZCOMPDUMP_PATH(#qN.mh+24) ]]; then
   compinit -d "$ZCOMPDUMP_PATH"
 else
   compinit -C -d "$ZCOMPDUMP_PATH"
@@ -131,7 +132,7 @@ setopt AUTO_CD                 # bare `foo/` behaves like `cd foo/`
 setopt AUTO_PUSHD              # every cd pushes onto the dir stack
 setopt PUSHD_IGNORE_DUPS       # no duplicate stack entries
 setopt PUSHD_SILENT            # don't dump the stack on pushd/popd
-setopt EXTENDED_GLOB           # ^, ~, # glob operators
+# (EXTENDED_GLOB is set earlier, in the Completions section)
 setopt INTERACTIVE_COMMENTS    # allow `# comments` at the prompt
 setopt NO_FLOW_CONTROL         # free ^S / ^Q (matters for fzf + history search)
 setopt NO_BEEP

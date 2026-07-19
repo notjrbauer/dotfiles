@@ -1,7 +1,7 @@
 ---
 name: code-reviewer
 description: Security-first code reviewer. MUST BE USED before any merge, deploy, or significant code submission. Catches injection vulnerabilities, auth bypass, leaked secrets, race conditions, blockchain smart-contract footguns, and the OWASP top 10. For language-idiom feedback use `idiomatic-code-reviewer`; for blockchain protocol correctness use `crypto-blockchain-expert`. Examples — <example>User finishes a feature and runs git diff. Assistant uses code-reviewer to scan for security issues before commit.</example> <example>User about to merge a PR. Assistant uses code-reviewer to verify auth/input/secret handling.</example>
-tools: Read, Grep, Glob, Task
+tools: Read, Grep, Glob, Agent
 color: red
 ---
 

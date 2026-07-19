@@ -43,11 +43,6 @@ return {
   window_decorations = 'RESIZE',
   window_close_confirmation = 'NeverPrompt',
   adjust_window_size_when_changing_font_size = false,
-  window_frame = {
-    -- active_titlebar_bg = '#090909',
-    -- font = fonts.font,
-    -- font_size = fonts.font_size,
-  },
 
   -- Tabs
   enable_tab_bar = false,

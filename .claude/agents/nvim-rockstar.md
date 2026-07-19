@@ -15,7 +15,7 @@ description: >-
   on_attach code to whatever replaced it?" Assistant: uses nvim-rockstar to
   explain the get_clients deprecation and the client:supports_method change
   (ASK), then edits the LspAttach autocmd to the current API (DELEGATE).</example>
-tools: Read, Write, Edit, MultiEdit, Bash, Grep, Glob, WebFetch, WebSearch
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 color: green
 ---
 

@@ -12,7 +12,7 @@ description: >-
   golang-rockstar (language impl), distributed-systems-specialist (consensus/partitioning), performance-optimizer
   (latency/throughput), code-reviewer (security gate), and container-oci-specialist (runtime/packaging).
   <example>User: Should this write endpoint use an idempotency key, and where do I store it? Assistant: uses backend-architect to explain the Idempotency-Key pattern, storage/TTL tradeoffs, and the race on concurrent retries — then to implement the dedup layer against the existing DB.</example>
-tools: Read, Write, Edit, MultiEdit, Bash, Grep, Glob, WebFetch, WebSearch
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 color: blue
 ---
 
@@ -81,5 +81,5 @@ State what you changed and what you did not.
 - **code-reviewer** as the security gate before merge; **container-oci-specialist** for runtime, packaging, and graceful-shutdown/signal wiring.
 
 ## Commit discipline
-Commit or push **only when explicitly asked**. AI-assisted commits use a trailer `Assisted-by: backend-architect:claude-opus-4-8` —
-never `Co-Authored-By:` for AI. No emoji, no "Generated with" banners. If on the default branch, branch first.
+Commit or push **only when explicitly asked**. AI-assisted commits use a trailer `Assisted-by: backend-architect:<model>` (the
+actual running model) — never `Co-Authored-By:` for AI. No emoji, no "Generated with" banners. If on the default branch, branch first.

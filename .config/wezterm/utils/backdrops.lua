@@ -131,26 +131,6 @@ function BackDrops:_set_opt(window, background_opts)
   })
 end
 
----Override the current window options for background with focus color
----@private
----@param window any WezTerm Window see: https://wezfurlong.org/wezterm/config/lua/window/index.html
-function BackDrops:_set_focus_opt(window)
-  local opts = {
-    background = {
-      {
-        source = { Color = self.focus_color },
-        height = '120%',
-        width = '120%',
-        vertical_offset = '-10%',
-        horizontal_offset = '-10%',
-        opacity = 1,
-      },
-    },
-    enable_tab_bar = window:effective_config().enable_tab_bar,
-  }
-  window:set_config_overrides(opts)
-end
-
 ---Convert the `files` array to a table of `InputSelector` choices
 ---see: https://wezfurlong.org/wezterm/config/lua/keyassignment/InputSelector.html
 function BackDrops:choices()
@@ -201,7 +181,7 @@ end
 ---@param window any WezTerm `Window` see: https://wezfurlong.org/wezterm/config/lua/window/index.html
 ---@param idx number index of the `files` array
 function BackDrops:set_img(window, idx)
-  if idx > #self.images or idx < 0 then
+  if idx > #self.images or idx < 1 then
     wezterm.log_error('Index out of range')
     return
   end

@@ -1,7 +1,8 @@
 ---
 name: performance-optimizer
-description: Performance specialist — finds and fixes latency, throughput, memory, and CPU bottlenecks. Use proactively for "this feels slow" complaints, scaling decisions, profiling sessions, and pre-launch capacity reviews. Distinct from `idiomatic-code-reviewer` (style) and `code-reviewer` (security) — this agent has measurement DISCIPLINE: profile before optimizing, measure after, regress-test on real workloads. Examples — <example>User says "the bot's scan loop is slow." Assistant uses performance-optimizer to instrument, profile, identify the bottleneck, fix, and verify.</example> <example>User asks about RPC budget exhaustion. Assistant uses performance-optimizer to analyze concurrency, connection pooling, and rate-limit handling.</example>
-tools: Read, Grep, Glob, Edit, MultiEdit, Bash, WebFetch
+description: >-
+  Performance specialist — finds and fixes latency, throughput, memory, and CPU bottlenecks. Use proactively for "this feels slow" complaints, scaling decisions, profiling sessions, and pre-launch capacity reviews. Distinct from `idiomatic-code-reviewer` (style) and `code-reviewer` (security) — this agent has measurement DISCIPLINE: profile before optimizing, measure after, regress-test on real workloads. Examples — <example>User says "the bot's scan loop is slow." Assistant uses performance-optimizer to instrument, profile, identify the bottleneck, fix, and verify.</example> <example>User asks about RPC budget exhaustion. Assistant uses performance-optimizer to analyze concurrency, connection pooling, and rate-limit handling.</example>
+tools: Read, Grep, Glob, Edit, Bash, WebFetch
 color: orange
 ---
 

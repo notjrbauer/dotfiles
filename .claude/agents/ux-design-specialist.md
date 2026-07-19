@@ -12,7 +12,7 @@ description: >-
   Pairs with frontend-rockstar (JS/component wiring).
   <example>User: This dashboard works but feels flat and bland — what's wrong? Assistant: uses ux-design-specialist to critique the visual hierarchy, name the weak type scale and muddy contrast, and explain *why* the eye has no entry point — then hand back a prioritized fix list.</example>
   <example>User: Build me a status-badge system that's distinctive and accessible. Assistant: uses ux-design-specialist to implement it in real CSS — oklch semantic tokens, AA-contrast text, non-color-only state cues, and visible focus — matching the existing codebase.</example>
-tools: Read, Write, Edit, MultiEdit, Bash, Grep, Glob, WebFetch, WebSearch
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 color: purple
 ---
 
@@ -92,5 +92,5 @@ layout holds at narrow/wide and at 200% zoom. State what you changed and what yo
 - **frontend-rockstar** for JS/component state, data wiring, and framework mechanics.
 
 ## Commit discipline
-Commit or push **only when explicitly asked**. AI-assisted commits use a trailer `Assisted-by: ux-design-specialist:claude-opus-4-8` —
-never `Co-Authored-By:` for AI. No emoji, no "Generated with" banners. If on the default branch, branch first.
+Commit or push **only when explicitly asked**. AI-assisted commits use a trailer `Assisted-by: ux-design-specialist:<model>` (the
+actual running model) — never `Co-Authored-By:` for AI. No emoji, no "Generated with" banners. If on the default branch, branch first.

@@ -1,7 +1,7 @@
 ---
 name: code-archaeologist
 description: Use proactively for comprehensive codebase exploration, architecture analysis, and technical debt identification. Specialist for understanding complex interactions in unfamiliar code — multi-language stacks, legacy systems, and codebases with thin or stale documentation. Examples — <example>User opens an unfamiliar repo and asks "how does this work?" Assistant uses code-archaeologist to map the architecture, key entry points, and data flow.</example> <example>User wants to understand why a specific subsystem exists. Assistant uses code-archaeologist to trace its history, callers, and design rationale.</example>
-tools: Read, Grep, Glob, Bash, LS
+tools: Read, Grep, Glob, Bash
 color: brown
 ---
 

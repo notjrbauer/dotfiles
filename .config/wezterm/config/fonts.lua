@@ -18,15 +18,6 @@ if use_pragmata then
   config.line_height = 1.17
 else
   config.font = wezterm.font('JetBrains Mono Semibold')
-  -- config.font = wezterm.font({
-  --   family = 'JetBrains Mono',
-  --   weight = 'DemiBold',
-  -- })
-  -- config.font = wezterm.font({
-  --   family = 'JetBrains Mono',
-  --   -- family = 'JetBrainsMono Nerd Font Mono',
-  --   -- weight = 'Bold',
-  -- })
 end
 
 return config

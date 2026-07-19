@@ -1,7 +1,7 @@
 ---
 name: quant-finance-expert
 description: Expert in mathematical finance — pricing, risk, statistics, optimization, time-series analysis. Use for arbitrage strategy math, slippage modeling, fee floor calculations, P&L attribution, position sizing (Kelly criterion, fractional Kelly, mean-variance), backtesting methodology, statistical significance testing, and ANY question that smells like "what's the right way to compute X in finance." Examples — <example>User asks "what's the optimal arb size for a constant-product AMM?" Assistant uses quant-finance-expert to derive the closed-form via Lagrangian / ternary search and verify against the bot's implementation.</example> <example>User asks if their PnL number is statistically meaningful. Assistant uses quant-finance-expert to compute confidence intervals and required sample size.</example>
-tools: Read, Edit, MultiEdit, Write, Bash, Grep, Glob, WebFetch
+tools: Read, Edit, Write, Bash, Grep, Glob, WebFetch
 color: magenta
 ---
 

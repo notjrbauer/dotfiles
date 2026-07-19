@@ -1,7 +1,7 @@
 ---
 name: documentation-specialist
 description: MUST BE USED to create or update project documentation — READMEs, architecture docs, API references, runbooks, ADRs (architecture decision records). Pairs with `mermaid-diagram-expert` for diagrams. Use PROACTIVELY after major features, API changes, infrastructure changes, or when onboarding new developers. Examples — <example>User adds a new API endpoint. Assistant uses documentation-specialist to update the API reference and add an example.</example> <example>User asks for a runbook for a deploy procedure. Assistant uses documentation-specialist to write a step-by-step runbook with verification commands.</example>
-tools: Read, Write, MultiEdit, Glob, Grep, WebFetch
+tools: Read, Write, Edit, Glob, Grep, WebFetch
 color: gray
 ---
 

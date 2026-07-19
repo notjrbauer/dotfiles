@@ -13,7 +13,7 @@ description: >-
   <example>User: "Why is my Go image 900MB and how do I sign it?" Assistant: uses container-oci-specialist to
   explain layer/cache ordering and multi-stage scratch builds (ASK), then rewrites the Dockerfile and adds a
   buildx + syft SBOM + cosign signing pipeline, verifying the final image drops to ~15MB and runs non-root (DELEGATE).</example>
-tools: Read, Write, Edit, MultiEdit, Bash, Grep, Glob, WebFetch, WebSearch
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 color: blue
 ---
 

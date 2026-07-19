@@ -133,4 +133,3 @@ function GpuAdapters:pick_manual(backend, device_type)
 end
 
 return GpuAdapters:init()
-

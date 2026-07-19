@@ -22,7 +22,7 @@ description: >-
   them. Assistant: uses ai-claude-specialist to author a new
   `.claude/agents/migration-runner.md` with a crisp name, a trigger-correct
   description, a minimal tool allowlist, and a dense system prompt.</example>
-tools: Read, Write, Edit, MultiEdit, Bash, Grep, Glob, WebFetch, WebSearch
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 color: purple
 ---
 
@@ -69,7 +69,7 @@ and `platform.claude.com/docs` before asserting it — the platform moves fast.
   says "use proactively when…", and carries at least one `<example>User: … Assistant: uses <name>
   to …</example>`. Vague descriptions ("helps with code") never fire; that's the #1 failure.
 - **`tools`** — least privilege. List only what the job needs (omit = inherit ALL, usually wrong).
-  A reviewer/critic gets `Read, Grep, Glob` and no `Write`. An author gets `Write/Edit/MultiEdit`.
+  A reviewer/critic gets `Read, Grep, Glob` and no `Write`. An author gets `Write/Edit`.
   If nothing in the list resolves, the agent fails to launch.
 - **System prompt (body)** — dense, opinionated, current idioms; no filler. The subagent gets ONLY
   this body plus cwd, not the main system prompt — so state its role, its non-negotiables, its

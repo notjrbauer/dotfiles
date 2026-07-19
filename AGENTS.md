@@ -20,9 +20,9 @@ Layout that matters:
 - `install.sh` — the `link src dest` symlink installer. Every new managed
   file gets a `link` line here.
 - `.claude/CLAUDE.md` — global Claude Code defaults → `~/.claude/CLAUDE.md`.
-- `.claude/agents/*.md` — personal specialist subagents → merged into
-  `~/.claude/agents/rockstars/` (a subdir symlink, so it composes with the
-  other agents already in `~/.claude/agents/` without name collisions).
+- `.claude/agents/*.md` — personal specialist subagents. The whole
+  directory is symlinked as `~/.claude/agents` (one flat dir, one
+  `link` line) — this repo is the single source of truth for the set.
 - `agents-scaffold/` — a **portable, self-contained** project scaffold
   (AGENTS.md + ADR log + journal + enforcing git hooks) to drop into
   *other* repos via `agents-scaffold/install.sh`. It intentionally does

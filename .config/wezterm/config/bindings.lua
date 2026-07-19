@@ -47,12 +47,20 @@ local function resize(axis, grow, amount)
     local neighbour_after = false
     for _, p in ipairs(panes) do
       if axis == 'v' then
-        if p.top >= me.top + me.height and p.left < me.left + me.width and p.left + p.width > me.left then
+        if
+          p.top >= me.top + me.height
+          and p.left < me.left + me.width
+          and p.left + p.width > me.left
+        then
           neighbour_after = true
           break
         end
       else
-        if p.left >= me.left + me.width and p.top < me.top + me.height and p.top + p.height > me.top then
+        if
+          p.left >= me.left + me.width
+          and p.top < me.top + me.height
+          and p.top + p.height > me.top
+        then
           neighbour_after = true
           break
         end
@@ -88,7 +96,11 @@ local keys = {
   { key = 's', mods = 'LEADER', action = act.SplitVertical({ domain = 'CurrentPaneDomain' }) },
   { key = 'v', mods = 'LEADER', action = act.SplitHorizontal({ domain = 'CurrentPaneDomain' }) },
   { key = [[\]], mods = mod.SUPER, action = act.SplitVertical({ domain = 'CurrentPaneDomain' }) },
-  { key = [[\]], mods = mod.SUPER_REV, action = act.SplitHorizontal({ domain = 'CurrentPaneDomain' }) },
+  {
+    key = [[\]],
+    mods = mod.SUPER_REV,
+    action = act.SplitHorizontal({ domain = 'CurrentPaneDomain' }),
+  },
 
   -- panes: zoom / resize / close
   { key = 'z', mods = 'LEADER', action = act.TogglePaneZoomState },
@@ -103,7 +115,15 @@ local keys = {
   { key = '(', mods = 'LEADER', action = act.AdjustPaneSize({ 'Left', 10 }) },
   { key = ')', mods = 'LEADER', action = act.AdjustPaneSize({ 'Right', 10 }) },
   -- LEADER r enters a sticky resize mode (h/j/k/l to resize in any direction)
-  { key = 'r', mods = 'LEADER', action = act.ActivateKeyTable({ name = 'resize_pane', one_shot = false, timeout_milliseconds = 1000 }) },
+  {
+    key = 'r',
+    mods = 'LEADER',
+    action = act.ActivateKeyTable({
+      name = 'resize_pane',
+      one_shot = false,
+      timeout_milliseconds = 1000,
+    }),
+  },
   { key = 'w', mods = mod.SUPER, action = act.CloseCurrentPane({ confirm = false }) },
 
   -- tabs
@@ -154,7 +174,11 @@ local key_tables = {
 
 local mouse_bindings = {
   -- Ctrl-click opens the link under the cursor
-  { event = { Up = { streak = 1, button = 'Left' } }, mods = 'CTRL', action = act.OpenLinkAtMouseCursor },
+  {
+    event = { Up = { streak = 1, button = 'Left' } },
+    mods = 'CTRL',
+    action = act.OpenLinkAtMouseCursor,
+  },
 }
 
 return {

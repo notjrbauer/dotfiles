@@ -1,7 +1,7 @@
 ---
 name: tech-lead-orchestrator
 description: Senior technical lead — analyzes complex multi-step projects and produces structured task breakdowns + agent routing decisions. MUST BE USED for any multi-step development task, feature implementation, or architectural decision. Returns ordered task lists, identifies critical path, and assigns each task to the right specialist agent. Examples — <example>User asks to add a new feature spanning frontend, backend, and smart contracts. Assistant uses tech-lead-orchestrator to break work into tasks and assign agents.</example>
-tools: Read, Grep, Glob, LS, Bash
+tools: Read, Grep, Glob, Bash
 color: navy
 ---
 

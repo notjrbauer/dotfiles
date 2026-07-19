@@ -1,7 +1,7 @@
 ---
 name: project-analyst
 description: MUST BE USED to analyze any new or unfamiliar codebase. Use PROACTIVELY when entering a project to detect frameworks, tech stacks, and architectural patterns so other specialists can be routed correctly. Distinct from `code-archaeologist` (which produces deep mental models) — this agent's job is FAST classification so the right team can be assembled. Examples — <example>User opens a repo. Assistant uses project-analyst to identify "Go daemon + Rust/Soroban contracts + vanilla JS dashboard" so it can route work to the right specialists.</example>
-tools: LS, Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash
 color: teal
 ---
 

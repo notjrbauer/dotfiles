@@ -23,9 +23,6 @@
   autosetuprebase = always
   sort = -committerdate
 
-[branch "master"]
-  rebase = true
-
 [pull]
   rebase = true
 
@@ -60,9 +57,6 @@
   log = 1000
   tool = nvimdiff
 	conflictStyle = zdiff3
-
-[diff "nvimdiff"]
-  cmd = nvim -d \"$LOCAL\" \"$REMOTE\"
 
 [mergetool "nvimdiff"]
   cmd = nvim -d \"$LOCAL\" \"$REMOTE\" \"$MERGED\" -c 'wincmd w' -c 'wincmd J'

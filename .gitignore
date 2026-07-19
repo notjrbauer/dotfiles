@@ -5,7 +5,7 @@
 .config/AWSVPNClient/*
 .config/*/*.log
 bin/
-.swp
+*.swp
 .backup
 .undo
 .config/op

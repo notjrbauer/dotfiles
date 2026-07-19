@@ -98,7 +98,6 @@ opt.winminwidth = 5
 
 -- Files / undo
 opt.autowrite = true
-opt.backup = false
 opt.writebackup = false
 opt.swapfile = false
 opt.undofile = true
@@ -116,10 +115,8 @@ end
 opt.ignorecase = true
 opt.smartcase = true
 opt.hlsearch = false
-opt.incsearch = true
 
 -- Indentation
-opt.autoindent = true
 opt.expandtab = true
 opt.shiftround = true
 opt.shiftwidth = 2
@@ -130,7 +127,6 @@ opt.softtabstop = 2
 opt.splitbelow = true
 opt.splitright = true
 opt.splitkeep = "screen"
-opt.timeout = true
 opt.timeoutlen = 300
 opt.updatetime = 200
 opt.scrolloff = 8
@@ -349,7 +345,6 @@ local servers = {
             vim.fn.stdpath("config"),
           },
         },
-        telemetry = { enable = false },
         hint = {
           enable = true,
           setType = false,
@@ -425,8 +420,9 @@ local servers = {
   pyright = {
     settings = {
       pyright = {
-        -- Defer import organization to a dedicated tool (e.g. ruff) if added later.
-        disableOrganizeImports = false,
+        -- ruff (below) owns import organization on save; drop pyright's
+        -- duplicate "Organize Imports" code action.
+        disableOrganizeImports = true,
       },
       python = {
         analysis = {
@@ -549,12 +545,9 @@ which_key.setup({
   spec = {
     { "<leader>c", group = "code" },
     { "<leader>f", group = "file/find" },
-    { "<leader>g", group = "git" },
     { "<leader>h", group = "hunks" },
-    { "<leader>q", group = "quit/session" },
     { "<leader>s", group = "search" },
     { "<leader>u", group = "ui" },
-    { "<leader>w", group = "windows" },
     { "<leader>x", group = "diagnostics" },
     { "[",         group = "prev" },
     { "]",         group = "next" },
@@ -1098,7 +1091,8 @@ end, { desc = "Buffer Keymaps" })
 
 -- Packages
 map("n", "<leader>pu", function()
-  vim.pack.update({})
+  -- No argument = all plugins; an empty list would filter to zero plugins.
+  vim.pack.update()
 end, { desc = "Update Packages" })
 
 -- File helpers
@@ -1154,13 +1148,11 @@ map("n", "<leader>ul", function()
   vim.notify("Relative Numbers " .. (vim.wo.relativenumber and "enabled" or "disabled"), vim.log.levels.INFO)
 end, { desc = "Toggle Relative Numbers" })
 
-if vim.lsp.inlay_hint then
-  map("n", "<leader>uh", function()
-    local enabled = vim.lsp.inlay_hint.is_enabled({ bufnr = 0 })
-    vim.lsp.inlay_hint.enable(not enabled, { bufnr = 0 })
-    vim.notify("Inlay Hints " .. (enabled and "disabled" or "enabled"), vim.log.levels.INFO)
-  end, { desc = "Toggle Inlay Hints" })
-end
+map("n", "<leader>uh", function()
+  local enabled = vim.lsp.inlay_hint.is_enabled({ bufnr = 0 })
+  vim.lsp.inlay_hint.enable(not enabled, { bufnr = 0 })
+  vim.notify("Inlay Hints " .. (enabled and "disabled" or "enabled"), vim.log.levels.INFO)
+end, { desc = "Toggle Inlay Hints" })
 
 local function set_scratch_lines(buf, lines)
   vim.bo[buf].modifiable = true

@@ -16,7 +16,7 @@ description: >-
   design around the scripts), and performance-optimizer (app-level latency once the
   syscall/IO picture is clear).
   <example>User: "Why does my `foo | while read` loop lose the variable I set inside it, and can you make this backup script safe on both my Mac and my Linux box?" Assistant: uses unix-cli-specialist to (ASK) explain that the pipeline runs the loop body in a subshell so its assignments never reach the parent, then (DELEGATE) rewrite it with process substitution + `set -euo pipefail`, portable `stat`/`date` guards, and a `shellcheck` pass.</example>
-tools: Read, Write, Edit, MultiEdit, Bash, Grep, Glob, WebFetch, WebSearch
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 color: green
 ---
 
