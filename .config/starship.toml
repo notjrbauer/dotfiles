@@ -19,8 +19,11 @@ $jobs\
 $character"""
 
 [directory]
-truncation_length = 3          # show at most 3 trailing path components
-truncate_to_repo = true        # inside a repo, the path starts at the repo root
+# Dials: raise truncation_length to show more of the path; set
+# truncate_to_repo = true to re-anchor to the repo root (shows just the
+# repo name at its root). With it off you get the real trailing path.
+truncation_length = 3          # show up to 3 trailing path components
+truncate_to_repo = false       # show the actual path tail, not just repo root
 truncation_symbol = "…/"       # marker shown when the path was shortened
 style = "blue"
 repo_root_style = "bold blue"  # make the repo name stand out

@@ -1,0 +1,45 @@
+# This directory tracks ONLY portable Claude Code config (CLAUDE.md,
+# agents/, settings.json, and future commands/output-styles). Everything
+# Claude Code writes into ~/.claude at runtime is machine-local, private,
+# or secret and must never be committed — even if it lands here via a
+# stray copy. Belt-and-suspenders blocklist:
+
+# Secrets / credentials / per-machine
+.credentials.json
+settings.local.json
+.claude.json
+
+# Session data & history (private, large)
+projects/
+sessions/
+session-env/
+shell-snapshots/
+history.jsonl
+file-history/
+todos/
+
+# Installed plugins (cloned repos — reinstall per machine)
+plugins/
+
+# Runtime state / daemon / jobs / tasks
+daemon/
+daemon.*
+debug/
+jobs/
+tasks/
+plans/
+statsig/
+
+# Caches & derived
+cache/
+*-cache/
+*-cache.json
+image-cache/
+paste-cache/
+backups/
+
+# Junk / local markers
+.DS_Store
+.last-*
+*.bak.*
+*.tar.gz

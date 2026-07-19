@@ -42,5 +42,13 @@ link "$DOTFILES/.config/wezterm"     "$XDG_CONFIG_HOME/wezterm"
 link "$DOTFILES/.gitconfig"          "$HOME/.gitconfig"
 link "$DOTFILES/.psqlrc"             "$HOME/.psqlrc"
 
+# --- Claude Code ---------------------------------------------------------
+# Portable config only (see .claude/README.md). Runtime state — transcripts,
+# caches, credentials, plugins — stays local in ~/.claude and is never
+# tracked. ~/.claude/agents is a single symlink to the whole curated set.
+link "$DOTFILES/.claude/CLAUDE.md"      "$HOME/.claude/CLAUDE.md"
+link "$DOTFILES/.claude/settings.json"  "$HOME/.claude/settings.json"
+link "$DOTFILES/.claude/agents"         "$HOME/.claude/agents"
+
 echo ""
 echo "Done. Start a new shell (or run: exec zsh -l) to pick up the changes."
