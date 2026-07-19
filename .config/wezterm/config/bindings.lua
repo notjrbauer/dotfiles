@@ -120,9 +120,10 @@ local keys = {
   { key = 'f', mods = mod.SUPER, action = act.Search({ CaseInSensitiveString = '' }) },
   { key = 'F12', mods = 'NONE', action = act.ShowDebugOverlay },
 
-  -- copy / paste
-  { key = 'c', mods = 'CTRL|SHIFT', action = act.CopyTo('Clipboard') },
-  { key = 'v', mods = 'CTRL|SHIFT', action = act.PasteFrom('Clipboard') },
+  -- copy / paste (macOS Cmd+C / Cmd+V). Bound explicitly so they never depend
+  -- on wezterm's default key set.
+  { key = 'c', mods = 'SUPER', action = act.CopyTo('Clipboard') },
+  { key = 'v', mods = 'SUPER', action = act.PasteFrom('Clipboard') },
 }
 
 local key_tables = {

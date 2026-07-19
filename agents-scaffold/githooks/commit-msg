@@ -1,0 +1,28 @@
+#!/bin/sh
+# commit-msg: enforce the AI attribution trailer and block the harness
+# defaults this scaffold overrides (Co-Authored-By for AI, emoji banners).
+msgfile="$1"
+
+# Reject the AI Co-Authored-By trailer and "Generated with" banners
+# regardless of SKIP_ATTRIB — these are never wanted here.
+if grep -qiE '^Co-Authored-By:.*(claude|anthropic|gpt|copilot|cursor)' "$msgfile"; then
+	echo "commit-msg: use 'Assisted-by:' for AI agents, not 'Co-Authored-By:'."
+	exit 1
+fi
+if grep -qE 'Generated with|🤖' "$msgfile"; then
+	echo "commit-msg: drop the emoji / 'Generated with' banner."
+	exit 1
+fi
+
+# Human commits opt out of the attribution requirement.
+[ "${SKIP_ATTRIB:-}" = "1" ] && exit 0
+
+# Require  Assisted-by: NAME:MODEL  (both parts non-empty).
+if grep -qE '^Assisted-by: .+:.+' "$msgfile"; then
+	exit 0
+fi
+
+echo "commit-msg: missing 'Assisted-by: AGENT_NAME:MODEL_VERSION' trailer."
+echo "  e.g.  Assisted-by: Claude Code:claude-opus-4-8   (actual running model)"
+echo "  For a genuinely human commit:  SKIP_ATTRIB=1 git commit ..."
+exit 1

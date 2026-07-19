@@ -1,0 +1,22 @@
+#!/bin/sh
+# Pre-commit: require a journal entry, then run the fast verify gate.
+set -e
+
+root=$(git rev-parse --show-toplevel)
+
+# 1) Journal requirement — every commit records history.
+if [ "${SKIP_JOURNAL:-}" != "1" ]; then
+	if ! git diff --cached --name-only | grep -q '^project/journal/'; then
+		echo "pre-commit: no staged project/journal/ entry."
+		echo "  Add a journal line for this session (see project/journal/README.md),"
+		echo "  or use  SKIP_JOURNAL=1 git commit ...  for a trivial commit."
+		exit 1
+	fi
+fi
+
+# 2) Verify gate (fast lane).
+. "$root/.githooks/lib-verify.sh"
+if ! run_verify; then
+	echo "pre-commit: verify failed — fix it or SKIP with the project's own escape hatch."
+	exit 1
+fi

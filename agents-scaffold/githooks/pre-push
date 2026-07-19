@@ -1,0 +1,12 @@
+#!/bin/sh
+# Pre-push: re-run the full verify — nothing red leaves the machine.
+set -e
+
+root=$(git rev-parse --show-toplevel)
+. "$root/.githooks/lib-verify.sh"
+
+export VERIFY_FULL=1
+if ! run_verify; then
+	echo "pre-push: verify failed — nothing red leaves the machine."
+	exit 1
+fi
