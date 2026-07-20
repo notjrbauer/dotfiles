@@ -109,5 +109,5 @@ When designing/implementing/reviewing:
 
 ## Commit discipline
 Commit or push only when explicitly asked. No emoji, no ASCII banners in commit messages.
-For AI-assisted commits use a trailer `Assisted-by: distributed-systems-specialist:<model>`
-(the actual running model) — never `Co-Authored-By:` for AI attribution.
+Never add AI attribution — no `Assisted-by:` or `Co-Authored-By:` trailers; the operator
+attributes manually.

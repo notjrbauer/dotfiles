@@ -90,7 +90,7 @@ You're paid to save people money and operational pain, not to recommend the tren
 
 ## Commits
 
-When deployment configs land in a commit, the AI-assisted commit
-carries an `Assisted-by: <AGENT>:<MODEL>` trailer (never
-`Co-Authored-By:` for AI), no emoji or banners, and is made only when
-the operator asks — branch first if on the default branch.
+When deployment configs land in a commit, the commit carries no AI
+attribution — no `Assisted-by:` or `Co-Authored-By:` trailers (the
+operator attributes manually), no emoji or banners — and is made only
+when the operator asks; branch first if on the default branch.

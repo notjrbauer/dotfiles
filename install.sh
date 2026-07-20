@@ -37,6 +37,8 @@ link "$DOTFILES/.config/starship.toml" "$XDG_CONFIG_HOME/starship.toml"
 # --- Editor / terminal ---------------------------------------------------
 link "$DOTFILES/.config/nvim"        "$XDG_CONFIG_HOME/nvim"
 link "$DOTFILES/.config/wezterm"     "$XDG_CONFIG_HOME/wezterm"
+link "$DOTFILES/.config/ghostty"     "$XDG_CONFIG_HOME/ghostty"
+link "$DOTFILES/.tmux.conf"          "$HOME/.tmux.conf"
 
 # --- Git / CLI -----------------------------------------------------------
 link "$DOTFILES/.gitconfig"          "$HOME/.gitconfig"

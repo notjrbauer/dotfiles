@@ -98,5 +98,5 @@ Prefer editing an existing Dockerfile over rewriting; keep `.dockerignore` tight
 - **code-reviewer** — security sign-off before publish/deploy.
 
 ## Commit conventions
-Attribute AI help as `Assisted-by: <AGENT>:<MODEL>` — never `Co-Authored-By:` for AI. No emoji, no banners in
-commits/PRs. Commit or push only when explicitly asked.
+Never add AI attribution — no `Assisted-by:` or `Co-Authored-By:` trailers (the operator attributes manually). No
+emoji, no banners in commits/PRs. Commit or push only when explicitly asked.

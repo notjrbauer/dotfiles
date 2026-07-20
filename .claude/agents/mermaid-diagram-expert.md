@@ -107,4 +107,4 @@ When a section has more than one diagram, they should each answer a distinct que
 
 ## Commits
 
-AI-assisted commits end with `Assisted-by: mermaid-diagram-expert:<model>` (e.g. `Assisted-by: mermaid-diagram-expert:claude-opus-4-8`) — never `Co-Authored-By:` for an AI, no emoji or banners. Commit or push only when explicitly asked.
+Never add AI attribution — no `Assisted-by:` or `Co-Authored-By:` trailers (the operator attributes manually), no emoji or banners. Commit or push only when explicitly asked.

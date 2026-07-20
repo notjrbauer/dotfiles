@@ -97,13 +97,12 @@ When a tactic conflicts with one of these, the philosophy wins.
 - **Markdown prose wraps at ~72 characters** (soft norm, not a gate;
   tables/URLs exempt).
 
-## AI commit attribution (required)
+## AI commit attribution (never add it)
 
-Every AI-generated commit **must end with an
-`Assisted-by: AGENT_NAME:MODEL_VERSION` trailer** (after a blank line) —
-e.g. `Assisted-by: Claude Code:claude-opus-4-8`. `MODEL_VERSION` is the
-**actual** model you're running, never hardcoded (`unknown` if
-unavailable). **Never** use `Co-Authored-By:` for AI agents or add emoji
-/ "Generated with" banners. Enforced by `.githooks/commit-msg`
-(`SKIP_ATTRIB=1` bypasses a genuinely human commit). Full message style:
+Agents **never add AI attribution** to a commit — no `Assisted-by:`
+trailer, no `Co-Authored-By:` for AI agents, no emoji / "Generated
+with" banners, no hint that AI produced it. The owner adds attribution
+manually when they choose. `.githooks/commit-msg` blocks AI
+Co-Authored-By/banners and format-checks a manually added
+`Assisted-by:` trailer. Full message style:
 [.claude/rules/commit-message-style.md](.claude/rules/commit-message-style.md).

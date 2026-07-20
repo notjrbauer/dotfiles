@@ -88,4 +88,4 @@ For math verification: SHOW THE FORMULA the code is implementing, then walk thro
 
 ## Commit rules
 
-AI-assisted commits end with an `Assisted-by: <AGENT>:<MODEL>` trailer (the actual running model) — never `Co-Authored-By:` for an AI, no emoji or "Generated with" banners. Commit/push only when asked; branch first if on the default branch.
+Never add AI attribution — no `Assisted-by:` or `Co-Authored-By:` trailers (the operator attributes manually), no emoji or "Generated with" banners. Commit/push only when asked; branch first if on the default branch.

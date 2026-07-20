@@ -33,6 +33,7 @@ make help        # list targets
 | `.config/starship.toml` | Prompt config |
 | `.config/nvim/` | Neovim 0.12 — native LSP, `vim.pack`, blink.cmp, fzf-lua, treesitter |
 | `.config/wezterm/` | WezTerm — catppuccin mocha, tmux-style `C-a` leader |
+| `.config/ghostty/` | Ghostty — same palette/font, native tabs & splits |
 | `.gitconfig`, `.psqlrc`, `.tmux.conf`, `Brewfile` | Git / psql / tmux / Homebrew bundle |
 | `.claude/` | **Portable Claude Code config** — global rules, curated agents, settings |
 | `agents-scaffold/` | Drop-in **agentic project scaffold** for *other* repos |
@@ -73,17 +74,20 @@ stands alone on teammates' machines and CI. See
 
 - **Shell:** zsh + [zap](https://github.com/zap-zsh/zap), XDG layout via `ZDOTDIR`
 - **Prompt:** [starship](https://starship.rs)
-- **Terminal:** [WezTerm](https://wezterm.org)
+- **Terminal:** [WezTerm](https://wezterm.org) (a [Ghostty](https://ghostty.org) config is maintained in parallel)
 - **Editor:** [Neovim](https://neovim.io) 0.12+
 - **Tools:** fnm (node) · colima (docker) · zoxide (`j`) · fzf · eza · bat
 
 ## Conventions
 
-- **No tmux.** WezTerm panes cover it. `C-a` is the leader: split `s`/`v`,
-  navigate `h/j/k/l`, resize mode `r`, zoom `z`, copy-mode `[`.
+- **tmux optional.** WezTerm panes cover daily use; `.tmux.conf` is kept
+  modernized (tmux 3.5, same palette) with the same `C-a` bindings for when a
+  multiplexer is wanted. `C-a` is the leader everywhere: split `s`/`v`,
+  navigate `h/j/k/l`, resize mode `r` (tmux: `R`), zoom `z`, copy-mode `[`.
 - **No key clash:** bare `C-h/j/k/l` navigates Neovim windows; `C-a h/j/k/l`
   navigates WezTerm panes. `Cmd+C`/`Cmd+V` copy/paste (in a full-screen TUI,
   hold **Shift while dragging** to make a selection first).
 - **Docker:** colima (`colima start`). The `default` context targets colima.
-- **AI commits:** assisted commits use an `Assisted-by:` trailer, never
-  `Co-Authored-By:` for an AI. See `.claude/CLAUDE.md`.
+- **AI commits:** no AI attribution — never add `Assisted-by:` or
+  `Co-Authored-By:` for an AI; the owner attributes manually. See
+  `.claude/CLAUDE.md`.

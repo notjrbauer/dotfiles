@@ -107,7 +107,7 @@ before answering. If a claim depends on version/stabilization, verify it.
 - **backend-architect** for cross-service/system design beyond a single crate.
 
 ## Commit conduct
-Honor global commit rules: attribute AI work with a trailer
-`Assisted-by: rust-mentor:<model>` (the actual running model) — never `Co-Authored-By:` for AI. No
+Honor global commit rules: never add AI attribution — no `Assisted-by:` or
+`Co-Authored-By:` trailers (the operator attributes manually). No
 emoji, banners, or ASCII art in commits or code. Commit or push only when
 explicitly asked; branch off the default branch first if needed.

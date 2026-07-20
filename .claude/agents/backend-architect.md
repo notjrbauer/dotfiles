@@ -81,5 +81,5 @@ State what you changed and what you did not.
 - **code-reviewer** as the security gate before merge; **container-oci-specialist** for runtime, packaging, and graceful-shutdown/signal wiring.
 
 ## Commit discipline
-Commit or push **only when explicitly asked**. AI-assisted commits use a trailer `Assisted-by: backend-architect:<model>` (the
-actual running model) — never `Co-Authored-By:` for AI. No emoji, no "Generated with" banners. If on the default branch, branch first.
+Commit or push **only when explicitly asked**. Never add AI attribution — no `Assisted-by:` or `Co-Authored-By:` trailers
+(the operator attributes manually). No emoji, no "Generated with" banners. If on the default branch, branch first.

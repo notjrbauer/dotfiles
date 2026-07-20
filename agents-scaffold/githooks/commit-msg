@@ -1,12 +1,13 @@
 #!/bin/sh
-# commit-msg: enforce the AI attribution trailer and block the harness
-# defaults this scaffold overrides (Co-Authored-By for AI, emoji banners).
+# commit-msg: block AI attribution the harness defaults would inject
+# (Co-Authored-By for AI, emoji banners). Agents never attribute AI;
+# the owner adds an Assisted-by trailer manually when they choose.
 msgfile="$1"
 
-# Reject the AI Co-Authored-By trailer and "Generated with" banners
-# regardless of SKIP_ATTRIB — these are never wanted here.
+# Reject the AI Co-Authored-By trailer and "Generated with" banners —
+# these are never wanted here.
 if grep -qiE '^Co-Authored-By:.*(claude|anthropic|gpt|copilot|cursor)' "$msgfile"; then
-	echo "commit-msg: use 'Assisted-by:' for AI agents, not 'Co-Authored-By:'."
+	echo "commit-msg: no 'Co-Authored-By:' for AI — the owner attributes manually."
 	exit 1
 fi
 if grep -qE 'Generated with|🤖' "$msgfile"; then
@@ -14,15 +15,11 @@ if grep -qE 'Generated with|🤖' "$msgfile"; then
 	exit 1
 fi
 
-# Human commits opt out of the attribution requirement.
-[ "${SKIP_ATTRIB:-}" = "1" ] && exit 0
-
-# Require  Assisted-by: NAME:MODEL  (both parts non-empty).
-if grep -qE '^Assisted-by: .+:.+' "$msgfile"; then
-	exit 0
+# Attribution is optional and owner-added. If an Assisted-by trailer is
+# present, both parts must be non-empty:  Assisted-by: NAME:MODEL
+if grep -qiE '^Assisted-by:' "$msgfile" && ! grep -qE '^Assisted-by: .+:.+' "$msgfile"; then
+	echo "commit-msg: malformed 'Assisted-by:' trailer."
+	echo "  expected  Assisted-by: AGENT_NAME:MODEL_VERSION"
+	exit 1
 fi
-
-echo "commit-msg: missing 'Assisted-by: AGENT_NAME:MODEL_VERSION' trailer."
-echo "  e.g.  Assisted-by: Claude Code:claude-opus-4-8   (actual running model)"
-echo "  For a genuinely human commit:  SKIP_ATTRIB=1 git commit ..."
-exit 1
+exit 0

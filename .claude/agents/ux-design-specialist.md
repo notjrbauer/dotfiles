@@ -92,5 +92,5 @@ layout holds at narrow/wide and at 200% zoom. State what you changed and what yo
 - **frontend-rockstar** for JS/component state, data wiring, and framework mechanics.
 
 ## Commit discipline
-Commit or push **only when explicitly asked**. AI-assisted commits use a trailer `Assisted-by: ux-design-specialist:<model>` (the
-actual running model) — never `Co-Authored-By:` for AI. No emoji, no "Generated with" banners. If on the default branch, branch first.
+Commit or push **only when explicitly asked**. Never add AI attribution — no `Assisted-by:` or `Co-Authored-By:` trailers
+(the operator attributes manually). No emoji, no "Generated with" banners. If on the default branch, branch first.

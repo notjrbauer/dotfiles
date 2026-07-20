@@ -15,10 +15,10 @@ docs/decisions.md                      # append-only ADR log — the "why"
 project/journal/                       # per-session history (append-only)
 project/brainstorms/                   # discovery captures
 project/human-in-the-loop/QUEUE.md     # design forks only a human can rule on
-.claude/rules/commit-message-style.md  # commit style + attribution rule
+.claude/rules/commit-message-style.md  # commit style (no AI attribution)
 .githooks/
   pre-commit    # requires a journal entry + runs the fast verify gate
-  commit-msg    # requires the Assisted-by trailer; blocks Co-Authored-By/banners
+  commit-msg    # blocks AI attribution (Co-Authored-By for AI, banners)
   pre-push      # re-runs the full verify — nothing red leaves the machine
   lib-verify.sh # resolves a verify target: scripts/verify | npm | make
 ```
@@ -56,5 +56,4 @@ script can branch on.
 ## Escape hatches
 
 - `SKIP_JOURNAL=1 git commit …` — trivial commit, no journal entry.
-- `SKIP_ATTRIB=1 git commit …` — genuinely human commit, no trailer.
 - `git config --unset core.hooksPath` — fully detach the hooks.

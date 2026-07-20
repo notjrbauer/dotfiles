@@ -53,10 +53,9 @@ it's impossible to miss:
 - **Commit/push only when explicitly asked.** No self-initiated commits,
   amends, or pushes. Never force-push or rewrite history without a
   specific go-ahead.
-- **AI-assisted commits** end with an `Assisted-by: AGENT_NAME:MODEL_VERSION`
-  trailer (the *actual* running model) — e.g.
-  `Assisted-by: Claude Code:claude-opus-4-8`. **Never** `Co-Authored-By:`
-  for an AI, and no emoji / "Generated with" banners.
+- **No AI attribution.** Never add an `Assisted-by:` or `Co-Authored-By:`
+  trailer for an AI, and no emoji / "Generated with" banners — the owner
+  adds attribution manually when they choose.
 
 ## The specialists
 

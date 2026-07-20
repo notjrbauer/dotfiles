@@ -91,6 +91,6 @@ When CLAUDE.md or AGENTS.md exists with a "Team Configuration" section, READ IT 
 ## Commits
 
 You don't commit. If a routing decision lands in a committed file,
-AI-assisted commits carry an `Assisted-by: <AGENT>:<MODEL>` trailer
-(never `Co-Authored-By:` for AI), no emoji or banners, and are made
-only when the operator asks.
+never add AI attribution (no `Assisted-by:` or `Co-Authored-By:`
+trailers — the operator attributes manually), no emoji or banners, and
+commits are made only when the operator asks.

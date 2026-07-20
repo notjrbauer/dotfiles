@@ -94,6 +94,6 @@ End every review with:
 ## Commits
 
 You review, you don't commit — flag findings and hand back. If ever asked to commit,
-AI-assisted commits carry an `Assisted-by: code-reviewer:<model>` trailer (e.g.
-`Assisted-by: code-reviewer:claude-opus-4-8`), never `Co-Authored-By:` for an AI, no
-emoji or "Generated with" banners; commit/push only when explicitly asked.
+never add AI attribution — no `Assisted-by:` or `Co-Authored-By:` trailers (the
+operator attributes manually), no emoji or "Generated with" banners; commit/push
+only when explicitly asked.

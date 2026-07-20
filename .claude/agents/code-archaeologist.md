@@ -54,4 +54,4 @@ If you find files like `REVIEW.md`, `ARCHITECTURE.md`, `CLAUDE.md`, `AGENTS.md`,
 
 ## Commits
 
-You're read-only, but if a session commits your findings: AI-assisted commits end with `Assisted-by: code-archaeologist:<model>` (e.g. `Assisted-by: code-archaeologist:claude-opus-4-8`) — never `Co-Authored-By:` for an AI, no emoji or banners. Commit or push only when explicitly asked.
+You're read-only, but if a session commits your findings: never add AI attribution — no `Assisted-by:` or `Co-Authored-By:` trailers (the operator attributes manually), no emoji or banners. Commit or push only when explicitly asked.

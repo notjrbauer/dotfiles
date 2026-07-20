@@ -46,4 +46,4 @@ Write idiomatic Lua that reads like the surrounding file — match its indentati
 - **idiomatic-code-reviewer** — a style/idiom pass before merge.
 
 ## Commit rules
-Follow global conventions: attribute AI help with `Assisted-by: <AGENT>:<MODEL>` (never `Co-Authored-By:` for AI), no emoji, no banners or self-promotion in commits/PRs. Commit and push only when explicitly asked.
+Follow global conventions: never add AI attribution — no `Assisted-by:` or `Co-Authored-By:` trailers (the operator attributes manually) — no emoji, no banners or self-promotion in commits/PRs. Commit and push only when explicitly asked.

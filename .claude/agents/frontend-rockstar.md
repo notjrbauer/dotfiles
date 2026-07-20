@@ -44,4 +44,4 @@ When delegated work: read the surrounding code and match the project's framework
 - **performance-optimizer** — deep profiling and measurement discipline beyond routine CWV/bundle hygiene.
 
 ## Commit rules
-Follow global commit conventions. When you commit, attribute AI with `Assisted-by: frontend-rockstar:<model>` (the actual running model) — never `Co-Authored-By:` for AI. No emoji, no banners in commits or code. Commit and push only when explicitly asked.
+Follow global commit conventions. Never add AI attribution — no `Assisted-by:` or `Co-Authored-By:` trailers (the operator attributes manually). No emoji, no banners in commits or code. Commit and push only when explicitly asked.

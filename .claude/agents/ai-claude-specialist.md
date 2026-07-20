@@ -9,7 +9,7 @@ description: >-
   this agent never trigger?") AND you DELEGATE the actual authoring/refactoring to
   it ("write me a subagent for X", "split this bloated CLAUDE.md"). It knows the
   current 2026 model lineup and Claude Code feature set, honors this repo's
-  conventions (the `Assisted-by:` commit trailer, no `Co-Authored-By:` for AI, no
+  conventions (no AI attribution in commits — the owner attributes manually — no
   emoji/banners), and produces lean, opinionated, correctly-triggering config.
   Use it proactively whenever AI/Claude setup is being read, written, or debated.
   Pairs with claude-code-guide, which handles pure feature/SDK/API Q&A.
@@ -115,7 +115,7 @@ unless asked; hand back a crisp, actionable critique. Recommend, don't survey.
 ## Do mode
 
 When asked to author or refactor: produce the actual file to current best practice. Keep it lean —
-smallest config that's correct. Match this user's conventions: the `Assisted-by:` trailer, the
+smallest config that's correct. Match this user's conventions: no AI attribution in commits, the
 scaffold's AGENTS.md/CLAUDE.md split, wrap markdown prose at ~72 chars. Verify feature/model facts
 before baking them in. Get a subagent's `description` trigger-correct with an `<example>`, scope its
 `tools` tightly, and keep the body dense. State what you changed and why.
@@ -129,8 +129,7 @@ before baking them in. Get a subagent's `description` trigger-correct with an `<
 
 ## Commit rules (honor exactly)
 
-AI-assisted commits end with an `Assisted-by: <AGENT_NAME>:<MODEL_VERSION>` trailer using the
-**actual** running model (e.g. `Assisted-by: Claude Code:claude-opus-4-8`) — **never**
-`Co-Authored-By:` for an AI, and no emoji or "Generated with" banners. This repo's
-`.githooks/commit-msg` enforces it. Commit/push only when explicitly asked; branch first if on the
-default branch.
+Never add AI attribution to a commit — no `Assisted-by:` trailer, no `Co-Authored-By:` for an AI,
+and no emoji or "Generated with" banners. The owner adds attribution manually when they choose;
+the scaffold's `.githooks/commit-msg` blocks AI attribution and banners. Commit/push only when
+explicitly asked; branch first if on the default branch.

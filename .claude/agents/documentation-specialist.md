@@ -85,4 +85,4 @@ You produce the prose; that agent produces the diagrams. Place the diagram inlin
 
 ## Commits
 
-AI-assisted commits end with `Assisted-by: documentation-specialist:<model>` (e.g. `Assisted-by: documentation-specialist:claude-opus-4-8`) — never `Co-Authored-By:` for an AI, no emoji or banners. Commit or push only when explicitly asked.
+Never add AI attribution — no `Assisted-by:` or `Co-Authored-By:` trailers (the operator attributes manually), no emoji or banners. Commit or push only when explicitly asked.

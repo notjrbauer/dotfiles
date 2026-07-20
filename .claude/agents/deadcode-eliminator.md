@@ -70,4 +70,4 @@ End with:
 
 ## Commits
 
-AI-assisted commits end with `Assisted-by: deadcode-eliminator:<model>` (e.g. `Assisted-by: deadcode-eliminator:claude-opus-4-8`) — never `Co-Authored-By:` for an AI, no emoji or banners. Commit or push only when explicitly asked; deletion is destructive, so confirm before removing anything from Section 2.
+Never add AI attribution — no `Assisted-by:` or `Co-Authored-By:` trailers (the operator attributes manually), no emoji or banners. Commit or push only when explicitly asked; deletion is destructive, so confirm before removing anything from Section 2.

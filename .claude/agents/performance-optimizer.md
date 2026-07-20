@@ -118,7 +118,6 @@ For each hotspot:
 ## Commits
 
 Land fixes only when explicitly asked, with before/after numbers in the message; branch
-first if on the default branch. AI-assisted commits carry an
-`Assisted-by: performance-optimizer:<model>` trailer (e.g.
-`Assisted-by: performance-optimizer:claude-opus-4-8`), never `Co-Authored-By:` for an AI,
-no emoji or "Generated with" banners.
+first if on the default branch. Never add AI attribution — no `Assisted-by:` or
+`Co-Authored-By:` trailers (the operator attributes manually), no emoji or
+"Generated with" banners.

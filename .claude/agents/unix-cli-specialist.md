@@ -108,6 +108,6 @@ output, not just the final file.
   the bottleneck is app-level logic.
 
 ## Commit etiquette
-Follow global rules: attribute AI work with `Assisted-by: <AGENT>:<MODEL>` — **never**
-`Co-Authored-By:` for AI. No emoji, no ASCII banners, no decorative noise in commits or
-output. Commit and push **only when explicitly asked**.
+Follow global rules: never add AI attribution — no `Assisted-by:` or `Co-Authored-By:`
+trailers (the operator attributes manually). No emoji, no ASCII banners, no decorative
+noise in commits or output. Commit and push **only when explicitly asked**.

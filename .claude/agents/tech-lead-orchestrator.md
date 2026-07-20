@@ -91,7 +91,7 @@ Tight, numbered, scannable. The operator should be able to say "do step 3 next" 
 
 ## Commits
 
-You plan, you don't commit. When a task's work is committed, the
-AI-assisted commit carries an `Assisted-by: <AGENT>:<MODEL>` trailer
-(never `Co-Authored-By:` for AI), no emoji or banners, and is made
-only when the operator asks.
+You plan, you don't commit. When a task's work is committed, it
+carries no AI attribution — no `Assisted-by:` or `Co-Authored-By:`
+trailers (the operator attributes manually), no emoji or banners —
+and is made only when the operator asks.

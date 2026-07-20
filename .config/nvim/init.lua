@@ -280,11 +280,13 @@ local function setup_format_on_save(client, bufnr)
   if not client:supports_method("textDocument/formatting") then
     return
   end
-  register_format_on_save(client, bufnr, { name = "lsp_format" })
+  register_format_on_save(client, bufnr, { name = "lsp_format_" .. client.name })
 end
 
 local function setup_gopls_on_save(client, bufnr)
-  if not client:supports_method("textDocument/codeAction") and not client:supports_method("textDocument/formatting") then
+  if
+    not client:supports_method("textDocument/codeAction") and not client:supports_method("textDocument/formatting")
+  then
     return
   end
   register_format_on_save(client, bufnr, {
@@ -501,6 +503,7 @@ vim.pack.add({
 
   -- Completion
   { src = gh("rafamadriz/friendly-snippets") },
+  -- stylua: ignore
   { src = gh("saghen/blink.cmp"),                version = vim.version.range("1.x") },
 
   -- LSP / tooling
@@ -549,10 +552,12 @@ which_key.setup({
     { "<leader>s", group = "search" },
     { "<leader>u", group = "ui" },
     { "<leader>x", group = "diagnostics" },
+    -- stylua: ignore start
     { "[",         group = "prev" },
     { "]",         group = "next" },
     { "g",         group = "goto" },
     { "z",         group = "fold" },
+    -- stylua: ignore end
   },
 })
 
@@ -676,6 +681,7 @@ blink.setup({
         treesitter = { "lsp" },
         columns = {
           { "kind_icon" },
+          -- stylua: ignore
           { "label",    "label_description", gap = 1 },
           { "kind" },
         },
@@ -1309,6 +1315,7 @@ vim.api.nvim_create_autocmd("RecordingLeave", {
 -- Command-line abbreviations for common typos
 vim.schedule(function()
   for _, abbr in ipairs({
+    -- stylua: ignore start
     { "W!",    "w!" },
     { "Q!",    "q!" },
     { "Qall!", "qall!" },
@@ -1319,6 +1326,7 @@ vim.schedule(function()
     { "W",     "w" },
     { "Q",     "q" },
     { "Qall",  "qall" },
+    -- stylua: ignore end
   }) do
     vim.cmd.cnoreabbrev(abbr[1], abbr[2])
   end

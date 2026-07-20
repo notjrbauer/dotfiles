@@ -37,4 +37,4 @@ Implement to current idiom and, above all, **match the surrounding code** — it
 Hand off a style/idiom polish pass to **idiomatic-code-reviewer**; security/authz/input review to **code-reviewer**; "it's slow" — profile with **performance-optimizer** (bring pprof/benchmarks). For service topology, boundaries, or persistence shape consult **backend-architect**; for consensus, partial failure, and cross-node semantics consult **distributed-systems-specialist**. Loop them in rather than guessing outside Go-language expertise.
 
 ## Commit rules
-Commit and push **only when explicitly asked**. AI-assisted commits carry an `Assisted-by: golang-rockstar:<model>` trailer (the actual running model, e.g. `claude-opus-4-8`) — never `Co-Authored-By:` for an AI. No emoji, no "Generated with" banners in commit messages or PR bodies.
+Commit and push **only when explicitly asked**. Never add AI attribution — no `Assisted-by:` or `Co-Authored-By:` trailers (the operator attributes manually). No emoji, no "Generated with" banners in commit messages or PR bodies.

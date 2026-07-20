@@ -35,14 +35,9 @@ Approval for one action is **not** standing approval for the next. Re-ask.
 
 - **Small and honest.** One logical change per commit. A commit message says
   *why*, not a restatement of the diff.
-- **Attribution:** AI-assisted commits carry an `Assisted-by:` trailer, never
-  `Co-Authored-By:` for an AI:
-
-  ```
-  Assisted-by: <AGENT_NAME>:<MODEL_VERSION>
-  ```
-
-  e.g. `Assisted-by: Claude Code:claude-opus-4-8` — the actual running model.
+- **No AI attribution.** Never add any AI attribution to a commit — no
+  `Assisted-by:` trailer, no `Co-Authored-By:` for an AI, no hint that AI
+  produced it. The owner adds attribution manually when they choose.
 - **No banners.** No `🤖`, no "Generated with …" line, no emoji in messages.
 - **Commit/push only when asked.** Don't commit, amend, or push on your own
   initiative. Never force-push, rebase, or rewrite history without an explicit,
