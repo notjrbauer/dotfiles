@@ -995,11 +995,22 @@ map({ "n", "x" }, "k", "v:count == 0 ? 'gk' : 'k'", { expr = true, desc = "Up" }
 map({ "n", "x" }, "<Down>", "v:count == 0 ? 'gj' : 'j'", { expr = true, desc = "Down" })
 map({ "n", "x" }, "<Up>", "v:count == 0 ? 'gk' : 'k'", { expr = true, desc = "Up" })
 
--- Windows
-map("n", "<C-h>", "<C-w>h", { remap = true, desc = "Go to Left Window" })
-map("n", "<C-j>", "<C-w>j", { remap = true, desc = "Go to Lower Window" })
-map("n", "<C-k>", "<C-w>k", { remap = true, desc = "Go to Upper Window" })
-map("n", "<C-l>", "<C-w>l", { remap = true, desc = "Go to Right Window" })
+-- Windows. C-hjkl moves between nvim windows and, at an edge, hops to the
+-- adjacent tmux pane (plugin-free vim-tmux-navigator: .tmux.conf forwards
+-- C-hjkl into nvim when it's focused, so nvim must hand back off at edges).
+local function win_or_tmux(dir, tmux_flag)
+  return function()
+    local win = vim.api.nvim_get_current_win()
+    vim.cmd.wincmd(dir)
+    if vim.api.nvim_get_current_win() == win and vim.env.TMUX then
+      vim.system({ "tmux", "select-pane", tmux_flag })
+    end
+  end
+end
+map("n", "<C-h>", win_or_tmux("h", "-L"), { desc = "Go to Left Window / tmux pane" })
+map("n", "<C-j>", win_or_tmux("j", "-D"), { desc = "Go to Lower Window / tmux pane" })
+map("n", "<C-k>", win_or_tmux("k", "-U"), { desc = "Go to Upper Window / tmux pane" })
+map("n", "<C-l>", win_or_tmux("l", "-R"), { desc = "Go to Right Window / tmux pane" })
 map("n", "<C-Up>", "<cmd>resize +2<CR>", { desc = "Increase Window Height" })
 map("n", "<C-Down>", "<cmd>resize -2<CR>", { desc = "Decrease Window Height" })
 map("n", "<C-Left>", "<cmd>vertical resize -2<CR>", { desc = "Decrease Window Width" })
