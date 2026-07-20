@@ -284,8 +284,7 @@ local function setup_format_on_save(client, bufnr)
 end
 
 local function setup_gopls_on_save(client, bufnr)
-  if
-    not client:supports_method("textDocument/codeAction") and not client:supports_method("textDocument/formatting")
+  if not client:supports_method("textDocument/codeAction") and not client:supports_method("textDocument/formatting")
   then
     return
   end
@@ -1210,7 +1209,7 @@ end, { desc = "Run Shell Command" })
 vim.api.nvim_create_autocmd("TextYankPost", {
   group = augroup("highlight_yank"),
   callback = function()
-    vim.hl.on_yank({ timeout = 150 })
+    vim.hl.hl_op({ timeout = 150 })
   end,
 })
 
