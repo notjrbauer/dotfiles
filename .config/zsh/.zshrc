@@ -203,6 +203,12 @@ fi
 
 zle_highlight+=(paste:none)
 
+# Ghostty backdrop reshuffle — wezterm parity (utils/backdrops.lua :random()
+# runs at every startup). Ghostty reads ~/.cache/ghostty/backdrop-image only at
+# launch/reload, so each Ghostty shell re-rolls the pick for the NEXT launch
+# (or apply now with cmd+shift+,). Guarded to Ghostty shells; runs in ms.
+[[ $TERM_PROGRAM == ghostty ]] && ~/.config/ghostty/backdrop >/dev/null 2>&1
+
 # fnm (Node version manager) — guarded so a machine without fnm still loads.
 command -v fnm &>/dev/null && eval "$(fnm env --use-on-cd --shell zsh)"
 

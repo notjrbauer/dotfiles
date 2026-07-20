@@ -1,7 +1,9 @@
-# Ghostty config — mirrors .config/wezterm/* (colors/custom.lua, config/appearance.lua, config/fonts.lua)
-# Target: Ghostty 1.3.1 (Mar 2026), macOS. Location: ~/.config/ghostty/config
+# Ghostty config — mirrors .config/wezterm/* (colors/custom.lua, config/appearance.lua,
+# config/fonts.lua, config/bindings.lua, utils/backdrops.lua)
+# Target: Ghostty 1.3.1, macOS. Location: ~/.config/ghostty/config
 # Palette: slightly-altered Catppuccin Mocha (base swapped to #1f1f28).
-# Syntax verified against https://ghostty.org/docs/config/reference (1.3.x).
+# Every option/action below verified against the 1.3.1 binary
+# (+show-config --default --docs, +list-actions, +validate-config).
 
 # ---------------------------------------------------------------------------
 # Font  (fonts.lua: JetBrains Mono Semibold @ 14pt on macOS)
@@ -9,8 +11,9 @@
 font-family = JetBrains Mono
 font-style = SemiBold
 font-size = 14
-# wezterm: bold_brightens_ansi_colors = true
-bold-is-bright = true
+# wezterm: bold_brightens_ansi_colors = true (bold-is-bright is a deprecated
+# alias since 1.2.0; bold-color = bright is the current spelling)
+bold-color = bright
 # wezterm: underline_thickness = '1.5pt' — Ghostty has no underline-thickness knob;
 # adjust-underline-thickness takes an integer/percentage metric modifier instead:
 adjust-underline-thickness = 1
@@ -55,33 +58,49 @@ cursor-style = block
 cursor-style-blink = true
 cursor-color = cell-foreground
 cursor-text = cell-background
-# If you'd rather have custom.lua's literal values instead of inversion:
-# cursor-color = #f5e0dc
-# cursor-text = #11111b
 # NOT SUPPORTED: cursor_blink_rate / blink easing curves (wezterm 650ms EaseOut).
 # Ghostty blink cadence follows the OS; only on/off is configurable.
 
 # ---------------------------------------------------------------------------
-# Background  (appearance.lua: backdrops module — random image, brightness 0.65
-# overlay, opacity 0.90). Ghostty supports background images since 1.2.0.
-# There is no HSB/brightness control on the image; approximate the dark overlay
-# by blending the image against the background color via background-image-opacity.
+# Background  (utils/backdrops.lua: random image, centered, under a #1f1f28
+# overlay at 0.90 opacity)
+# Ghostty layering: background color + image are composited as the terminal
+# background; background-image-opacity < 1 mixes the image INTO the background
+# color, so 0.10 image = 90% #1f1f28 wash — same look as wezterm's overlay.
+# background-opacity is whole-window transparency on top of that composite.
+# wezterm never sets window_background_opacity (opaque window), so keep 1.0
+# here; the 90% wash comes entirely from background-image-opacity.
+# NOTE: changing background-opacity requires a full Ghostty restart on macOS.
 # ---------------------------------------------------------------------------
-background-opacity = 0.90
-# background-blur = 20                       # optional; wezterm setup doesn't blur
-# Point at one image (Ghostty can't cycle/randomize like utils/backdrops.lua;
-# closest workaround: a login script that symlinks a random image to a fixed path,
-# then `ghostty +reload-config` or the reload_config keybind action).
-# background-image = ~/.config/wezterm/backdrops/YOUR_PICK.jpg
-# background-image-fit = cover
-# background-image-opacity = 0.35            # ~ backdrops' brightness 0.65 dark overlay
-# background-image-repeat = false
+background-opacity = 1.0
+background-image-opacity = 0.10
+# wezterm centered the image; `cover` fills the window keeping aspect, which is
+# the closest tasteful match for 3840x2160 sources (use `none` for 1:1 pixels).
+# NOTE: Ghostty renders the image per split (repeated in each), unlike wezterm's
+# window-wide backdrop — moot with tmux panes, which share one surface.
+background-image-fit = cover
+background-image-position = center
+background-image-repeat = false
+# Only takes effect if background-opacity is ever lowered below 1.0: cells that
+# repaint their own background (nvim/tmux) then follow the window opacity
+# instead of turning into opaque blocks. No-op at 1.0; kept for future-proofing.
+background-opacity-cells = true
+# Keep low-contrast theme colors readable over the image/transparency.
+minimum-contrast = 1.1
+# background-blur = 20   # wezterm setup doesn't blur; enable if you want it
+
+# Random backdrop (Ghostty can't glob/cycle images natively): the sibling
+# `backdrop` script picks a random image from .config/wezterm/backdrops/ and
+# writes `background-image = <path>` to the fragment below. Reshuffle with:
+#   backdrop && (reload keybind: super+shift+,)
+# `?` = ignore if the fragment doesn't exist yet.
+config-file = ?~/.cache/ghostty/backdrop-image
 
 # ---------------------------------------------------------------------------
 # Window  (appearance.lua)
 # ---------------------------------------------------------------------------
-# window_padding: left/right 0, top 10, bottom 7.5 (Ghostty padding is integer points;
-# x/y take a comma pair = leading,trailing i.e. top,bottom for y)
+# window_padding: left/right 0, top 10, bottom 7.5 (Ghostty padding is integer
+# points; y takes top,bottom)
 window-padding-x = 0
 window-padding-y = 10,8
 window-padding-balance = false
@@ -92,47 +111,71 @@ window-width = 100
 macos-titlebar-style = hidden
 # window_close_confirmation = 'NeverPrompt'
 confirm-close-surface = false
-# adjust_window_size_when_changing_font_size = false — Ghostty already keeps the
-# window size fixed on font resize; no option needed.
 
 # ---------------------------------------------------------------------------
-# Tabs / splits  (appearance.lua: enable_tab_bar = false)
-# Ghostty macOS tabs are NATIVE (no custom tab bar to draw or disable). The
-# native tab bar only appears once a second tab exists, which matches the
-# spirit of enable_tab_bar = false for a single-tab window.
+# Tabs / splits  (appearance.lua: enable_tab_bar = false; native macOS tabs
+# only appear once a second tab exists, matching the single-tab spirit)
 # ---------------------------------------------------------------------------
-# inactive_pane_hsb { brightness = 0.65 } ->
+# inactive_pane_hsb { brightness = 0.65 }
 unfocused-split-opacity = 0.65
 unfocused-split-fill = #1f1f28
 # custom.lua split = overlay0
 split-divider-color = #6c7086
 
 # ---------------------------------------------------------------------------
-# NOT SUPPORTED (wezterm-only), for the record:
-# - Lua config / utils.gpu adapter picking (Ghostty: plain text; Metal is automatic on macOS)
-# - max_fps / animation_fps caps (Ghostty renders on-demand, synced to display)
-# - visual_bell fade animation + visual_bell color (custom.lua mocha.red);
-#   Ghostty 1.3 has bell features (bell-features = attention,title) but no
-#   colored screen/cursor flash.
-# - scrollbar_thumb color (Ghostty 1.3 `scrollbar = system` uses native widgets)
-# - compose_cursor color (mocha.flamingo)
-# - per-tab-bar colors (custom.lua tab_bar block) — native macOS tabs follow the
-#   system appearance; window-theme/background influence them but they are not
-#   per-element themeable.
+# QoL (not in wezterm, worth having)
 # ---------------------------------------------------------------------------
+# Preserve terminfo under sudo; rest of the defaults (cursor, title, path) kept.
+shell-integration-features = cursor,sudo,title,path
+mouse-hide-while-typing = true
+# Always treat Option as Alt so alt+ maps in nvim/tmux work on any layout.
+macos-option-as-alt = true
+# Restore windows/tabs across relaunches (wezterm has no equivalent).
+window-save-state = always
+# wezterm visual_bell approximation: mark dock/title and flash the surface border.
+bell-features = attention,title,border
 
 # ---------------------------------------------------------------------------
-# Leader-key parity (bindings.lua: CTRL-a leader + sticky resize_pane key table)
-# Ghostty 1.3.0 added key tables + chained keybinds; sequences (a>b) existed before.
-# Syntax: bindings live in a named table via `<table>/<binding>`; enter with
-# activate_key_table:<name>, leave with deactivate_key_table.
-# Example port of the sticky resize mode — uncomment to use without tmux:
-# keybind = ctrl+a>r=activate_key_table:resize
-# keybind = resize/h=resize_split:left,10
-# keybind = resize/j=resize_split:down,10
-# keybind = resize/k=resize_split:up,10
-# keybind = resize/l=resize_split:right,10
-# keybind = resize/escape=deactivate_key_table
-# keybind = resize/q=deactivate_key_table
-# keybind = resize/catch_all=deactivate_key_table   # any other key exits, like wezterm's until_unknown
+# Keybindings  (config/bindings.lua: SUPER-side chords only)
+# tmux owns the C-a layer (.tmux.conf: prefix C-a, prefix h/j/k/l, sticky
+# resize table, copy mode) plus bare C-h/j/k/l pane navigation — so Ghostty
+# deliberately binds NO ctrl keys. A ctrl+a>... leader here would swallow the
+# tmux prefix (wezterm needed the C-a C-a double-tap for exactly that reason).
+# Splits/tabs below are native Ghostty, for use outside tmux.
+# ---------------------------------------------------------------------------
+
+# splits (wezterm SplitVertical = pane below = new_split:down)
+keybind = super+backslash=new_split:down
+keybind = super+ctrl+backslash=new_split:right
+keybind = super+ctrl+z=toggle_split_zoom
+
+# splits/tabs: close (confirm-close-surface = false above ≙ confirm = false)
+keybind = super+w=close_surface
+keybind = super+ctrl+w=close_tab
+
+# tabs
+keybind = super+t=new_tab
+# wezterm ActivateLastTab was most-recently-used; Ghostty's last_tab action
+# means final tab — no MRU-tab action exists in 1.3.1.
+keybind = super+ctrl+[=last_tab
+keybind = super+ctrl+]=move_tab:1
+
+# misc: native scrollback search (super+g / super+shift+g navigate matches,
+# escape exits; inside tmux, copy-mode search covers this instead).
+keybind = super+f=start_search
+# wezterm F12 ShowDebugOverlay -> terminal inspector
+keybind = f12=inspector:toggle
+# super+c / super+v copy/paste are Ghostty defaults; not re-bound.
+
+# ---------------------------------------------------------------------------
+# NOT SUPPORTED (wezterm-only), for the record:
+# - Lua config / utils.gpu adapter picking (Ghostty: plain text; Metal is
+#   automatic on macOS)
+# - max_fps / animation_fps caps (Ghostty renders on-demand, synced to display)
+# - visual_bell fade animation + color (custom.lua mocha.red); bell-features
+#   above is the closest
+# - scrollbar_thumb / compose_cursor / tab_bar colors (native macOS widgets)
+# - ctrl+click to open links (macOS Ghostty hardcodes cmd+hover+click; the
+#   modifier is not configurable in 1.3.1)
+# - switch_to_last_active_tab_when_closing_tab
 # ---------------------------------------------------------------------------
