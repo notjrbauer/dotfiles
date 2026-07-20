@@ -82,7 +82,6 @@ opt.mouse = "a"
 opt.clipboard = "unnamedplus"
 opt.completeopt = "menu,menuone,noinsert,noselect,nearest"
 opt.confirm = true
-opt.conceallevel = 2
 opt.formatoptions = "jcroqlnt"
 opt.grepprg = "rg --vimgrep"
 opt.grepformat = "%f:%l:%c:%m"
