@@ -2,12 +2,10 @@
   "permissions": {
     "defaultMode": "auto"
   },
-  "model": "claude-fable-5[1m]",
   "enabledPlugins": {
     "typescript-lsp@claude-plugins-official": true,
     "lua-lsp@claude-plugins-official": true,
     "gopls-lsp@claude-plugins-official": true
   },
-  "skipAutoPermissionPrompt": true,
-  "skipWorkflowUsageWarning": true
+  "skipAutoPermissionPrompt": true
 }
