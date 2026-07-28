@@ -640,6 +640,40 @@ fzf.setup({
 })
 fzf.register_ui_select()
 
+-- fzf-lua runs previews and actions through headless `nvim -l .../fzf-lua/rpc.lua`
+-- workers, but *fzf* spawns them, not us, so we hold no job handle to stop them.
+-- They block in a libuv loop with no signal handler (SIGTERM is ignored) and exit
+-- only on EOF from this instance -- so anything still alive when we go away
+-- reparents to PID 1 and lingers. Reap our own descendants on the way out.
+-- Fires on :q, pane close (SIGHUP) and SIGTERM; a SIGKILL/crash still strays,
+-- sweep those by hand with `pkill -9 -f 'fzf-lua/.*\.lua'`.
+local function fzf_descendants(pid, acc)
+  for _, child in ipairs(vim.api.nvim_get_proc_children(pid) or {}) do
+    acc[#acc + 1] = child
+    fzf_descendants(child, acc)
+  end
+  return acc
+end
+
+vim.api.nvim_create_autocmd("VimLeavePre", {
+  group = augroup("fzf_reap"),
+  callback = function()
+    local pids = fzf_descendants(vim.uv.os_getpid(), {})
+    if #pids == 0 then
+      return
+    end
+    local ps = { "ps", "-o", "pid=,command=", "-p", table.concat(pids, ",") }
+    for _, line in ipairs(vim.fn.systemlist(ps)) do
+      local pid, cmd = line:match("^%s*(%d+)%s+(.*)$")
+      -- only ever touch processes whose argv names an fzf-lua script, so a
+      -- nested `:terminal` nvim is never a candidate
+      if pid and cmd:match("fzf%-lua/[a-z]+%.lua") then
+        pcall(vim.uv.kill, tonumber(pid), 9)
+      end
+    end
+  end,
+})
+
 local blink = require("blink.cmp")
 blink.setup({
   keymap = {
