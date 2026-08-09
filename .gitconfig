@@ -116,3 +116,9 @@
 
 [help]
 	autocorrect = prompt
+
+; Machine-local overrides LAST so they win — work identity, signing keys.
+; Seeded by install.sh; never tracked. Keeps the personal email out of
+; work-machine commits.
+[include]
+	path = ~/.gitconfig.local

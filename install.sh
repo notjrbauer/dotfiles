@@ -46,6 +46,13 @@ link "$DOTFILES/.tmux.conf"          "$HOME/.tmux.conf"
 link "$DOTFILES/.gitconfig"          "$HOME/.gitconfig"
 link "$DOTFILES/.psqlrc"             "$HOME/.psqlrc"
 
+# Machine-local git identity (work email etc.) — .gitconfig includes it last,
+# so it overrides. Seeded once (real file, never symlinked, never tracked).
+if [ ! -f "$HOME/.gitconfig.local" ]; then
+  printf '# Machine-local git overrides (untracked). Set the identity for THIS machine.\n[user]\n    name = john b\n    email = notjrbauer@gmail.com\n' > "$HOME/.gitconfig.local"
+  echo "seeded     $HOME/.gitconfig.local (edit for per-machine identity)"
+fi
+
 # --- Claude Code ---------------------------------------------------------
 # Portable config only (see .claude/README.md). Runtime state — transcripts,
 # caches, credentials, plugins — stays local in ~/.claude and is never
