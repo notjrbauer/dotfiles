@@ -12,11 +12,10 @@ ZSH_AUTOSUGGEST_STRATEGY=(history)   # read by zsh-autosuggestions
 # ---- Toolchain env ----
 export GOPATH="$HOME"
 export BUNPATH="$HOME/.bun"
-# Only leak the openjdk include path into builds where it actually exists.
-[ -d /usr/local/opt/openjdk/include ] && export CPPFLAGS="-I/usr/local/opt/openjdk/include"
 
 # ---- PATH ----
 # PATH additions live in .zprofile, NOT here. macOS's /etc/zprofile runs
 # `path_helper` AFTER .zshenv and rebuilds $PATH from /etc/paths, which would
 # clobber anything set here on login shells. See $ZDOTDIR/.zprofile.
-# (Homebrew's /usr/local/bin is on the default PATH via /etc/paths already.)
+# (Homebrew is initialized there too, via `brew shellenv` — /opt/homebrew is
+# not in /etc/paths on Apple Silicon.)

@@ -13,6 +13,15 @@
 #
 # GOPATH / BUNPATH are exported in .zshenv (runs earlier), so they're set here.
 
+# Homebrew first: /opt/homebrew (Apple Silicon) is NOT in /etc/paths, and the
+# installer's usual ~/.zprofile append never runs because ZDOTDIR points here.
+# shellenv also prepends brew's zsh site-functions to fpath before compinit.
+if [[ -x /opt/homebrew/bin/brew ]]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [[ -x /usr/local/bin/brew ]]; then
+  eval "$(/usr/local/bin/brew shellenv)"
+fi
+
 typeset -U path PATH
 path=(
   "$HOME/.local/bin"
@@ -20,7 +29,6 @@ path=(
   "$HOME/.opencode/bin"
   "$BUNPATH/bin"
   "$GOPATH/bin"
-  /usr/local/opt/openjdk/bin
   $path
 )
 
