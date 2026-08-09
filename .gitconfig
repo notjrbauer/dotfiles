@@ -72,7 +72,8 @@
   color = true
 
 [tag]
-  forceSignAnnotated = true
+  ; forceSignAnnotated dropped: with no gpg key on a fresh machine it makes
+  ; every `git tag -a` fail. Re-enable in ~/.gitconfig.local alongside a key.
   sort = version:refname
 
 [apply]
