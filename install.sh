@@ -5,7 +5,9 @@
 # it is moved aside to <path>.bak.<timestamp> before the symlink is created.
 set -euo pipefail
 
-DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# pwd -P (physical path) so link targets match the Makefile's $(realpath) —
+# otherwise uninstall/status miss every link when the repo sits behind a symlink.
+DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
 
 link() {
