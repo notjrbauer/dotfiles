@@ -4,20 +4,27 @@
 # the owner adds an Assisted-by trailer manually when they choose.
 msgfile="$1"
 
+# Check only the real message: cut at the `commit -v` scissors line, then
+# strip comment lines — git removes both AFTER this hook runs, so grepping
+# the raw file would false-positive on diff/comment content.
+msg=$(sed -n '/^# ------------------------ >8 ------------------------$/q;p' "$msgfile" \
+	| git stripspace --strip-comments)
+
 # Reject the AI Co-Authored-By trailer and "Generated with" banners —
 # these are never wanted here.
-if grep -qiE '^Co-Authored-By:.*(claude|anthropic|gpt|copilot|cursor)' "$msgfile"; then
+if printf '%s\n' "$msg" | grep -qiE '^Co-Authored-By:.*(claude|anthropic|gpt|copilot|cursor)'; then
 	echo "commit-msg: no 'Co-Authored-By:' for AI — the owner attributes manually."
 	exit 1
 fi
-if grep -qE 'Generated with|🤖' "$msgfile"; then
+if printf '%s\n' "$msg" | grep -qE 'Generated with|🤖'; then
 	echo "commit-msg: drop the emoji / 'Generated with' banner."
 	exit 1
 fi
 
 # Attribution is optional and owner-added. If an Assisted-by trailer is
 # present, both parts must be non-empty:  Assisted-by: NAME:MODEL
-if grep -qiE '^Assisted-by:' "$msgfile" && ! grep -qE '^Assisted-by: .+:.+' "$msgfile"; then
+if printf '%s\n' "$msg" | grep -qiE '^Assisted-by:' \
+	&& ! printf '%s\n' "$msg" | grep -qiE '^Assisted-by: .+:.+'; then
 	echo "commit-msg: malformed 'Assisted-by:' trailer."
 	echo "  expected  Assisted-by: AGENT_NAME:MODEL_VERSION"
 	exit 1
