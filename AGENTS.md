@@ -33,7 +33,8 @@ Layout that matters:
 
 - **Match the existing pattern.** New shell → follow `.config/zsh`; new
   managed dotfile → add a `link` line in `install.sh`; new nvim config →
-  match `.config/nvim`'s Lua/lazy.nvim structure. Read the neighbor first.
+  match `.config/nvim`'s single-init.lua structure (native `vim.pack` —
+  lazy.nvim is gone). Read the neighbor first.
 - **Never clobber a user's edits.** The installer's don't-overwrite /
   back-up-first behavior is a load-bearing invariant. Preserve it in any
   change to `install.sh` or `agents-scaffold/install.sh`.
@@ -44,6 +45,37 @@ Layout that matters:
   relevant `link` logic and confirm the symlink resolves back into the
   repo. For nvim changes, load them (`nvim --headless`/`:checkhealth`)
   rather than assuming.
+- **Watch for write-through diffs.** `~/.claude/settings.json` (and
+  friends) are symlinks into this repo, so runtime "always allow" grants
+  edit the tracked files — see "Mind the write-through" in
+  [`.claude/README.md`](.claude/README.md) before committing a surprise
+  diff.
+
+## Deliberate decisions — don't silently revert
+
+Choices that look like mistakes but aren't:
+
+- **The Brewfile is curated, not dumped.** Never regenerate it with
+  `brew bundle dump` — that would re-add transitive deps (they install
+  with their parents), re-pin `terraform` to the disabled homebrew-core
+  formula instead of `hashicorp/tap`, and resurrect removed tools.
+- **`brew "neovim"` and the nightly coexist.** `init.lua` targets 0.12+
+  (`vim.pack`, treesitter main); `bootstrap.sh` installs the nightly
+  into `~/.local/bin`, which outranks brew's stable on PATH. The brew
+  formula stays as a fallback — don't "deduplicate" either away.
+- **Git identity lives in `~/.gitconfig.local`** (seeded by
+  `install.sh`, included last, untracked). Don't add an email back into
+  the tracked `.gitconfig`; work machines override locally.
+- **`mas` entries are allowed to fail.** They error until the App Store
+  is signed in; `bootstrap.sh` tolerates that on purpose. Don't drop the
+  entries or make the bundle hard-fail.
+
+## Maintaining this file
+
+Add only what nearly every future session in this repo needs. Don't
+repeat what the code already shows — point at the authoritative file or
+command instead. Prefer rewriting or pruning entries over appending, and
+hold new entries to that bar.
 
 ## Commits & attribution
 

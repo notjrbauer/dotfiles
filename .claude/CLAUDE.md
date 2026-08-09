@@ -18,6 +18,12 @@ says otherwise. Project files win on conflict.
 - **Understand before you touch.** Read the thing you're about to change or
   delete. If what you find contradicts how it was described, surface that
   instead of plowing ahead.
+- **Reproduce before you fix.** Start a bug fix by reproducing the bug end to
+  end, as close to how a user actually hits it as possible — that's how you
+  know the fix lands on the real problem and not a lookalike.
+- **Never hand-edit generated files.** CHANGELOGs, lockfiles, and anything
+  marked auto-generated get changed through the tool that generates them, or
+  not at all.
 
 ## Stop and ask
 
@@ -53,4 +59,7 @@ Approval for one action is **not** standing approval for the next. Re-ask.
 - **Verify before you claim.** Run the check, read the result. Prefer the fast
   gate the project already defines (`scripts/verify` / `npm verify` / `make
   verify`) over ad-hoc spot checks.
+- **One-off work gets the direct path.** For operational or infrequent tasks,
+  do the simplest end-to-end thing. Don't build wrappers, verifiers, or
+  automation unless a concrete blocker or a repeated need earns the machinery.
 - **Temp files go to a scratch dir**, never littered into the repo.
