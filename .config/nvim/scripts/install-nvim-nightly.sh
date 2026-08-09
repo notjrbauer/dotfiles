@@ -8,7 +8,10 @@
 #
 # Env overrides:
 #   NVIM_PREFIX    install root            (default: ~/.local/nvim-<channel>)
-#   NVIM_BIN_LINK  symlink to create       (default: /usr/local/bin/nvim)
+#   NVIM_BIN_LINK  symlink to create       (default: ~/.local/bin/nvim)
+#
+# ~/.local/bin needs no sudo and .zprofile puts it AHEAD of the brew prefix,
+# so this nvim wins over any brew-installed stable one.
 #
 # Safe to re-run: the prefix is replaced atomically-ish (staged, then swapped)
 # and the symlink is refreshed in place.
@@ -24,7 +27,7 @@ case "$CHANNEL" in
 esac
 
 PREFIX="${NVIM_PREFIX:-$HOME/.local/nvim-$CHANNEL}"
-BIN_LINK="${NVIM_BIN_LINK:-/usr/local/bin/nvim}"
+BIN_LINK="${NVIM_BIN_LINK:-$HOME/.local/bin/nvim}"
 
 # --- Resolve the release asset for this OS/arch --------------------------
 os="$(uname -s)"
