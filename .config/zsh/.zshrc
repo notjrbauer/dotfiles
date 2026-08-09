@@ -13,18 +13,21 @@ ZCOMPDUMP_PATH="$CACHE_DIR/.zcompdump"
 [[ ! -d "$CACHE_DIR" ]] && mkdir -p "$CACHE_DIR"
 [[ ! -d "$ZAP_DIR" ]] && git clone https://github.com/zap-zsh/zap.git --depth=1 "$ZAP_DIR"
 [[ -f "$ZAP_DIR/zap.zsh" ]] && source "$ZAP_DIR/zap.zsh"
-# Fallback stubs if zap didn't load (e.g. offline on a fresh machine) so the
+# Fallback stub if zap didn't load (e.g. offline on a fresh machine) so the
 # rest of this file degrades gracefully instead of erroring on every `plug`.
-(( $+functions[plug] )) || { plug() { :; }; zsh-defer() { "$@"; } }
+(( $+functions[plug] )) || plug() { :; }
 
 # ================================
 # 🔌 Plugin System
 # ================================
 plug romkatv/zsh-defer
+# zsh-defer comes from the plug above; if it didn't load, run eagerly instead.
+(( $+functions[zsh-defer] )) || zsh-defer() { "$@" }
 
 # Deferred plugin loader: git-clone into zap's plugin dir if missing, then
 # source with zsh-defer for instant-prompt startup. (Inlined from zunder-zsh.)
 plug-defer() {
+  [[ -n "$ZAP_PLUGIN_DIR" ]] || return 0   # zap absent — don't clone into /
   local repo="$1" dir="$ZAP_PLUGIN_DIR/${1:t}"
   [[ -d "$dir" ]] || git clone -q --depth 1 "https://github.com/$repo.git" "$dir"
   local files=("$dir"/*.plugin.zsh(N) "$dir"/*.zsh(N))
@@ -152,7 +155,7 @@ alias grep="grep --color=auto"
 alias la="ls -A"
 alias ll="ls -l"
 alias lla="ls -lA"
-alias vim="nvim"
+command -v nvim &>/dev/null && alias vim="nvim"
 
 if [[ "$DISABLE_EXA" != true && (-n "$commands[eza]" || -n "$commands[exa]") ]]; then
   [[ -n "$commands[eza]" && -z "$commands[exa]" ]] && alias exa="eza"
