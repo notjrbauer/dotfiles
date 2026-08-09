@@ -10,7 +10,10 @@ run_verify() {
 		"$root/scripts/verify"
 		return $?
 	fi
-	if [ -f "$root/package.json" ] && grep -q '"verify"' "$root/package.json"; then
+	# node check, not grep: '"verify"' matches deps or other scripts' bodies
+	# anywhere in the file and would gate commits on a script that isn't there.
+	if [ -f "$root/package.json" ] \
+		&& node -e 'process.exit(require(process.argv[1]).scripts?.verify ? 0 : 1)' "$root/package.json" 2>/dev/null; then
 		echo "verify: npm run verify"
 		( cd "$root" && npm run --silent verify )
 		return $?
