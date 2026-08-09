@@ -41,22 +41,29 @@ while IFS= read -r -d '' src; do
 	fi
 done < <(find "$TMPL" -type f -print0)
 
-# Install git hooks (these ARE overwritten — they're managed here).
-mkdir -p "$TARGET/.githooks"
-cp "$HOOKS_SRC"/* "$TARGET/.githooks/"
-chmod +x "$TARGET/.githooks/pre-commit" "$TARGET/.githooks/pre-push" "$TARGET/.githooks/commit-msg"
-echo "  hooks:         .githooks/ (pre-commit, commit-msg, pre-push, lib-verify.sh)"
+# Install git hooks (these ARE overwritten — they're managed here). Check
+# core.hooksPath FIRST: if the repo already uses a different hooks setup,
+# don't touch its files at all.
+install_hooks() {
+	mkdir -p "$TARGET/.githooks"
+	cp "$HOOKS_SRC"/* "$TARGET/.githooks/"
+	chmod +x "$TARGET/.githooks/pre-commit" "$TARGET/.githooks/pre-push" "$TARGET/.githooks/commit-msg"
+	echo "  hooks:         .githooks/ (pre-commit, commit-msg, pre-push, lib-verify.sh)"
+}
 
 # Wire the hooks path (per-repo, reversible with: git config --unset core.hooksPath).
 if git -C "$TARGET" rev-parse --git-dir >/dev/null 2>&1; then
 	existing="$(git -C "$TARGET" config --local --get core.hooksPath || true)"
 	if [ -n "$existing" ] && [ "$existing" != ".githooks" ]; then
-		echo "  WARNING: core.hooksPath is already '$existing' — leaving it. Set it to .githooks manually if you want these hooks."
+		echo "  WARNING: core.hooksPath is already '$existing' — leaving it AND its hooks untouched."
+		echo "           Set it to .githooks and re-run if you want these hooks."
 	else
+		install_hooks
 		git -C "$TARGET" config core.hooksPath .githooks
 		echo "  git config core.hooksPath .githooks  OK"
 	fi
 else
+	install_hooks
 	echo "  NOTE: not a git repo yet — run 'git init', then 'git config core.hooksPath .githooks'."
 fi
 

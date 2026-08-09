@@ -1,14 +1,16 @@
-# Dotfiles — symlink management.
+# Dotfiles — bootstrap + symlink management.
 #
+#   make bootstrap   FRESH MACHINE: CLT + Homebrew + brew bundle + links + node + nvim
 #   make install     symlink everything into $HOME / $XDG_CONFIG_HOME (idempotent)
 #   make uninstall   remove only the symlinks that point back into this repo
 #   make relink      uninstall + install (repoint after moving the repo)
 #   make status      show which of this repo's links are live / missing / stale
 #   make help        this list
 #
-# `install` delegates to ./install.sh (the source of truth for what links
-# where). `uninstall`/`status` don't hardcode a list — they scan the usual
-# roots for symlinks resolving into $(DOTFILES), so they never drift.
+# `bootstrap` delegates to ./bootstrap.sh, `install` to ./install.sh (the
+# source of truth for what links where). `uninstall`/`status` don't hardcode a
+# list — they scan the usual roots for symlinks resolving into $(DOTFILES), so
+# they never drift.
 
 DOTFILES := $(patsubst %/,%,$(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 XDG      := $(if $(XDG_CONFIG_HOME),$(XDG_CONFIG_HOME),$(HOME)/.config)
@@ -17,7 +19,10 @@ SHELL    := /bin/bash
 
 .DEFAULT_GOAL := help
 
-.PHONY: install uninstall relink status help
+.PHONY: bootstrap install uninstall relink status help
+
+bootstrap: ## Fresh machine: CLT + Homebrew + brew bundle + symlinks + node + nvim
+	@./bootstrap.sh
 
 install: ## Symlink dotfiles into place (safe to re-run)
 	@./install.sh

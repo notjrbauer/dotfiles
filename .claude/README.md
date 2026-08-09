@@ -21,6 +21,12 @@ So `~/.claude` itself stays a real directory; only the portable files are
 symlinks back into this repo. The `.gitignore` here is a belt-and-suspenders
 blocklist so none of that runtime state can slip in even by accident.
 
+**Mind the write-through:** because `~/.claude/settings.json` is a symlink,
+runtime "always allow" grants and `/config` edits land in the tracked repo
+file. Review `git diff` before committing — on a work machine, answer
+permission prompts at project scope or put rules in `settings.local.json`
+(gitignored on both sides).
+
 ## What gets linked (see `../install.sh`)
 
 ```

@@ -1253,7 +1253,7 @@ end, { desc = "Run Shell Command" })
 vim.api.nvim_create_autocmd("TextYankPost", {
   group = augroup("highlight_yank"),
   callback = function()
-    vim.hl.hl_op({ timeout = 150 })
+    vim.hl.on_yank({ timeout = 150 })
   end,
 })
 

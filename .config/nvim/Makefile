@@ -5,7 +5,8 @@ BENCH_DIR := ./.benchmarks
 TIMESTAMP := $(shell date +%Y%m%d_%H%M%S)
 
 # Neovim nightly installer (no Homebrew): downloads the release tarball,
-# extracts it under ~/.local/nvim-<channel>, and symlinks /usr/local/bin/nvim.
+# extracts it under ~/.local/nvim-<channel>, and symlinks ~/.local/bin/nvim
+# (which .zprofile puts ahead of the brew prefix on PATH).
 NVIM_INSTALL := ./scripts/install-nvim-nightly.sh
 
 # Display available commands

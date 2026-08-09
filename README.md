@@ -7,15 +7,29 @@ bootstraps a whole workstation, including the Claude Code setup.
 
 ## Install
 
+**Fresh machine (one command):**
+
 ```sh
 git clone <this-repo> && cd dotfiles
+make bootstrap    # CLT + Homebrew + brew bundle + symlinks + node LTS + nvim nightly
+exec zsh -l       # pick up the new shell — then: claude login
+```
+
+`bootstrap.sh` is idempotent — if a step fails (e.g. `mas` apps before you've
+signed into the App Store), fix the cause and re-run it. On Linux it just
+links the dotfiles.
+
+**Already-provisioned machine (symlinks only):**
+
+```sh
 make install      # or: ./install.sh
-exec zsh -l       # pick up the new shell
 ```
 
 `make install` (via `install.sh`) is idempotent and safe to re-run: it
 refreshes existing symlinks and backs up any pre-existing **real** file to
-`<path>.bak.<timestamp>` before linking.
+`<path>.bak.<timestamp>` before linking. It also seeds `~/.gitconfig.local`
+(machine-local git identity — set your work email there) and clones tpm for
+tmux plugins.
 
 ```sh
 make status      # show which of this repo's links are live / stale
@@ -54,7 +68,11 @@ make help        # list targets
 - **[`.claude/settings.json`](.claude/settings.json)** — model, permissions,
   enabled plugins.
 
-Fresh machine: `make install` then `claude login` (auth stays local).
+Fresh machine: `make bootstrap` (installs the `claude-code` cask too), then
+`claude login` (auth stays local). Note: runtime "always allow" grants and
+`/config` edits write **through the symlink** into the tracked
+`settings.json` — review diffs before committing; keep machine-local rules in
+`settings.local.json` (gitignored).
 
 ## agents-scaffold
 

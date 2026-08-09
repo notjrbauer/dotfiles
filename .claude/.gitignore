@@ -7,7 +7,7 @@
 # Secrets / credentials / per-machine
 .credentials.json
 settings.local.json
-.claude.json
+.claude.json*
 
 # Session data & history (private, large)
 projects/
@@ -29,6 +29,10 @@ jobs/
 tasks/
 plans/
 statsig/
+ide/
+logs/
+local/
+downloads/
 
 # Caches & derived
 cache/
