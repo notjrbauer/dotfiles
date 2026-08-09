@@ -21,6 +21,9 @@ says otherwise. Project files win on conflict.
 - **Reproduce before you fix.** Start a bug fix by reproducing the bug end to
   end, as close to how a user actually hits it as possible — that's how you
   know the fix lands on the real problem and not a lookalike.
+- **Never hand-edit generated files.** CHANGELOGs, lockfiles, and anything
+  marked auto-generated get changed through the tool that generates them, or
+  not at all.
 
 ## Stop and ask
 
