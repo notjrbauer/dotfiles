@@ -186,6 +186,10 @@ for i in {1..9}; do alias "$i"="cd +$i"; done
 
 # small utilities
 mkcd() { mkdir -p -- "$1" && cd -- "$1"; }   # make a dir and enter it
+# Fresh-context review worktree: gwr [ref] adds a detached ../<repo>-review and
+# enters it (a separate cwd keys a separate Claude session); gwrx removes it.
+gwr() { local r; r=$(git rev-parse --show-toplevel) && git worktree add --detach "$r-review" "${1:-HEAD}" && cd "$r-review"; }
+gwrx() { local w; w=$(git rev-parse --show-toplevel) && [[ "$w" == *-review ]] || { echo "gwrx: not in a -review worktree" >&2; return 1; }; cd "${w%-review}" && git worktree remove "$w"; }
 alias reload='exec zsh'                        # reload the shell
 alias path='print -l -- $path'                 # one PATH entry per line
 
