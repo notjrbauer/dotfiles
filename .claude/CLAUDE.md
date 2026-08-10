@@ -21,6 +21,9 @@ says otherwise. Project files win on conflict.
 - **Reproduce before you fix.** Start a bug fix by reproducing the bug end to
   end, as close to how a user actually hits it as possible — that's how you
   know the fix lands on the real problem and not a lookalike.
+- **Diff before tests.** Read the full diff before looking at test results —
+  green tests read after the diff keep their evidentiary value; read before,
+  they blunt scrutiny.
 - **Never hand-edit generated files.** CHANGELOGs, lockfiles, and anything
   marked auto-generated get changed through the tool that generates them, or
   not at all.
@@ -31,6 +34,9 @@ Ask a human — don't guess — when:
 
 - a decision is a real fork with tradeoffs a human should own (data model,
   public API shape, dependency choice, anything hard to reverse),
+- a change quietly encodes a policy call (a rounding direction, a grace
+  window, which side an ambiguous edge favors) — surface the options; that
+  choice belongs to a human,
 - an action is destructive or outward-facing (history rewrite, force-push,
   deleting data, sending/publishing anything external),
 - the request contradicts what's on disk, or can't be done as literally stated.
