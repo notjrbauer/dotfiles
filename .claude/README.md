@@ -14,7 +14,8 @@ Code writes as you work, and none of it belongs in git:
 | `CLAUDE.md` — global defaults | `projects/` — session transcripts (tens of MB) |
 | `agents/` — the curated subagents | `.credentials.json` — OAuth tokens |
 | `settings.json` — model/permissions/plugins | `~/.claude.json` — usage, project history, MCP |
-| (future) `commands/`, `output-styles/` | `plugins/` — cloned plugin repos (reinstall) |
+| `skills/` — portable skills | `plugins/` — cloned plugin repos (reinstall) |
+| (future) `commands/`, `output-styles/` |  |
 |  | `*-cache/`, `file-history/`, `history.jsonl`, `sessions/`, `daemon*`, `jobs/`, `tasks/` |
 
 So `~/.claude` itself stays a real directory; only the portable files are
@@ -33,6 +34,7 @@ permission prompts at project scope or put rules in `settings.local.json`
 ~/.claude/CLAUDE.md      -> .claude/CLAUDE.md      # loaded every session
 ~/.claude/settings.json  -> .claude/settings.json  # model, permissions, plugins
 ~/.claude/agents         -> .claude/agents         # whole curated set (one link)
+~/.claude/skills         -> .claude/skills         # whole skills dir (one link)
 ```
 
 ## Bootstrapping a fresh machine

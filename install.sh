@@ -69,6 +69,7 @@ fi
 link "$DOTFILES/.claude/CLAUDE.md"      "$HOME/.claude/CLAUDE.md"
 link "$DOTFILES/.claude/settings.json"  "$HOME/.claude/settings.json"
 link "$DOTFILES/.claude/agents"         "$HOME/.claude/agents"
+link "$DOTFILES/.claude/skills"         "$HOME/.claude/skills"
 
 echo ""
 echo "Done. Start a new shell (or run: exec zsh -l) to pick up the changes."
