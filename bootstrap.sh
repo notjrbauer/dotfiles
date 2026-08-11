@@ -10,7 +10,8 @@
 #   4. ./install.sh               (symlinks, tpm, ~/.gitconfig.local seed)
 #   5. Node LTS via fnm           (nothing else installs an actual node)
 #   6. cargo tools                (tree-sitter CLI; brew's tree-sitter is lib-only)
-#   7. Neovim nightly             (init.lua targets 0.12+; brew stable may lag)
+#   7. Login shell                (brew zsh; macOS ships an older one at /bin/zsh)
+#   8. Neovim nightly             (init.lua targets 0.12+; brew stable may lag)
 #
 # Idempotent: every step checks before it acts; safe to re-run after a partial
 # failure (e.g. sign into the App Store, then run it again).
@@ -82,7 +83,31 @@ else
   echo "warn: cargo not found — skipping tree-sitter-cli (is brew rust installed?)"
 fi
 
-# --- 7. Neovim nightly -----------------------------------------------------
+# --- 7. Login shell --------------------------------------------------------
+# The Brewfile installs a newer zsh than the one macOS ships, but installing it
+# doesn't make it your shell: every terminal launches $SHELL, which stays
+# /bin/zsh until chsh says otherwise. chpass(1) only accepts shells listed in
+# /etc/shells, so the brew path has to be registered there first. Both steps
+# need root and will prompt for your password; skipped non-interactively.
+BREW_ZSH="$(brew --prefix)/bin/zsh"
+if [[ -x "$BREW_ZSH" ]]; then
+  if ! grep -qxF "$BREW_ZSH" /etc/shells; then
+    echo "==> registering $BREW_ZSH in /etc/shells (needs sudo)…"
+    if [[ -t 0 ]]; then
+      echo "$BREW_ZSH" | sudo tee -a /etc/shells >/dev/null \
+        || echo "warn: could not write /etc/shells — login shell left as $SHELL"
+    else
+      echo "warn: not a tty; run manually: echo '$BREW_ZSH' | sudo tee -a /etc/shells"
+    fi
+  fi
+  current_shell="$(dscl . -read "/Users/$USER" UserShell 2>/dev/null | awk '{print $2}')"
+  if [[ "$current_shell" != "$BREW_ZSH" ]] && grep -qxF "$BREW_ZSH" /etc/shells; then
+    echo "==> setting login shell to $BREW_ZSH…"
+    chsh -s "$BREW_ZSH" || echo "warn: chsh failed — run it by hand"
+  fi
+fi
+
+# --- 8. Neovim nightly -----------------------------------------------------
 # init.lua targets 0.12+ (vim.pack, treesitter main). The nightly lands in
 # ~/.local/bin, ahead of any brew-installed stable nvim on PATH.
 if [[ ! -x "$HOME/.local/bin/nvim" ]]; then
