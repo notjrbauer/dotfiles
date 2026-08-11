@@ -48,8 +48,6 @@ brew "zoxide"
 brew "zsh"
 brew "hashicorp/tap/terraform"
 brew "hashicorp/tap/terraform-ls"
-cask "adobe-creative-cloud"
-cask "appcleaner"
 cask "claude-code"
 cask "font-fira-code"
 cask "font-hack-nerd-font"
@@ -65,7 +63,6 @@ cask "path-finder"
 cask "popclip"
 cask "qlmarkdown"
 cask "rectangle"
-cask "spotify"
 cask "tableplus"
 cask "the-unarchiver"
 cask "typora"
@@ -73,9 +70,3 @@ cask "wezterm"
 # mas apps require an App Store sign-in first; bootstrap tolerates their
 # failure — sign in and re-run `brew bundle` to pick them up.
 mas "BetterSnapTool", id: 417375580
-mas "GarageBand", id: 682658836
-mas "iMovie", id: 408981434
-mas "Keynote", id: 409183694
-mas "Numbers", id: 409203825
-mas "Okta Verify", id: 490179405
-mas "Pages", id: 409201541
