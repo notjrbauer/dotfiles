@@ -53,6 +53,7 @@ cask "font-fira-code"
 cask "font-hack-nerd-font"
 cask "font-jetbrains-mono"
 cask "ghostty"
+cask "hammerspoon"
 cask "google-japanese-ime"
 cask "hiddenbar"
 cask "inkdrop"
@@ -67,6 +68,3 @@ cask "tableplus"
 cask "the-unarchiver"
 cask "typora"
 cask "wezterm"
-# mas apps require an App Store sign-in first; bootstrap tolerates their
-# failure — sign in and re-run `brew bundle` to pick them up.
-mas "BetterSnapTool", id: 417375580

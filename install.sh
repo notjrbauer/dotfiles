@@ -81,6 +81,10 @@ link "$DOTFILES/.config/wezterm"     "$XDG_CONFIG_HOME/wezterm"
 link "$DOTFILES/.config/ghostty"     "$XDG_CONFIG_HOME/ghostty"
 link "$DOTFILES/.tmux.conf"          "$HOME/.tmux.conf"
 
+# Hammerspoon: link the file, not ~/.hammerspoon itself — Spoons install into
+# that directory and would otherwise land in this repo (same trap as .claude).
+link "$DOTFILES/.hammerspoon/init.lua" "$HOME/.hammerspoon/init.lua"
+
 # --- Git / CLI -----------------------------------------------------------
 link "$DOTFILES/.gitconfig"          "$HOME/.gitconfig"
 link "$DOTFILES/.psqlrc"             "$HOME/.psqlrc"
