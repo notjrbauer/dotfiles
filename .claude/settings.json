@@ -11,5 +11,6 @@
     "lua-lsp@claude-plugins-official": true,
     "gopls-lsp@claude-plugins-official": true
   },
+  "theme": "auto",
   "skipAutoPermissionPrompt": true
 }
