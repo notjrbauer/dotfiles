@@ -14,8 +14,11 @@ end
 
 -- Start every window inside tmux. `new-session -A -s main` attaches to "main"
 -- if it exists and creates it otherwise, so closing the last WezTerm window
--- never loses the session -- reopening reattaches to the same one. `exec`
--- replaces the login zsh rather than leaving it parked underneath tmux.
+-- never loses the session -- reopening reattaches to the same one.
+--
+-- tmux is deliberately not exec'd: exec would replace the shell, so `tmux
+-- detach` would leave nothing running and take the window down with it.
+-- Falling through to an exec'd login shell means detach lands at a prompt.
 --
 -- Resolved the same defensive way as zsh above: if tmux isn't installed yet
 -- (first boot, before brew bundle), fall back to a plain login shell instead
@@ -32,7 +35,7 @@ end
 
 local prog = { zsh, '-l' }
 if tmux then
-  prog = { zsh, '-l', '-c', string.format('exec %q new-session -A -s main', tmux) }
+  prog = { zsh, '-l', '-c', string.format('%q new-session -A -s main; exec %q -l', tmux, zsh) }
 end
 
 return {

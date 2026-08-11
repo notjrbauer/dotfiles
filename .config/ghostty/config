@@ -132,14 +132,17 @@ split-divider-color = #6c7086
 # Do NOT prefix this with `exec`. Ghostty already runs the command as
 #   /usr/bin/login -flp <user> /bin/bash --noprofile --norc -c exec -l <command>
 # so a leading `exec` of our own produces `exec -l exec ...`, and bash then
-# looks for a binary named `exec` and dies with "exec: exec: not found". The
-# inner `exec` before tmux is fine and wanted -- that one runs inside the login
-# zsh and stops it lingering under tmux.
+# looks for a binary named `exec` and dies with "exec: exec: not found".
+#
+# tmux is NOT exec'd either: exec replaces the shell, so `tmux detach` would
+# leave nothing running and the window would vanish with it. Running tmux
+# normally and exec'ing a login shell after it returns means detach drops you
+# at a prompt instead of closing the terminal.
 #
 # $SHELL, not a hardcoded path: it resolves to the login shell (brew zsh here)
 # and stays correct on Intel, where Homebrew lives at /usr/local. The login zsh
 # sources .zprofile, which is what puts tmux on PATH at all.
-command = shell:"$SHELL" -l -c "exec tmux new-session -A -s main"
+command = shell:"$SHELL" -l -c 'tmux new-session -A -s main; exec "$SHELL" -l'
 
 # Detection reads the command's filename, which is now `sh`, not a shell it
 # knows how to inject into — so name the scheme explicitly or the features
