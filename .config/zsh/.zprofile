@@ -32,5 +32,13 @@ path=(
   $path
 )
 
-# Rust env (guarded so machines without Rust don't error out).
-[ -f "$HOME/.cargo/env" ] && source "$HOME/.cargo/env"
+# rustup is keg-only (it conflicts with the `rust` formula), so its shims —
+# cargo, rustc, rust-analyzer, clippy-driver — are NOT symlinked into
+# $HOMEBREW_PREFIX/bin and nothing else puts them on PATH. The formula also no
+# longer ships rustup-init, so ~/.cargo/bin holds `cargo install` output only,
+# never shims. APPENDED, not prepended: brew's `rust` keeps serving cargo/rustc
+# (it's what builds tree-sitter-cli in bootstrap.sh), and rustup fills the gaps
+# brew's rust has no binary for — chiefly rust-analyzer, which nvim's LSP config
+# resolves from PATH after `make -C .config/nvim servers`.
+[[ -n "$HOMEBREW_PREFIX" && -d "$HOMEBREW_PREFIX/opt/rustup/bin" ]] \
+  && path+=("$HOMEBREW_PREFIX/opt/rustup/bin")

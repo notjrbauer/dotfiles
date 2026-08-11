@@ -9,7 +9,8 @@
 #   3. brew bundle                (Brewfile; mas apps tolerated pre-App-Store-sign-in)
 #   4. ./install.sh               (symlinks, tpm, ~/.gitconfig.local seed)
 #   5. Node LTS via fnm           (nothing else installs an actual node)
-#   6. Neovim nightly             (init.lua targets 0.12+; brew stable may lag)
+#   6. cargo tools                (tree-sitter CLI; brew's tree-sitter is lib-only)
+#   7. Neovim nightly             (init.lua targets 0.12+; brew stable may lag)
 #
 # Idempotent: every step checks before it acts; safe to re-run after a partial
 # failure (e.g. sign into the App Store, then run it again).
@@ -64,7 +65,24 @@ if command -v fnm >/dev/null 2>&1; then
   eval "$(fnm env)"   # node/npm for any later step in THIS script
 fi
 
-# --- 6. Neovim nightly -----------------------------------------------------
+# --- 6. cargo tools --------------------------------------------------------
+# The `tree-sitter` brew formula ships only the C library (libtree-sitter,
+# headers, pkgconfig) — no binary. nvim-treesitter's main branch shells out to
+# the `tree-sitter` CLI, so build it from crates.io. --locked builds against the
+# crate's own Cargo.lock instead of resolving fresh deps. ~/.cargo/bin is already
+# on PATH via .config/zsh/.zprofile; prepend it here for the current script.
+if command -v cargo >/dev/null 2>&1; then
+  export PATH="$HOME/.cargo/bin:$PATH"
+  if ! command -v tree-sitter >/dev/null 2>&1; then
+    echo "==> cargo: installing tree-sitter-cli (compiles; takes a few minutes)…"
+    cargo install --locked tree-sitter-cli \
+      || echo "warn: tree-sitter-cli install failed — :TSInstall will not work"
+  fi
+else
+  echo "warn: cargo not found — skipping tree-sitter-cli (is brew rust installed?)"
+fi
+
+# --- 7. Neovim nightly -----------------------------------------------------
 # init.lua targets 0.12+ (vim.pack, treesitter main). The nightly lands in
 # ~/.local/bin, ahead of any brew-installed stable nvim on PATH.
 if [[ ! -x "$HOME/.local/bin/nvim" ]]; then
