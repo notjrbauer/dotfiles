@@ -19,13 +19,16 @@ SHELL    := /bin/bash
 
 .DEFAULT_GOAL := help
 
-.PHONY: bootstrap install uninstall relink status help
+.PHONY: bootstrap install macos uninstall relink status help
 
 bootstrap: ## Fresh machine: CLT + Homebrew + brew bundle + symlinks + node + nvim
 	@./bootstrap.sh
 
 install: ## Symlink dotfiles into place (safe to re-run)
 	@./install.sh
+
+macos: ## Apply macOS defaults (key repeat, Finder, Dock) — explicit, no sudo
+	@./macos.sh
 
 uninstall: ## Remove only symlinks pointing back into this repo
 	@removed=0; \
