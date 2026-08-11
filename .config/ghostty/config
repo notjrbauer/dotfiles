@@ -123,6 +123,26 @@ unfocused-split-fill = #1f1f28
 split-divider-color = #6c7086
 
 # ---------------------------------------------------------------------------
+# Startup  (mirrors .config/wezterm/config/launch.lua)
+# ---------------------------------------------------------------------------
+# Every surface opens inside tmux. `new-session -A -s main` attaches to "main"
+# if it exists and creates it otherwise, so closing the last window never loses
+# the session. Both `exec`s matter: the outer replaces the /bin/sh Ghostty
+# spawns for argument expansion, the inner replaces the login zsh, so no shell
+# is left parked underneath tmux.
+#
+# $SHELL, not a hardcoded path: it resolves to the login shell (brew zsh here)
+# and stays correct on Intel, where Homebrew lives at /usr/local. `shell:`
+# forces the /bin/sh -c wrapper rather than relying on Ghostty's heuristic.
+# The login zsh sources .zprofile, which is what puts tmux on PATH at all.
+command = shell:exec "$SHELL" -l -c "exec tmux new-session -A -s main"
+
+# Detection reads the command's filename, which is now `sh`, not a shell it
+# knows how to inject into — so name the scheme explicitly or the features
+# below silently stop applying.
+shell-integration = zsh
+
+# ---------------------------------------------------------------------------
 # QoL (not in wezterm, worth having)
 # ---------------------------------------------------------------------------
 # Preserve terminfo under sudo; rest of the defaults (cursor, title, path) kept.
