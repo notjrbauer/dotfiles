@@ -10,6 +10,10 @@ bin/
 .undo
 .config/op
 .config/stripe
+# Terminal.app session restore. /etc/zshrc_Apple_Terminal puts this at
+# $ZDOTDIR/.zsh_sessions, and ZDOTDIR points into this repo — so Apple's own
+# code writes machine-local state here. Never shared.
+.config/zsh/.zsh_sessions/
 .config/AWS*
 .config/gcloud
 *.zwc
