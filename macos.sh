@@ -33,14 +33,21 @@ echo "==> macOS defaults"
 # editor: without it, holding j/k in nvim opens a diacritic menu.
 defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
 
-# Repeat rate. Units are 15ms ticks. KeyRepeat 1 (15ms) is the floor and tends
-# to overshoot when you hold a motion; 2 (~30ms) is fast without being twitchy.
-# InitialKeyRepeat 15 (225ms) is the delay before repeat kicks in.
-defaults write NSGlobalDomain KeyRepeat -int 2
-defaults write NSGlobalDomain InitialKeyRepeat -int 15
+# Repeat rate, in 15ms ticks. KeyRepeat 1 is the floor macOS accepts (~15ms
+# between repeats) and InitialKeyRepeat 20 (~300ms) is the pause before repeat
+# starts. These are the .osx values -- deliberately the fastest setting, well
+# past what the Keyboard settings pane can reach, so holding j/k scrolls a
+# buffer at full speed.
+defaults write NSGlobalDomain KeyRepeat -int 1
+defaults write NSGlobalDomain InitialKeyRepeat -int 20
 
 # Tab reaches every control in dialogs, not just text fields.
 defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
+
+# Scroll direction: content follows the fingers = OFF, i.e. the pre-Lion
+# "traditional" direction .osx set. Already the case on this machine; here so a
+# fresh one matches instead of defaulting to natural.
+defaults write NSGlobalDomain com.apple.swipescrolldirection -bool false
 
 # Trackpad: tap to click, for this user and the login screen.
 defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
