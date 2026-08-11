@@ -33,13 +33,17 @@ echo "==> macOS defaults"
 # editor: without it, holding j/k in nvim opens a diacritic menu.
 defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
 
-# Repeat rate, in 15ms ticks. KeyRepeat 1 is the floor macOS accepts (~15ms
-# between repeats) and InitialKeyRepeat 20 (~300ms) is the pause before repeat
-# starts. These are the .osx values -- deliberately the fastest setting, well
-# past what the Keyboard settings pane can reach, so holding j/k scrolls a
-# buffer at full speed.
-defaults write NSGlobalDomain KeyRepeat -int 1
-defaults write NSGlobalDomain InitialKeyRepeat -int 20
+# Repeat rate, in ~16.7ms ticks (1/60s). KeyRepeat 2 is ~33ms between repeats;
+# 1 is the floor macOS accepts but tends to overshoot when you hold a motion.
+# InitialKeyRepeat 15 (~250ms) is the pause before repeat starts -- lower than
+# .osx's 20, because that delay is what reads as sluggish when you first press.
+#
+# NOTE: these take effect at LOGIN, not on app relaunch. macOS establishes key
+# repeat timing per login session in the window server, so a measured 84ms
+# interval with 1/20 stored on disk just means the session predates the write.
+# Log out and back in after changing them.
+defaults write NSGlobalDomain KeyRepeat -int 2
+defaults write NSGlobalDomain InitialKeyRepeat -int 15
 
 # Tab reaches every control in dialogs, not just text fields.
 defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
