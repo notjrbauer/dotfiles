@@ -1,4 +1,4 @@
-.PHONY: clean install nightly stable upgrade plugins plugins-reinstall servers reset test help bench bench-save bench-compare bench-reset bench-noplugins bench-vs bench-clean wezterm debug
+.PHONY: clean install nightly stable upgrade plugins plugins-update plugins-restore plugins-reinstall servers fmt fmt-check reset test help bench bench-save bench-compare bench-reset bench-noplugins bench-vs bench-clean wezterm debug
 
 # Benchmark directory
 BENCH_DIR := ./.benchmarks
@@ -17,8 +17,12 @@ help:
 	@echo "  make stable          - ⬇️  Install the latest Neovim stable release"
 	@echo "  make upgrade         - ⬆️  Re-download the latest Neovim Nightly"
 	@echo "  make plugins         - 📦 Install/sync plugins (fetch missing only)"
+	@echo "  make plugins-update  - 📦 Update plugins to latest & rewrite the lockfile"
+	@echo "  make plugins-restore - ⏪ Reset plugins to the revisions in the lockfile"
 	@echo "  make plugins-reinstall - 📦 Wipe & re-fetch the vim.pack tree (keeps state)"
 	@echo "  make servers         - 🔧 Install the LSP servers this config expects (PATH)"
+	@echo "  make fmt             - 🎨 Format the Lua in this dir with stylua"
+	@echo "  make fmt-check       - 🎨 Check stylua formatting without writing"
 	@echo "  make reset           - ♻️  Clean and then reinstall Neovim"
 	@echo "  make test            - 🧪 Smoke-test: version, headless load, checkhealth"
 	@echo "  make bench           - ⏱️  Run startup time benchmark"
@@ -63,6 +67,27 @@ plugins:
 	nvim --headless "+lua print('plugins ready')" +qa
 	@echo "✅ Plugins installed."
 
+# Update every plugin to the newest revision matching its spec's `version`, then
+# rewrite the lockfile ('packlockfile' — ./nvim-pack-lock.json, tracked in this
+# repo). Named plugins-* rather than `update` because `upgrade` above already
+# means "re-download Neovim itself".
+#   force=true skips the confirmation buffer that <leader>pu opens interactively
+#   and makes the lock rewrite unconditional. It still blocks to completion
+#   (run_list waits on the async join), so +qa can't truncate the work.
+# Commit the resulting lockfile diff along with the update.
+plugins-update:
+	@echo "📦 Updating plugins (rewrites nvim-pack-lock.json)…"
+	nvim --headless "+lua vim.pack.update(nil, { force = true })" +qa
+	@echo "✅ Plugins updated. Review: git diff -- .config/nvim/nvim-pack-lock.json"
+
+# Back out a bad update: re-checkout every plugin at the revision recorded in the
+# lockfile. target='lockfile' ignores each spec's `version`, so this is a revert,
+# not an update — pair it with `git checkout` on the lockfile to go further back.
+plugins-restore:
+	@echo "⏪ Restoring plugins to lockfile revisions…"
+	nvim --headless "+lua vim.pack.update(nil, { force = true, target = 'lockfile' })" +qa
+	@echo "✅ Plugins restored to nvim-pack-lock.json."
+
 # Force a clean re-fetch of every vim.pack plugin. Removes ONLY the pack tree
 # (~/.local/share/nvim/site/pack/core) so shada and state survive; the next
 # headless start re-runs vim.pack.add and clones each spec fresh. Use when a
@@ -88,6 +113,22 @@ servers:
 	npm install -g pyright
 	@echo "✅ Servers installed. Ensure go/cargo/uv/npm bin dirs are on PATH;"
 	@echo "   clangd comes from the Xcode Command Line Tools."
+
+# Format this config's Lua with stylua, which reads the repo-root .stylua.toml.
+# conform runs the same binary on save (formatters_by_ft.lua), so these agree.
+# --search-parent-directories is REQUIRED: stylua only looks for .stylua.toml in
+# the cwd by default, and this config lives two levels below the repo root that
+# holds it. Without the flag stylua silently falls back to its own defaults and
+# reindents the whole file with tabs.
+fmt:
+	@echo "🎨 Formatting Lua with stylua…"
+	stylua --search-parent-directories .
+	@echo "✅ Formatted."
+
+fmt-check:
+	@echo "🎨 Checking stylua formatting…"
+	stylua --search-parent-directories --check .
+	@echo "✅ Formatting is clean."
 
 # Smoke-test the install: binary present, config loads headlessly (bootstraps
 # missing plugins on first run), then a full checkhealth with a summary of any

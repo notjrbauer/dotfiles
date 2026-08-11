@@ -15,17 +15,8 @@ for _, plugin in ipairs({
   "zipPlugin",
   "tar",
   "tarPlugin",
-  "getscript",
-  "getscriptPlugin",
-  "vimball",
-  "vimballPlugin",
-  "2html_plugin",
-  "logiPat",
-  "rrhelper",
   "netrw",
   "netrwPlugin",
-  "netrwSettings",
-  "netrwFileHandlers",
 }) do
   vim.g["loaded_" .. plugin] = 1
 end
@@ -231,7 +222,15 @@ local function organize_imports(client, bufnr, opts)
   if not client:supports_method("textDocument/codeAction") then
     return
   end
-  local params = vim.lsp.util.make_range_params(0, client.offset_encoding)
+  -- Params come from `bufnr`, never from the current window: make_range_params()
+  -- resolves its first argument as a WINDOW (nvim_win_get_buf), so on `:wa` or
+  -- `confirm qall` -- which write buffers that aren't on screen -- window 0 names
+  -- the wrong document. source.* actions ignore the range, so an empty one is fine.
+  local position = { line = 0, character = 0 }
+  local params = {
+    textDocument = vim.lsp.util.make_text_document_params(bufnr),
+    range = { start = position, ["end"] = position },
+  }
   params.context = {
     only = { "source.organizeImports" },
     diagnostics = opts.use_diagnostics and vim.diagnostic.get(bufnr) or {},
@@ -250,13 +249,31 @@ local function organize_imports(client, bufnr, opts)
   end
 end
 
+-- augroup() clears on every call, so it can't be used for a group that several
+-- buffers register into. Cache one handle per server name instead; a per-buffer
+-- group (the old approach) leaked an empty augroup for every buffer a server
+-- ever attached to.
+local format_groups = {}
+local function format_augroup(name)
+  local group = format_groups[name]
+  if not group then
+    group = vim.api.nvim_create_augroup("user_" .. name, { clear = true })
+    format_groups[name] = group
+  end
+  return group
+end
+
 -- Register a BufWritePre formatter for `client` on `bufnr`.
---   opts.name     : augroup prefix (kept per-server so groups stay distinct)
+--   opts.name     : augroup suffix (kept per-server so groups stay distinct)
 --   opts.gate     : optional extra predicate(bufnr) that must pass to run
 --   opts.organize : optional { use_diagnostics, run_commands } for organizeImports
 local function register_format_on_save(client, bufnr, opts)
+  local group = format_augroup(opts.name)
+  -- Clear only THIS buffer's handler, preserving the reattach-dedup the old
+  -- per-buffer group gave us without disturbing other buffers.
+  vim.api.nvim_clear_autocmds({ group = group, buffer = bufnr })
   vim.api.nvim_create_autocmd("BufWritePre", {
-    group = augroup(opts.name .. "_" .. bufnr),
+    group = group,
     buffer = bufnr,
     callback = function()
       if not autoformat_enabled(bufnr) then
@@ -279,11 +296,20 @@ local function setup_format_on_save(client, bufnr)
   if not client:supports_method("textDocument/formatting") then
     return
   end
+  -- conform owns every filetype it has a formatter for (lua -> stylua, web ->
+  -- prettier). Without this the server's own formatter would also fire on
+  -- BufWritePre and the two would fight over the buffer -- lua_ls advertises
+  -- documentFormattingProvider, so .stylua.toml would lose to EmmyLua's style.
+  local ok, conform = pcall(require, "conform")
+  if ok and #conform.list_formatters_for_buffer(bufnr) > 0 then
+    return
+  end
   register_format_on_save(client, bufnr, { name = "lsp_format_" .. client.name })
 end
 
 local function setup_gopls_on_save(client, bufnr)
-  if not client:supports_method("textDocument/codeAction") and not client:supports_method("textDocument/formatting")
+  if
+    not client:supports_method("textDocument/codeAction") and not client:supports_method("textDocument/formatting")
   then
     return
   end
@@ -484,7 +510,10 @@ vim.api.nvim_create_autocmd("PackChanged", {
 
     local ok, ts = pcall(require, "nvim-treesitter")
     if ok then
-      ts.install(ts_languages)
+      -- update(), not install(): install() skips any language already on disk, so
+      -- a plugin bump advanced the bundled queries while leaving the compiled
+      -- parsers frozen. That skew is what broke the `diff` highlights query.
+      ts.update(ts_languages)
     end
   end,
 })
@@ -798,8 +827,8 @@ vim.api.nvim_create_autocmd("LspAttach", {
     elseif client.name == "ruff" then
       setup_ruff_on_save(client, ev.buf)
     elseif client.name == "typescript-tools" then
-      -- conform (Prettier) owns TS/JS formatting; never let tsserver format on
-      -- save, since it ignores .prettierrc and reformats the whole buffer.
+    -- conform (Prettier) owns TS/JS formatting; never let tsserver format on
+    -- save, since it ignores .prettierrc and reformats the whole buffer.
     else
       setup_format_on_save(client, ev.buf)
     end
@@ -859,6 +888,9 @@ conform.setup({
     prettier = { require_cwd = true, cwd = prettier_root },
   },
   formatters_by_ft = {
+    -- stylua reads the repo's .stylua.toml; lua_ls's built-in formatter does not,
+    -- so conform owns lua and setup_format_on_save stands down for it.
+    lua = { "stylua" },
     javascript = prettier,
     javascriptreact = prettier,
     typescript = prettier,
@@ -936,7 +968,7 @@ require("gitsigns").setup({
     changedelete = { text = "▎" },
   },
   on_attach = function(bufnr)
-    local gs = package.loaded.gitsigns
+    local gs = require("gitsigns")
 
     local function gmap(mode, lhs, rhs, desc)
       vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, desc = desc, silent = true })
@@ -1323,7 +1355,7 @@ vim.api.nvim_create_autocmd({ "InsertLeave", "WinEnter" }, {
   group = augroup("cursorline_on"),
   callback = function(ev)
     if vim.bo[ev.buf].buftype == "" then
-      vim.opt_local.cursorline = true
+      vim.wo.cursorline = true
     end
   end,
 })
@@ -1331,7 +1363,7 @@ vim.api.nvim_create_autocmd({ "InsertLeave", "WinEnter" }, {
 vim.api.nvim_create_autocmd({ "InsertEnter", "WinLeave" }, {
   group = augroup("cursorline_off"),
   callback = function()
-    vim.opt_local.cursorline = false
+    vim.wo.cursorline = false
   end,
 })
 
@@ -1384,8 +1416,18 @@ local flash_labels_line = "abcdefghijklmnopqrstuvwxyz"
 local flash_labels_multi = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 local flash_esc = "\27"
 
-vim.api.nvim_set_hl(0, "FlashLabel", { fg = "#000000", bg = "#ff007c", bold = true })
-vim.api.nvim_set_hl(0, "FlashMatch", { fg = "#ff007c", bg = "#3b4261", bold = true })
+-- :colorscheme clears every highlight group, so setting these once at startup
+-- left the labels invisible after any theme reload (including re-running our own).
+local function flash_set_hl()
+  vim.api.nvim_set_hl(0, "FlashLabel", { fg = "#000000", bg = "#ff007c", bold = true })
+  vim.api.nvim_set_hl(0, "FlashMatch", { fg = "#ff007c", bg = "#3b4261", bold = true })
+end
+
+vim.api.nvim_create_autocmd("ColorScheme", {
+  group = augroup("flash_highlights"),
+  callback = flash_set_hl,
+})
+flash_set_hl()
 
 local function flash_clear(bufnr)
   bufnr = bufnr or 0
@@ -1434,10 +1476,16 @@ local function flash_jump(opts)
 
     for li, line in ipairs(vim.api.nvim_buf_get_lines(0, top, bottom, false)) do
       local arow = top + li - 1
-      for i = 1, #line do
-        if line:sub(i, i) == char then
-          table.insert(matches, { arow, i - 1 })
+      -- plain find, not byte-at-a-time: getcharstr() returns whole characters, so
+      -- a multi-byte one never equals a single-byte sub(i, i).
+      local init = 1
+      while true do
+        local s = line:find(char, init, true)
+        if not s then
+          break
         end
+        table.insert(matches, { arow, s - 1 })
+        init = s + #char
       end
     end
   else
@@ -1449,14 +1497,18 @@ local function flash_jump(opts)
     local start_col = backward and 1 or (col + 1)
     local end_col = backward and col or #line
 
-    for i = start_col, end_col do
-      if line:sub(i, i) == char then
-        if backward then
-          table.insert(matches, 1, { row, i - 1 })
-        else
-          table.insert(matches, { row, i - 1 })
-        end
+    local init = start_col
+    while true do
+      local s = line:find(char, init, true)
+      if not s or s > end_col then
+        break
       end
+      if backward then
+        table.insert(matches, 1, { row, s - 1 })
+      else
+        table.insert(matches, { row, s - 1 })
+      end
+      init = s + #char
     end
   end
 
