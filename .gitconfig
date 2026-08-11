@@ -123,3 +123,13 @@
 ; work-machine commits.
 [include]
 	path = ~/.gitconfig.local
+
+; Identity by directory, applied AFTER .gitconfig.local so it beats the
+; machine-wide default. Later blocks win, so the personal namespace carves
+; itself back out of the work tree above it. Both target files are untracked:
+; no employer name or work address ever lands in this public repo, and on a
+; machine without them git silently ignores the missing include.
+[includeIf "gitdir:~/dev/"]
+	path = ~/.gitconfig.work
+[includeIf "gitdir:~/dev/notjrbauer/"]
+	path = ~/.gitconfig.personal

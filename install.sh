@@ -85,12 +85,33 @@ link "$DOTFILES/.tmux.conf"          "$HOME/.tmux.conf"
 link "$DOTFILES/.gitconfig"          "$HOME/.gitconfig"
 link "$DOTFILES/.psqlrc"             "$HOME/.psqlrc"
 
-# Machine-local git identity (work email etc.) — .gitconfig includes it last,
-# so it overrides. Seeded once (real file, never symlinked, never tracked).
-if [ ! -f "$HOME/.gitconfig.local" ]; then
-  printf '# Machine-local git overrides (untracked). Set the identity for THIS machine.\n[user]\n    name = john b\n    email = notjrbauer@gmail.com\n' > "$HOME/.gitconfig.local"
-  echo "seeded     $HOME/.gitconfig.local (edit for per-machine identity)"
-fi
+# Git identity files (untracked, seeded once, never symlinked). .gitconfig
+# selects between them by directory, so a work machine never has to remember to
+# override anything: repos under ~/dev get the work address, ~/dev/notjrbauer/
+# carves personal back out, everything else falls back to .gitconfig's [user].
+# The work address is a placeholder here on purpose — this repo is public.
+seed() {
+  local path="$1" body="$2"
+  [ -f "$path" ] && return
+  printf '%s\n' "$body" > "$path"
+  echo "seeded     $path"
+}
+
+seed "$HOME/.gitconfig.work" '; Work identity (untracked). Applied to every repo under ~/dev.
+[user]
+	name = john b
+	email = you@company.example'
+
+seed "$HOME/.gitconfig.personal" '; Personal identity (untracked). Applied to repos under ~/dev/notjrbauer/,
+; which sits inside the work tree and so needs to override it.
+[user]
+	name = john b
+	email = notjrbauer@gmail.com'
+
+seed "$HOME/.gitconfig.local" '; Machine-local git overrides (untracked). Identity comes from
+; ~/.gitconfig.work and ~/.gitconfig.personal, selected by directory in
+; .gitconfig — keep this for things that are genuinely per-machine, like
+; signing keys or credential helpers.'
 
 # --- tmux plugins ---------------------------------------------------------
 # tpm isn't brewable; clone it like .zshrc auto-clones zap. Plugins install on
