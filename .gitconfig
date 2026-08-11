@@ -1,7 +1,7 @@
 ; vim: ft=gitconfig
 
 [user]
-    name = john b
+    name = john bauer
     email = notjrbauer@gmail.com
 
 [core]
