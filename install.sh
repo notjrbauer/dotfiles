@@ -30,6 +30,45 @@ link() {
   echo "linked     $dest -> $src"
 }
 
+# Link each ENTRY of a directory, leaving the destination itself a real dir.
+#
+# Symlinking the directory itself makes this repo the destination for anything
+# that writes into it -- `lightdash install-skills --global`, a plugin
+# installer, Claude Code's own /agents -- so machine-local or work-specific
+# files land in a public repo without anyone choosing that. Per-entry links keep
+# the repo's contents shared and everything else machine-local.
+#
+# Tradeoff: entries added to the repo elsewhere need a re-run to show up here.
+link_children() {
+  local src="$1" dest="$2" entry
+  if [ ! -d "$src" ]; then
+    echo "skip: $src does not exist"
+    return
+  fi
+
+  # Replace a whole-directory symlink left by an older install. Removing the
+  # link never touches the repo it points at.
+  if [ -L "$dest" ]; then
+    rm "$dest"
+    echo "unlinked   $dest (was a whole-directory symlink)"
+  fi
+  mkdir -p "$dest"
+
+  # Drop links we own whose target has since left the repo. Real files and
+  # links pointing anywhere else are left alone -- those are the user's.
+  for entry in "$dest"/*; do
+    [ -L "$entry" ] || continue
+    case "$(readlink "$entry")" in
+      "$src"/*) [ -e "$entry" ] || { rm "$entry"; echo "pruned     $entry (target gone)"; } ;;
+    esac
+  done
+
+  for entry in "$src"/*; do
+    [ -e "$entry" ] || continue # unmatched glob
+    link "$entry" "$dest/$(basename "$entry")"
+  done
+}
+
 # --- Shell (XDG) ---------------------------------------------------------
 # ZDOTDIR lives at ~/.config/zsh; ~/.zshenv is just the bootstrap that sets it.
 link "$DOTFILES/.zshenv"             "$HOME/.zshenv"
@@ -64,12 +103,14 @@ fi
 
 # --- Claude Code ---------------------------------------------------------
 # Portable config only (see .claude/README.md). Runtime state — transcripts,
-# caches, credentials, plugins — stays local in ~/.claude and is never
-# tracked. ~/.claude/agents is a single symlink to the whole curated set.
+# caches, credentials, plugins — stays local in ~/.claude and is never tracked.
+# agents/ and skills/ are linked per entry, not as whole directories, so that
+# anything installed into them later stays on this machine instead of landing
+# in a public repo (see link_children).
 link "$DOTFILES/.claude/CLAUDE.md"      "$HOME/.claude/CLAUDE.md"
 link "$DOTFILES/.claude/settings.json"  "$HOME/.claude/settings.json"
-link "$DOTFILES/.claude/agents"         "$HOME/.claude/agents"
-link "$DOTFILES/.claude/skills"         "$HOME/.claude/skills"
+link_children "$DOTFILES/.claude/agents" "$HOME/.claude/agents"
+link_children "$DOTFILES/.claude/skills" "$HOME/.claude/skills"
 
 echo ""
 echo "Done. Start a new shell (or run: exec zsh -l) to pick up the changes."
