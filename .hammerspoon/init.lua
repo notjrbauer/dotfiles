@@ -8,7 +8,9 @@
 -- like lag when you're chaining placements.
 hs.window.animationDuration = 0
 
-local mash = { "cmd", "alt", "ctrl" }
+-- Hyper: all four modifiers. Nothing in macOS or any app claims this
+-- combination, so the layout keys below can't collide with an app shortcut.
+local mash = { "cmd", "alt", "ctrl", "shift" }
 
 -- Place the focused window on a fraction of the screen. Coordinates are
 -- fractions of the *usable* frame: screen:frame() excludes the menu bar and
