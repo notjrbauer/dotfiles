@@ -9,6 +9,15 @@ skip_global_compinit=1
 DISABLE_EXA=false                    # set true to fall back from eza to plain ls
 ZSH_AUTOSUGGEST_STRATEGY=(history)   # read by zsh-autosuggestions
 
+# `brew shellenv` prepends to fpath unconditionally AND exports FPATH, so every
+# nested login shell (macOS starts one per terminal; tmux nests another) added a
+# duplicate — 3 copies of brew's site-functions here before this. That makes
+# compinit's scan and the mtime probe in .zshrc do the same work repeatedly.
+# Here rather than .zprofile: typeset -U is a sticky attribute, and .zshenv is
+# the only file that also runs for non-login shells, so it covers `exec zsh`
+# and brew's later fpath[1,0]= too.
+typeset -U fpath FPATH
+
 # ---- Toolchain env ----
 export GOPATH="$HOME"
 export BUNPATH="$HOME/.bun"
