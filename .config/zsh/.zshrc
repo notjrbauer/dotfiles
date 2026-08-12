@@ -80,11 +80,34 @@ export FZF_CTRL_R_OPTS="--bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+ab
 [[ -d "$HOME/.docker/completions" ]] && fpath=("$HOME/.docker/completions" $fpath)
 
 # Run the full fpath security check at most once a day; otherwise skip it with
-# -C (the slowest part of compinit). (#qN.mh+24) = dump older than 24h or absent.
+# -C (the slowest part of compinit) — measured ~18ms vs ~7ms here. Clause 1
+# catches a missing dump: (#qN.mh+24) can't, since N drops a nonexistent file.
+#
+# The third clause is what makes a *newly installed* completion show up today
+# rather than whenever the 24h window happens to lapse: -C reuses the dump
+# verbatim and never rescans $fpath, so `brew install foo` that links a new
+# _foo went unnoticed for up to a day. Linking into a directory bumps that
+# directory's mtime, so "any $fpath dir newer than the dump" is exactly the
+# signal. ${^fpath} expands per entry; (#qN/e[…]) keeps dirs passing the test,
+# and N means a missing entry is skipped instead of erroring. ~0.03ms for 8
+# entries — far less than the -C it protects. Wrapped in an anonymous function
+# so the $REPLY that e[…] sets stays out of the global namespace.
+#
+# EXTENDED_GLOB is required, not cosmetic: inside [[ … ]] a bare trailing
+# (N.mh+24) is NOT expanded — it stays a literal non-empty string and the test
+# is silently always true. Only (#q…) forces globbing there.
 setopt EXTENDED_GLOB           # ^, ~, # glob operators — needed here for (#q…) below
 autoload -Uz compinit
-if [[ ! -f "$ZCOMPDUMP_PATH" || -n $ZCOMPDUMP_PATH(#qN.mh+24) ]]; then
+if () { local REPLY
+        [[ ! -f "$ZCOMPDUMP_PATH" || -n $ZCOMPDUMP_PATH(#qN.mh+24) \
+           || -n ${^fpath}(#qN/e['[[ $REPLY -nt $ZCOMPDUMP_PATH ]]']) ]]
+      }; then
   compinit -d "$ZCOMPDUMP_PATH"
+  # compinit only REWRITES the dump when the completion-file count (or the zsh
+  # version) changed, so a 24h lapse — or a dir mtime bumped by an in-place
+  # relink — leaves the dump's own mtime untouched. Without this stamp the test
+  # above stays true on every later shell and -C is never taken again.
+  touch "$ZCOMPDUMP_PATH"
 else
   compinit -C -d "$ZCOMPDUMP_PATH"
 fi
