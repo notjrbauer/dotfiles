@@ -19,3 +19,10 @@ export BUNPATH="$HOME/.bun"
 # clobber anything set here on login shells. See $ZDOTDIR/.zprofile.
 # (Homebrew is initialized there too, via `brew shellenv` — /opt/homebrew is
 # not in /etc/paths on Apple Silicon.)
+
+# ---- Machine-local env (untracked) ----
+# Secrets and per-machine vars — API tokens and anything else that must not land
+# in a public repo. Lives in $HOME, NOT in $ZDOTDIR: ~/.config/zsh is a symlink
+# to this repo, so a file created there would be inside it. Same split as
+# ~/.gitconfig.local; install.sh seeds it. Sourced last so it can override.
+[ -f "$HOME/.zshenv.local" ] && source "$HOME/.zshenv.local"

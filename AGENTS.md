@@ -66,6 +66,10 @@ Choices that look like mistakes but aren't:
 - **Git identity lives in `~/.gitconfig.local`** (seeded by
   `install.sh`, included last, untracked). Don't add an email back into
   the tracked `.gitconfig`; work machines override locally.
+- **Secrets go in `~/.zshenv.local`** (seeded by `install.sh`, sourced
+  last by `$ZDOTDIR/.zshenv`, untracked). Never put a token in
+  `.config/zsh/` — that path is a *symlink to this repo*, so anything
+  written there lands in a public tree. Same trap as `.claude/`.
 - **`mas` entries are allowed to fail.** They error until the App Store
   is signed in; `bootstrap.sh` tolerates that on purpose. Don't drop the
   entries or make the bundle hard-fail.

@@ -28,8 +28,9 @@ make install      # or: ./install.sh
 `make install` (via `install.sh`) is idempotent and safe to re-run: it
 refreshes existing symlinks and backs up any pre-existing **real** file to
 `<path>.bak.<timestamp>` before linking. It also seeds `~/.gitconfig.local`
-(machine-local git identity — set your work email there) and clones tpm for
-tmux plugins.
+(machine-local git identity — set your work email there) and
+`~/.zshenv.local` (machine-local shell env — put API tokens there), and
+clones tpm for tmux plugins.
 
 ```sh
 make status      # show which of this repo's links are live / stale

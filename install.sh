@@ -117,6 +117,20 @@ seed "$HOME/.gitconfig.local" '; Machine-local git overrides (untracked). Identi
 ; .gitconfig — keep this for things that are genuinely per-machine, like
 ; signing keys or credential helpers.'
 
+# --- Shell secrets --------------------------------------------------------
+# Sourced by $ZDOTDIR/.zshenv. Deliberately in $HOME and not ~/.config/zsh —
+# that path is a symlink to this repo, so a secrets file there would sit in a
+# public tree. 600 because it holds tokens.
+seed "$HOME/.zshenv.local" '# Machine-local shell env (untracked) — sourced by $ZDOTDIR/.zshenv.
+# Secrets and per-machine vars only. Never commit this file; it is not in the
+# repo, and must not be moved into ~/.config/zsh (that is a symlink to it).
+
+# GitHub PAT for Homebrew. Required — not just a rate-limit nicety — by the
+# livekit/nebula formula, which pulls release assets from a private repo via a
+# custom download strategy that raises if this is unset. Needs `repo` scope.
+# export HOMEBREW_GITHUB_API_TOKEN=ghp_xxx'
+chmod 600 "$HOME/.zshenv.local" 2>/dev/null || true
+
 # --- tmux plugins ---------------------------------------------------------
 # tpm isn't brewable; clone it like .zshrc auto-clones zap. Plugins install on
 # first tmux start with prefix+I.
