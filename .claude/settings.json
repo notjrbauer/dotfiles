@@ -9,7 +9,17 @@
   "enabledPlugins": {
     "typescript-lsp@claude-plugins-official": true,
     "lua-lsp@claude-plugins-official": true,
-    "gopls-lsp@claude-plugins-official": true
+    "gopls-lsp@claude-plugins-official": true,
+    "lkctl@lkctl": true
+  },
+  "extraKnownMarketplaces": {
+    "lkctl": {
+      "source": {
+        "source": "github",
+        "repo": "livekit/lkctl",
+        "ref": "main"
+      }
+    }
   },
   "theme": "auto",
   "skipAutoPermissionPrompt": true

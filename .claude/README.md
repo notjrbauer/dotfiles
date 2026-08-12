@@ -45,9 +45,17 @@ git clone <dotfiles> && cd dotfiles
 claude login          # one-time auth (credentials stay local, untracked)
 ```
 
-Plugins are declared in `settings.json` (`enabledPlugins`) but the plugin
-repos live in `~/.claude/plugins/` per machine — re-add the marketplace and
-install them with `/plugin` on a new box (that state is intentionally local).
+Plugins are declared in `settings.json` (`enabledPlugins`, plus
+`extraKnownMarketplaces` for non-official sources) but the plugin repos live
+in `~/.claude/plugins/` per machine — on a new box `./install.sh` restores the
+declarations and Claude Code clones the repos on next start.
+
+`extraKnownMarketplaces` names `livekit/lkctl`, a **private** repo, in this
+**public** one. That's deliberate, not a leak to clean up: `--scope user` is
+the only scope that enables a plugin everywhere, and on this setup that scope
+*is* this repo (see the write-through note above). The alternative was
+re-running `--scope local` per project. Only the repo's name is exposed —
+never a token, and cloning it still requires org access.
 
 ## Adding more portable config later
 
