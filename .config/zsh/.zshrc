@@ -134,9 +134,16 @@ export KEYTIMEOUT=20   # 200ms — snappier `jj`→cmd-mode without breaking mul
 bindkey -M viins 'jj' vi-cmd-mode
 
 # Prefix + ↑/↓ (and k/j in cmd mode) searches history for matching commands.
-# (These widgets were autoloaded above but previously never bound.)
-bindkey -M viins "$terminfo[kcuu1]" up-line-or-beginning-search    # ↑
-bindkey -M viins "$terminfo[kcud1]" down-line-or-beginning-search  # ↓
+# Bind the literal sequences, not just $terminfo: kcuu1/kcud1 are the
+# APPLICATION-mode forms (^[OA/^[OB), and zsh never sends smkx, so terminals
+# stay in normal mode and send ^[[A/^[[B — binding terminfo alone left the
+# default up-line-or-history in place and this never fired. terminfo is still
+# bound for terminals that do send application mode, guarded because it's empty
+# under TERM=dumb, where bindkey would error on an empty key sequence.
+bindkey -M viins '^[[A' up-line-or-beginning-search    # ↑ (normal cursor mode)
+bindkey -M viins '^[[B' down-line-or-beginning-search  # ↓
+[[ -n "$terminfo[kcuu1]" ]] && bindkey -M viins "$terminfo[kcuu1]" up-line-or-beginning-search
+[[ -n "$terminfo[kcud1]" ]] && bindkey -M viins "$terminfo[kcud1]" down-line-or-beginning-search
 bindkey -M vicmd 'k' up-line-or-beginning-search
 bindkey -M vicmd 'j' down-line-or-beginning-search
 
