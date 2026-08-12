@@ -24,9 +24,10 @@ blocklist so none of that runtime state can slip in even by accident.
 
 **Mind the write-through:** because `~/.claude/settings.json` is a symlink,
 runtime "always allow" grants and `/config` edits land in the tracked repo
-file. Review `git diff` before committing — on a work machine, answer
-permission prompts at project scope or put rules in `settings.local.json`
-(gitignored on both sides).
+file. `settings.local.json` is **project**-scope only — there's no user-scope
+variant, so it can't catch these. Answer permission prompts at project scope
+when a rule shouldn't be shared, and review `git diff` before committing.
+`.githooks/pre-commit` blocks credentials outright.
 
 ## What gets linked (see `../install.sh`)
 
@@ -50,12 +51,9 @@ Plugins are declared in `settings.json` (`enabledPlugins`, plus
 in `~/.claude/plugins/` per machine — on a new box `./install.sh` restores the
 declarations and Claude Code clones the repos on next start.
 
-`extraKnownMarketplaces` names `livekit/lkctl`, a **private** repo, in this
-**public** one. That's deliberate, not a leak to clean up: `--scope user` is
-the only scope that enables a plugin everywhere, and on this setup that scope
-*is* this repo (see the write-through note above). The alternative was
-re-running `--scope local` per project. Only the repo's name is exposed —
-never a token, and cloning it still requires org access.
+`extraKnownMarketplaces` names a private repo here deliberately — `--scope
+user` is the only scope that enables a plugin everywhere, and that scope is
+this file. Don't "clean it up"; only the name is exposed.
 
 ## Adding more portable config later
 

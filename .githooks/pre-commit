@@ -1,0 +1,22 @@
+#!/bin/sh
+# Pre-commit: refuse to stage anything that looks like a credential.
+#
+# This repo is public, and several tracked files are symlink targets that tools
+# write to on their own — ~/.claude/settings.json, ~/.config/zsh. So a secret can
+# land in the working tree without anyone typing it here. Secrets belong in
+# ~/.zshenv.local or ~/.gitconfig.local, both untracked and outside the repo.
+set -e
+
+[ "${SKIP_SECRET_SCAN:-}" = "1" ] && exit 0
+
+# Matches only added lines, so a placeholder already in history won't trip this.
+pat='gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|sk-[A-Za-z0-9_-]{20,}|xox[abprs]-[A-Za-z0-9-]{10,}|glpat-[A-Za-z0-9_-]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----'
+
+if git diff --cached -U0 --no-color | grep '^+' | grep -qIE "$pat"; then
+	echo "pre-commit: a staged line looks like a credential. In:"
+	git diff --cached --name-only -G"$pat" | sed 's/^/  /'
+	echo
+	echo "  Move it to ~/.zshenv.local (untracked, sourced by \$ZDOTDIR/.zshenv)."
+	echo "  If it's a placeholder: SKIP_SECRET_SCAN=1 git commit ..."
+	exit 1
+fi

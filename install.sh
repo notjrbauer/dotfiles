@@ -132,6 +132,19 @@ seed "$HOME/.zshenv.local" '# Machine-local shell env (untracked) — sourced by
 chmod 600 "$HOME/.zshenv.local" \
   || echo "warn: could not chmod 600 ~/.zshenv.local (owned by someone else?) — it holds tokens"
 
+# --- Git hooks ------------------------------------------------------------
+# .githooks/pre-commit blocks staged credentials. Only wired if nothing else
+# owns core.hooksPath, so a different hooks setup here is never clobbered.
+# Reversible with: git config --unset core.hooksPath
+chmod +x "$DOTFILES/.githooks/pre-commit" 2>/dev/null || true
+existing="$(git -C "$DOTFILES" config --local --get core.hooksPath || true)"
+if [ -z "$existing" ]; then
+  git -C "$DOTFILES" config --local core.hooksPath .githooks
+  echo "wired      core.hooksPath -> .githooks"
+elif [ "$existing" != ".githooks" ]; then
+  echo "skip: core.hooksPath is already '$existing' — leaving it alone"
+fi
+
 # --- tmux plugins ---------------------------------------------------------
 # tpm isn't brewable; clone it like .zshrc auto-clones zap. Plugins install on
 # first tmux start with prefix+I.
