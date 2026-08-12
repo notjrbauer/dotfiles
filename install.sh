@@ -129,7 +129,8 @@ seed "$HOME/.zshenv.local" '# Machine-local shell env (untracked) — sourced by
 # livekit/nebula formula, which pulls release assets from a private repo via a
 # custom download strategy that raises if this is unset. Needs `repo` scope.
 # export HOMEBREW_GITHUB_API_TOKEN=ghp_xxx'
-chmod 600 "$HOME/.zshenv.local" 2>/dev/null || true
+chmod 600 "$HOME/.zshenv.local" \
+  || echo "warn: could not chmod 600 ~/.zshenv.local (owned by someone else?) — it holds tokens"
 
 # --- tmux plugins ---------------------------------------------------------
 # tpm isn't brewable; clone it like .zshrc auto-clones zap. Plugins install on

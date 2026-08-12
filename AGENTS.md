@@ -70,9 +70,23 @@ Choices that look like mistakes but aren't:
   last by `$ZDOTDIR/.zshenv`, untracked). Never put a token in
   `.config/zsh/` — that path is a *symlink to this repo*, so anything
   written there lands in a public tree. Same trap as `.claude/`.
-- **`mas` entries are allowed to fail.** They error until the App Store
-  is signed in; `bootstrap.sh` tolerates that on purpose. Don't drop the
-  entries or make the bundle hard-fail.
+- **`brew "mas"` has no `mas` entries to install.** The App Store apps
+  were dropped in `5e98061`; only the CLI remains, for ad-hoc use. Don't
+  "fix" the bundle by re-adding `mas` lines. `brew bundle` is still
+  tolerated on failure, but the expected cause is now the livekit taps.
+- **Tap trust belongs in the Brewfile's `trusted:`, not `brew trust`.**
+  Homebrew 6 won't load non-official tap formulae until trusted. `bundle`
+  resolves each item against the tap's `clone_target`, so for the two taps
+  added by git URL it writes the URL-bound entry Homebrew actually checks —
+  which `brew trust --formula livekit/nebula/nebula` cannot do on a fresh
+  machine, where the tap has no remote yet and only the bare name exists.
+  `nebula`/`nats` need their own `trusted:` despite being unlisted; trusting
+  `lkctl` does not trust what it pulls in. Don't switch to
+  `HOMEBREW_NO_REQUIRE_TAP_TRUST` — deprecated, slated for removal.
+- **`lkctl` needs more than the formula.** It shells out to `cockroach sql`
+  by name (hence `cockroachdb/tap/cockroach`, not a transitive dep), and
+  installing it needs `HOMEBREW_GITHUB_API_TOKEN` from `~/.zshenv.local` —
+  which is why step 3 sources that file before bundling.
 
 ## Maintaining this file
 

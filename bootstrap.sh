@@ -44,12 +44,41 @@ else
 fi
 
 # --- 3. Packages -----------------------------------------------------------
-# mas entries fail until the App Store is signed in; don't let that abort the
-# rest — everything brew-native still installs, and a re-run picks up the rest.
+# Tap trust is declared in the Brewfile itself (`trusted:`), not with `brew
+# trust` calls here — see the comment at the top of that file for why the
+# declarative form is the correct one for URL taps.
+#
+# The nebula formula hard-requires HOMEBREW_GITHUB_API_TOKEN — it pulls release
+# assets from a private repo and raises without it. That token lives in
+# ~/.zshenv.local, which only shells source, so read it out here or lkctl/nebula
+# are the one thing a fresh bootstrap can't install.
+#
+# Read, not source: that file belongs to zsh, and a zsh-ism in it (path=(…),
+# typeset -U, a glob qualifier) is a bash syntax error, while `set -u` makes any
+# unset reference in it fatal — either would abort this whole script before a
+# single package installs, and a stray `exit` in it would end the run reporting
+# success. A throwaway zsh contains that, and keeps every other secret in the
+# file out of brew's environment.
+if [ -z "${HOMEBREW_GITHUB_API_TOKEN:-}" ] && [ -f "$HOME/.zshenv.local" ]; then
+  token="$(zsh -fc '. "$HOME/.zshenv.local" >/dev/null 2>&1
+                    print -rn -- "${HOMEBREW_GITHUB_API_TOKEN-}"' 2>/dev/null)" || token=""
+  [ -n "$token" ] && export HOMEBREW_GITHUB_API_TOKEN="$token"
+  unset token
+fi
+if [ -z "${HOMEBREW_GITHUB_API_TOKEN:-}" ]; then
+  echo "warn: HOMEBREW_GITHUB_API_TOKEN unset — livekit/{lkctl,nebula} will fail."
+  echo "      Step 4 creates ~/.zshenv.local; put the token there (needs \`repo\`"
+  echo "      scope) and re-run ./bootstrap.sh."
+fi
+
+# Don't let one failing entry abort the rest — everything else still installs and
+# a re-run picks up the remainder. On a fresh machine the expected failure is
+# livekit/{lkctl,nebula} for want of the token above.
 echo "==> brew bundle…"
 if ! brew bundle --file="$DOTFILES/Brewfile" --no-upgrade; then
-  echo "warn: brew bundle had failures (mas apps need an App Store sign-in?)"
-  echo "      sign in, then re-run: brew bundle --file=$DOTFILES/Brewfile"
+  echo "warn: brew bundle had failures — most likely livekit/{lkctl,nebula}"
+  echo "      without HOMEBREW_GITHUB_API_TOKEN. Fix, then re-run:"
+  echo "      brew bundle --file=$DOTFILES/Brewfile"
 fi
 
 # --- 4. Symlinks (+ tpm, ~/.gitconfig.local) -------------------------------
