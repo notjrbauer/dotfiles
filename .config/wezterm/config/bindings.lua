@@ -65,6 +65,34 @@ local mouse_bindings = {
     mods = 'CTRL',
     action = act.OpenLinkAtMouseCursor,
   },
+  -- Selecting is inert here too — the same rule as .tmux.conf (Copy-mode).
+  -- Every wezterm default ends a left-button release in
+  -- CompleteSelection('ClipboardAndPrimarySelection'), including streaks 2 and 3
+  -- and including the SHIFT variants. SHIFT is the mouse-reporting bypass, so
+  -- inside tmux (mouse on) a Shift-drag is handled HERE rather than by tmux, and
+  -- it would overwrite the clipboard the tmux copy-mode bindings are careful not
+  -- to touch. 'PrimarySelection' is a no-op writer on macOS: the highlight stays,
+  -- the clipboard does not move, and SUPER-c still copies deliberately.
+  {
+    event = { Up = { streak = 1, button = 'Left' } },
+    mods = 'NONE',
+    action = act.CompleteSelection 'PrimarySelection',
+  },
+  {
+    event = { Up = { streak = 1, button = 'Left' } },
+    mods = 'SHIFT',
+    action = act.CompleteSelection 'PrimarySelection',
+  },
+  {
+    event = { Up = { streak = 2, button = 'Left' } },
+    mods = 'NONE',
+    action = act.CompleteSelection 'PrimarySelection',
+  },
+  {
+    event = { Up = { streak = 3, button = 'Left' } },
+    mods = 'NONE',
+    action = act.CompleteSelection 'PrimarySelection',
+  },
 }
 
 return {

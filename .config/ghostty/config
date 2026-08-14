@@ -155,6 +155,14 @@ shell-integration = zsh
 # Preserve terminfo under sudo; rest of the defaults (cursor, title, path) kept.
 shell-integration-features = cursor,sudo,title,path
 mouse-hide-while-typing = true
+
+# Selecting is inert — the same rule as .tmux.conf (Copy-mode) and wezterm
+# (config/bindings.lua mouse_bindings). copy-on-select defaults to TRUE, and
+# mouse-shift-capture defaults to false, so inside tmux (mouse on) a Shift-drag
+# is handled by Ghostty rather than tmux — and with the default on, that silently
+# replaces the clipboard you just filled in another pane. Selection still works;
+# super+c is the deliberate copy.
+copy-on-select = false
 # Always treat Option as Alt so alt+ maps in nvim/tmux work on any layout.
 macos-option-as-alt = true
 # Restore windows/tabs across relaunches (wezterm has no equivalent).
