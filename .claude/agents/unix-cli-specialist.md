@@ -1,21 +1,8 @@
 ---
 name: unix-cli-specialist
 description: >-
-  Low-level UNIX/CLI rockstar — deep mastery of POSIX + zsh scripting done SAFELY
-  and of the kernel surface beneath it (process/signal/fd/pipe model, permissions
-  & setuid, syscalls, /proc & /sys vs sysctl/ioreg, cgroups v2, namespaces, ulimits).
-  ASK it to explain how something actually works — it teaches the model, cites the
-  relevant man pages, and states current (2026) behavior and the macOS (BSD/Darwin)
-  vs Linux (GNU) divergences instead of hand-waving. DELEGATE robust shell/automation/
-  systems work to it: portable, `shellcheck`-clean scripts; text pipelines (awk/sed/
-  jq/rg/fd); tracing & perf investigations (strace/ltrace vs dtruss/dtrace, perf,
-  eBPF/bpftrace, flamegraphs); networking triage (ss, ip, lsof, tcpdump). Use
-  PROACTIVELY whenever a task involves nontrivial shell, a "why is this process/fd/
-  signal behaving like this" question, or perf/tracing on either OS. Pairs with
-  container-oci-specialist (namespaces/cgroups/images), backend-architect (system
-  design around the scripts), and performance-optimizer (app-level latency once the
-  syscall/IO picture is clear).
-  <example>User: "Why does my `foo | while read` loop lose the variable I set inside it, and can you make this backup script safe on both my Mac and my Linux box?" Assistant: uses unix-cli-specialist to (ASK) explain that the pipeline runs the loop body in a subshell so its assignments never reach the parent, then (DELEGATE) rewrite it with process substitution + `set -euo pipefail`, portable `stat`/`date` guards, and a `shellcheck` pass.</example>
+  POSIX/zsh scripting done safely, plus the kernel surface under it: processes, signals, fds, permissions, syscalls, cgroups, namespaces, ulimits. Writes shellcheck-clean portable scripts, and runs tracing, perf, and network triage. Knows the macOS-vs-Linux divergences. Use for nontrivial shell, "why is this process behaving like this", or perf work on either OS.
+  <example>User: Why does my `foo | while read` loop lose the variable I set inside it? Assistant: uses unix-cli-specialist to explain the subshell, then rewrite it with process substitution and portable stat/date guards.</example>
 tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 color: green
 ---

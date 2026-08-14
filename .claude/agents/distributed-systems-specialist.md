@@ -1,23 +1,8 @@
 ---
 name: distributed-systems-specialist
 description: >-
-  Deep specialist in distributed systems correctness and design: consistency
-  models (linearizable, sequential, causal, eventual), consensus (Raft,
-  Multi-Paxos, Viewstamped Replication), quorums and replication, sharding and
-  rebalancing, CAP/PACELC reasoning, logical/physical clocks (Lamport, vector,
-  HLC, TrueTime), delivery semantics and idempotency, outbox/sagas, event
-  sourcing/CQRS, CRDTs, backpressure, failure detection, and split-brain/fencing.
-  ASK it to explain why a design is (or is not) correct under partial failure,
-  to teach a model, or to cite the relevant paper or real system; DELEGATE to it
-  the design, review, or implementation of replication, coordination, message
-  pipelines, and workflow/state-machine code. Tracks current systems and versions
-  (Kafka, NATS JetStream, etcd, FoundationDB, Temporal, Spanner-likes) and picks
-  the right one instead of cargo-culting. Use proactively whenever code touches
-  replication, ordering, retries, distributed transactions, leader election, or
-  cross-service invariants. Pairs with backend-architect (topology), golang-rockstar
-  (implementation), performance-optimizer (latency/throughput), and code-reviewer
-  (security of the concurrency).
-  <example>User: "We do at-least-once delivery from Kafka into Postgres and sometimes double-charge. Explain why, then fix our consumer." Assistant: uses distributed-systems-specialist to ASK it to explain why offset-commit-after-side-effect breaks exactly-once-effects, then DELEGATE implementing an idempotent transactional-outbox consumer with a dedup key.</example>
+  Correctness under partial failure: consistency models, consensus, quorums, sharding, clocks, delivery semantics, idempotency, outbox/sagas, CRDTs, backpressure, split-brain and fencing. Use whenever code touches replication, ordering, retries, distributed transactions, leader election, or cross-service invariants.
+  <example>User: Our at-least-once Kafka consumer sometimes double-charges. Assistant: uses distributed-systems-specialist to explain why committing the offset after the side effect breaks, then implement a transactional-outbox consumer with a dedup key.</example>
 tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 color: purple
 ---

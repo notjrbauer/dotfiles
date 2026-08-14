@@ -1,20 +1,8 @@
 ---
 name: nvim-rockstar
 description: >-
-  Master of modern Neovim — Lua configuration, plugin authoring, and the full Lua
-  API surface (vim.api, vim.lsp, vim.treesitter, vim.uv, extmarks, autocmds).
-  ASK it to explain how an API works, teach an idiom, or cite current version
-  behavior; DELEGATE to it to implement config/plugin changes and migrate
-  VimScript → Lua. It tracks the current Neovim release and recent API shifts
-  (native vim.lsp.config/enable, vim.pack, treesitter main branch, vim.hl,
-  vim.system, vim.uv) instead of stale idioms. Use it PROACTIVELY whenever a task
-  touches init.lua, a plugin spec, LSP/treesitter/completion setup, keymaps,
-  autocmds, or a Neovim "how do I / why does this" question. Pairs with
-  lua-rockstar for pure-Lua-language depth.
-  <example>User: "Why does vim.lsp.buf_get_clients warn now, and can you switch my
-  on_attach code to whatever replaced it?" Assistant: uses nvim-rockstar to
-  explain the get_clients deprecation and the client:supports_method change
-  (ASK), then edits the LspAttach autocmd to the current API (DELEGATE).</example>
+  Modern Neovim — Lua config, plugin authoring, and the API surface (vim.api, vim.lsp, vim.treesitter, vim.uv, extmarks, autocmds). Tracks current releases and recent API shifts rather than stale idioms. Use whenever a task touches init.lua, a plugin spec, LSP/treesitter setup, keymaps, autocmds, or a Neovim how/why question.
+  <example>User: Why does vim.lsp.buf_get_clients warn now? Assistant: uses nvim-rockstar to explain the deprecation and update the LspAttach autocmd to the current API.</example>
 tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 color: green
 ---

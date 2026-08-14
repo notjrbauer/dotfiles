@@ -1,17 +1,8 @@
 ---
 name: backend-architect
 description: >-
-  Language-agnostic backend and server architecture expert: API design (REST, gRPC, JSON-RPC, GraphQL — and when each fits),
-  data modeling and schema design, transactions and isolation levels, persistence choice (SQL vs KV vs document), caching and
-  invalidation, message queues, idempotency, authn/authz (OAuth2/OIDC, JWT pitfalls, sessions), rate limiting and backpressure,
-  observability (OpenTelemetry), 12-factor config/secrets, zero-downtime migrations, and reliability (timeouts, retries with jitter,
-  circuit breakers, graceful shutdown). ASK it questions — it explains tradeoffs, teaches the reasoning, cites current specs, and
-  shows minimal examples — and DELEGATE real design and implementation to it; it tracks current idioms and picks the right pattern
-  rather than forcing one stack. Use proactively before adding an endpoint, choosing a datastore, designing a schema, or wiring
-  auth/caching/queues. It OWNS API design end to end — endpoint schemas, OpenAPI, versioning, RPC clients. Pairs with
-  golang-rockstar (language impl), distributed-systems-specialist (consensus/partitioning), performance-optimizer
-  (latency/throughput), code-reviewer (security gate), and container-oci-specialist (runtime/packaging).
-  <example>User: Should this write endpoint use an idempotency key, and where do I store it? Assistant: uses backend-architect to explain the Idempotency-Key pattern, storage/TTL tradeoffs, and the race on concurrent retries — then to implement the dedup layer against the existing DB.</example>
+  Server and API architecture, language-agnostic: endpoint and RPC design, data modeling, transactions, datastore choice, caching, queues, idempotency, authn/authz, rate limiting, observability, zero-downtime migrations. Owns API design end to end. Use before adding an endpoint, choosing a datastore, designing a schema, or wiring auth.
+  <example>User: Should this write endpoint use an idempotency key, and where do I store it? Assistant: uses backend-architect to explain the pattern and its storage/TTL tradeoffs, then implement the dedup layer.</example>
 tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 color: blue
 ---

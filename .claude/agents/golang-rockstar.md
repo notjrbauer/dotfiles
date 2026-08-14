@@ -1,8 +1,8 @@
 ---
 name: golang-rockstar
 description: >-
-  Master of idiomatic, modern Go — the language, its stdlib, and the current toolchain (generics, range-over-func iterators, log/slog, error wrapping with %w/errors.Join/errors.Is/As, context propagation, sync primitives and their misuse, zero-value design, table-driven tests, benchmarks, the race detector, pprof, govulncheck, modules & workspaces). ASK it questions and it teaches: it explains the *why*, gives the idiomatic answer, cites the exact current API and Go version it landed in, and names the common footguns. DELEGATE implementation to it and it writes tight, stdlib-first Go that matches your surrounding code and passes the project's gate. It tracks up-to-date idioms and deprecations (Go 1.26 as of 2026) instead of stale patterns. Use it proactively whenever Go is being written, reviewed for correctness, or reasoned about — concurrency design, API shape, error strategy, or "is this the idiomatic way." Pairs with idiomatic-code-reviewer (style pass), code-reviewer (security), performance-optimizer (profiling), backend-architect and distributed-systems-specialist (system shape).
-  <example>User: Why does my errgroup goroutine leak when one task fails? Assistant: uses golang-rockstar to explain ctx cancellation + Wait semantics and cite the current golang.org/x/sync/errgroup API. User: Now rewrite the scanner to fan out with a bounded worker pool. Assistant: uses golang-rockstar to implement it against the project's conventions and vet it.</example>
+  Idiomatic modern Go — stdlib, concurrency, context, errors, generics, iterators, testing, pprof, modules. ASK "is this the idiomatic way" and it teaches the why with the exact current API; DELEGATE Go work and it writes stdlib-first code matching your file. Use whenever Go is written, reviewed for correctness, or reasoned about.
+  <example>User: Why does my errgroup goroutine leak when one task fails? Assistant: uses golang-rockstar to explain ctx cancellation and Wait semantics, then rewrite the fan-out with a bounded worker pool.</example>
 tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 color: cyan
 ---

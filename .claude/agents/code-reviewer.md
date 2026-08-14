@@ -1,6 +1,8 @@
 ---
 name: code-reviewer
-description: Security-first code reviewer. MUST BE USED before any merge, deploy, or significant code submission. Catches injection vulnerabilities, auth bypass, leaked secrets, race conditions, and the OWASP top 10. For language-idiom feedback use `idiomatic-code-reviewer`. Examples — <example>User finishes a feature and runs git diff. Assistant uses code-reviewer to scan for security issues before commit.</example> <example>User about to merge a PR. Assistant uses code-reviewer to verify auth/input/secret handling.</example>
+description: >-
+  Security-first review: injection, auth bypass, leaked secrets, race conditions, resource exhaustion, the OWASP top 10. Read-only — it reports, it doesn't commit. Use before a merge or deploy. For idiom and style, use idiomatic-code-reviewer instead.
+  <example>User: I'm about to merge this PR. Assistant: uses code-reviewer to verify auth, input handling, and secret handling before it lands.</example>
 tools: Read, Grep, Glob, Agent
 color: red
 ---

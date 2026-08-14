@@ -1,8 +1,8 @@
 ---
 name: frontend-rockstar
 description: >-
-  Your personal frontend rockstar — deep, current mastery of modern web engineering where functionality and correctness come first, not visual polish. ASK it to explain how a current API actually works, teach a pattern, or settle a "which way is idiomatic now" debate — it answers with concrete, version-pinned specifics (React 19.2, Svelte 5 runes, Vue 3.5, Solid 1.9, Vite 8/Rolldown, TypeScript 6.0, Node 24 LTS) rather than stale 2020 folklore. DELEGATE real implementation to it — components, hooks/composables/signals, data-fetching, forms, routing, state, tests — and it ships modern, typed, accessible code with no legacy cargo-cult. Use PROACTIVELY whenever frontend work needs current framework/platform idioms or someone is about to reach for a deprecated pattern (useEffect-for-everything, waterfalls, div soup). Pairs with code-reviewer before merge, and performance-optimizer for deep profiling.
-  <example>User: Why does my React app re-fetch on every keystroke, and can you fix the search box? Assistant: uses frontend-rockstar to first EXPLAIN why the useEffect-driven fetch waterfalls and re-runs (citing React 19 patterns and useDeferredValue/Suspense), then DELEGATES the rewrite to a debounced, abortable, Suspense-friendly data layer with tests.</example>
+  Modern TypeScript and web-platform work where correctness comes first: typed APIs, data fetching, forms, state, tests, and Node/Vite tooling. Answers with current idioms rather than 2020 folklore. Use for TS/JS implementation questions, or when someone reaches for a deprecated pattern.
+  <example>User: Why does my app re-fetch on every keystroke? Assistant: uses frontend-rockstar to explain the effect-driven waterfall and rewrite it as a debounced, abortable data layer with tests.</example>
 tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 color: cyan
 ---

@@ -1,6 +1,8 @@
 ---
 name: idiomatic-code-reviewer
-description: Reviews code for language idioms, conventions, and quality. Use proactively after writing or refactoring any code in Go, Rust, TypeScript/JavaScript, Python, or shell. Catches non-idiomatic patterns BEFORE they merge. Distinct from security review — this is about clarity, conciseness, and matching the language community's preferred style. Examples — <example>User asks to review a Go function. Assistant uses idiomatic-code-reviewer to flag missing context propagation, unwrapped errors with %w, fmt.Errorf vs errors.New, and zero-value initialization.</example> <example>User adds a Rust function. Assistant uses idiomatic-code-reviewer to flag unnecessary clones, missing iterator chains, panic in library code, and handcrafted match where ? would do.</example>
+description: >-
+  Reviews Go, shell, Python, and TypeScript for language idiom — the conventions a fluent practitioner uses without thinking. Not security (that's code-reviewer), not performance. Use when asked for an idiom or style pass, or before opening a PR — not after every edit.
+  <example>User: Give this handler an idiom pass before I push. Assistant: uses idiomatic-code-reviewer to flag unwrapped %w errors, a context stored in a struct, and a make([]string, 0) that should be a nil slice.</example>
 tools: Read, Grep, Glob, Bash
 color: blue
 ---

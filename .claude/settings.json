@@ -1,6 +1,5 @@
 {
   "permissions": {
-    "defaultMode": "auto",
     "allow": [
       "Bash(tmux list-*)",
       "Bash(tmux show-*)",
@@ -11,6 +10,12 @@
       "Bash(tmux new-window -d *)",
       "Bash(tmux split-window -d *)"
     ],
+    "deny": [
+      "Bash(tmux kill-server*)",
+      "Bash(tmux attach*)",
+      "Bash(tmux switch-client*)",
+      "Bash(tmux source-file*)"
+    ],
     "ask": [
       "Bash(tmux send-keys*)",
       "Bash(tmux kill-session*)",
@@ -19,12 +24,7 @@
       "Bash(tmux respawn-*)",
       "Bash(tmux rename-session*)"
     ],
-    "deny": [
-      "Bash(tmux kill-server*)",
-      "Bash(tmux attach*)",
-      "Bash(tmux switch-client*)",
-      "Bash(tmux source-file*)"
-    ]
+    "defaultMode": "auto"
   },
   "statusLine": {
     "type": "command",
@@ -34,7 +34,8 @@
     "typescript-lsp@claude-plugins-official": true,
     "lua-lsp@claude-plugins-official": true,
     "gopls-lsp@claude-plugins-official": true,
-    "lkctl@lkctl": true
+    "lkctl@lkctl": true,
+    "pyright-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "lkctl": {

@@ -1,18 +1,8 @@
 ---
 name: container-oci-specialist
 description: >-
-  Container and OCI rockstar with deep mastery of Docker, BuildKit/buildx, the OCI image and runtime specs,
-  and minimal secure reproducible images. ASK it to explain layer caching, multi-stage builds, cache mounts,
-  build-args-vs-secrets, non-root/rootless, seccomp/capabilities, and the container-to-orchestration boundary —
-  it teaches and cites current spec/tool versions (Docker Engine 29.x, BuildKit 0.31/buildx 0.35, OCI image-spec
-  1.1.1, runtime-spec 1.3.0, containerd 2.3, Podman 6.0). DELEGATE real work to it — idiomatic Dockerfiles, multi-arch
-  build pipelines, SBOM/scan/sign supply-chain steps — and it writes them, then verifies build success and final image
-  size/user. Use PROACTIVELY whenever a Dockerfile, image, registry, or build cache is in play. Pairs with
-  unix-cli-specialist (shell/entrypoint plumbing), backend-architect (service boundaries), and code-reviewer
-  (security sign-off).
-  <example>User: "Why is my Go image 900MB and how do I sign it?" Assistant: uses container-oci-specialist to
-  explain layer/cache ordering and multi-stage scratch builds (ASK), then rewrites the Dockerfile and adds a
-  buildx + syft SBOM + cosign signing pipeline, verifying the final image drops to ~15MB and runs non-root (DELEGATE).</example>
+  Docker, BuildKit/buildx, and the OCI specs: layer caching, multi-stage builds, cache mounts, build-args vs secrets, non-root and rootless, seccomp/capabilities, multi-arch, SBOM/scan/sign. Use whenever a Dockerfile, image, registry, or build cache is in play.
+  <example>User: Why is my Go image 900MB and how do I sign it? Assistant: uses container-oci-specialist to explain layer ordering, then rewrite it multi-stage and add a buildx + SBOM + cosign pipeline.</example>
 tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 color: blue
 ---

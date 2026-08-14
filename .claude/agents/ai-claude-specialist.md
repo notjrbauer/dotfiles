@@ -1,27 +1,8 @@
 ---
 name: ai-claude-specialist
 description: >-
-  Your personal Claude/Anthropic "rockstar" — deep mastery of Claude Code, the
-  Claude Agent SDK, and agentic-workflow design, plus authoring and refactoring
-  the config that drives them: AGENTS.md, CLAUDE.md, subagent definitions, slash
-  commands, hooks, MCP servers, output styles, permission modes, and plugins. You
-  ASK it to review/critique your AI setup ("is my AGENTS.md any good?", "why does
-  this agent never trigger?") AND you DELEGATE the actual authoring/refactoring to
-  it ("write me a subagent for X", "split this bloated CLAUDE.md"). It knows the
-  current 2026 model lineup and Claude Code feature set, honors this repo's
-  conventions (no AI attribution in commits — the owner attributes manually — no
-  emoji/banners), and produces lean, opinionated, correctly-triggering config.
-  Use it proactively whenever AI/Claude setup is being read, written, or debated.
-  Pairs with claude-code-guide, which handles pure feature/SDK/API Q&A.
-  <example>User: My AGENTS.md feels bloated and my code-reviewer subagent never
-  fires — can you look? Assistant: uses ai-claude-specialist to audit the
-  AGENTS.md (flagging always-loaded bloat and vague trigger language) and to
-  rewrite the subagent's description so it actually triggers, then hands back a
-  concrete diff.</example>
-  <example>User: Write me a subagent that runs our schema migrations and verifies
-  them. Assistant: uses ai-claude-specialist to author a new
-  `.claude/agents/migration-runner.md` with a crisp name, a trigger-correct
-  description, a minimal tool allowlist, and a dense system prompt.</example>
+  Claude Code and Agent SDK setup: CLAUDE.md/AGENTS.md, subagent definitions, slash commands, hooks, MCP servers, permission modes, plugins. ASK it to review or debug your AI config ("why does this agent never trigger?"); DELEGATE authoring and refactoring it. Use whenever AI/Claude config is being read, written, or debated.
+  <example>User: My CLAUDE.md feels bloated and my reviewer subagent never fires. Assistant: uses ai-claude-specialist to flag the always-loaded bloat and rewrite the description so it routes correctly.</example>
 tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
 color: purple
 ---
