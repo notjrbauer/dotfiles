@@ -70,7 +70,13 @@ opt.listchars = {
 
 -- Editing / behavior
 opt.mouse = "a"
-opt.clipboard = "unnamedplus"
+-- Don't mirror the unnamed register into the system clipboard. With
+-- unnamedplus every yank AND every d/x/c/s writes the macOS clipboard, so one
+-- edit in an editor pane clobbers what was copied in another — the same failure
+-- .tmux.conf (Copy-mode) and wezterm (mouse_bindings) exist to prevent, one
+-- layer up. The clipboard registers still work: "*y / "+y reach pbcopy, "*p /
+-- "+p read it back. Copying is deliberate here too.
+opt.clipboard = ""
 opt.completeopt = "menu,menuone,noinsert,noselect,nearest"
 opt.confirm = true
 opt.formatoptions = "jcroqlnt"
@@ -1285,7 +1291,9 @@ end, { desc = "Run Shell Command" })
 vim.api.nvim_create_autocmd("TextYankPost", {
   group = augroup("highlight_yank"),
   callback = function()
-    vim.hl.on_yank({ timeout = 150 })
+    -- on_yank was renamed hl_op in 0.13 (removal in 0.14); same opts, and it
+    -- also handles TextPutPost if a paste flash is ever wanted here.
+    vim.hl.hl_op({ timeout = 150 })
   end,
 })
 
