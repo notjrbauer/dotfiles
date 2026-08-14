@@ -11,10 +11,17 @@
 # source of truth for what links where). `uninstall`/`status` don't hardcode a
 # list — they scan the usual roots for symlinks resolving into $(DOTFILES), so
 # they never drift.
+#
+# Both scan two levels deep ("$$root"/*/*): install.sh links some directories
+# per entry rather than whole (link_children — .claude/agents, .claude/skills),
+# so most links now sit one level below a root. A one-level scan saw 11 of 30.
+# Deliberately NOT "$$root"/.*/* — `.*` expands to `.` and `..`, which would
+# rescan $HOME and every sibling home directory. Hidden dirs holding links get
+# added to ROOTS instead (that's why .claude and .hammerspoon are listed).
 
 DOTFILES := $(patsubst %/,%,$(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
 XDG      := $(if $(XDG_CONFIG_HOME),$(XDG_CONFIG_HOME),$(HOME)/.config)
-ROOTS    := $(HOME) $(XDG) $(HOME)/.claude
+ROOTS    := $(HOME) $(XDG) $(HOME)/.claude $(HOME)/.hammerspoon
 SHELL    := /bin/bash
 
 .DEFAULT_GOAL := help
@@ -34,7 +41,7 @@ uninstall: ## Remove only symlinks pointing back into this repo
 	@removed=0; \
 	for root in $(ROOTS); do \
 	  [ -d "$$root" ] || continue; \
-	  for l in "$$root"/.* "$$root"/*; do \
+	  for l in "$$root"/.* "$$root"/* "$$root"/*/*; do \
 	    [ -L "$$l" ] || continue; \
 	    case "$$(readlink "$$l")" in \
 	      "$(DOTFILES)"/*) rm -v "$$l"; removed=$$((removed+1));; \
@@ -50,7 +57,7 @@ status: ## Show live / stale links that reference this repo
 	found=0; \
 	for root in $(ROOTS); do \
 	  [ -d "$$root" ] || continue; \
-	  for l in "$$root"/.* "$$root"/*; do \
+	  for l in "$$root"/.* "$$root"/* "$$root"/*/*; do \
 	    [ -L "$$l" ] || continue; \
 	    tgt="$$(readlink "$$l")"; \
 	    case "$$tgt" in \
