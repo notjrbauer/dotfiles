@@ -9,10 +9,10 @@
       "Bash(tmux capture-pane -p*)",
       "Bash(tmux new-session -d *)",
       "Bash(tmux new-window -d *)",
-      "Bash(tmux split-window -d *)",
-      "Bash(tmux send-keys -t *)"
+      "Bash(tmux split-window -d *)"
     ],
     "ask": [
+      "Bash(tmux send-keys*)",
       "Bash(tmux kill-session*)",
       "Bash(tmux kill-window*)",
       "Bash(tmux kill-pane*)",
@@ -44,7 +44,5 @@
         "ref": "main"
       }
     }
-  },
-  "theme": "auto",
-  "skipAutoPermissionPrompt": true
+  }
 }
