@@ -1,6 +1,30 @@
 {
   "permissions": {
-    "defaultMode": "auto"
+    "defaultMode": "auto",
+    "allow": [
+      "Bash(tmux list-*)",
+      "Bash(tmux show-*)",
+      "Bash(tmux has-session*)",
+      "Bash(tmux display-message -p*)",
+      "Bash(tmux capture-pane -p*)",
+      "Bash(tmux new-session -d *)",
+      "Bash(tmux new-window -d *)",
+      "Bash(tmux split-window -d *)",
+      "Bash(tmux send-keys -t *)"
+    ],
+    "ask": [
+      "Bash(tmux kill-session*)",
+      "Bash(tmux kill-window*)",
+      "Bash(tmux kill-pane*)",
+      "Bash(tmux respawn-*)",
+      "Bash(tmux rename-session*)"
+    ],
+    "deny": [
+      "Bash(tmux kill-server*)",
+      "Bash(tmux attach*)",
+      "Bash(tmux switch-client*)",
+      "Bash(tmux source-file*)"
+    ]
   },
   "statusLine": {
     "type": "command",

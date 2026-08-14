@@ -73,20 +73,24 @@ Choices that look like mistakes but aren't:
 - **`brew "mas"` has no `mas` entries to install.** The App Store apps
   were dropped in `5e98061`; only the CLI remains, for ad-hoc use. Don't
   "fix" the bundle by re-adding `mas` lines. `brew bundle` is still
-  tolerated on failure, but the expected cause is now the livekit taps.
+  tolerated on failure, but the expected cause is now the `livekit/*` taps.
 - **Tap trust belongs in the Brewfile's `trusted:`, not `brew trust`.**
   Homebrew 6 won't load non-official tap formulae until trusted. `bundle`
-  resolves each item against the tap's `clone_target`, so for the two taps
-  added by git URL it writes the URL-bound entry Homebrew actually checks —
-  which `brew trust --formula livekit/nebula/nebula` cannot do on a fresh
-  machine, where the tap has no remote yet and only the bare name exists.
-  `nebula`/`nats` need their own `trusted:` despite being unlisted; trusting
-  `lkctl` does not trust what it pulls in. Don't switch to
-  `HOMEBREW_NO_REQUIRE_TAP_TRUST` — deprecated, slated for removal.
-- **`lkctl` needs more than the formula.** It shells out to `cockroach sql`
-  by name (hence `cockroachdb/tap/cockroach`, not a transitive dep), and
-  installing it needs `HOMEBREW_GITHUB_API_TOKEN` from `~/.zshenv.local` —
-  which is why step 3 sources that file before bundling.
+  resolves each item against the tap's `clone_target`, so for `livekit/lkctl`
+  and `livekit/nebula` — the two added by git URL — it writes the URL-bound
+  entry Homebrew actually checks, which a bare
+  `brew trust --formula livekit/nebula/nebula` cannot do on a fresh machine,
+  where the tap has no remote yet and only the name exists. `nebula` and
+  `nats` need their own `trusted:` entries despite being unlisted below
+  `brew "livekit/lkctl/lkctl"`: trusting `lkctl` does not trust what it pulls
+  in. Don't switch to `HOMEBREW_NO_REQUIRE_TAP_TRUST` — deprecated, slated
+  for removal.
+- **`lkctl` needs more than its own formula.** It shells out to
+  `cockroach sql` by name at runtime, so `cockroachdb/tap/cockroach` is a
+  Brewfile entry in its own right rather than a transitive dep — it won't
+  arrive with `lkctl`, don't prune it as redundant. Installing `lkctl` also
+  needs `HOMEBREW_GITHUB_API_TOKEN` from `~/.zshenv.local`, which is why
+  step 3 sources that file before bundling.
 
 ## Maintaining this file
 
