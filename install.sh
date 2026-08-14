@@ -145,15 +145,6 @@ elif [ "$existing" != ".githooks" ]; then
   echo "skip: core.hooksPath is already '$existing' — leaving it alone"
 fi
 
-# --- tmux plugins ---------------------------------------------------------
-# tpm isn't brewable; clone it like .zshrc auto-clones zap. Plugins install on
-# first tmux start with prefix+I.
-if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
-  git clone -q --depth 1 https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm" \
-    && echo "cloned     ~/.tmux/plugins/tpm" \
-    || echo "skip: tpm clone failed (offline?) — rerun install.sh later"
-fi
-
 # --- Claude Code ---------------------------------------------------------
 # Portable config only (see .claude/README.md). Runtime state — transcripts,
 # caches, credentials, plugins — stays local in ~/.claude and is never tracked.
