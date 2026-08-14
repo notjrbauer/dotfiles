@@ -224,6 +224,169 @@ alias reload='exec zsh'                        # reload the shell
 alias path='print -l -- $path'                 # one PATH entry per line
 
 # ================================
+# 🖥️  tmux
+# ================================
+# Two tmux target-spec rules drive everything below.
+#
+# 1. ':' separates session:window and '.' separates window.pane, so a session
+#    named `foo.bar` is created happily and is then unreachable FOREVER —
+#    `has-session -t foo.bar` fails with "can't find pane: bar", and so does
+#    kill-session. Sanitize both to '_' on the way in.
+# 2. A bare `-t foo` also matches an existing `foobar` (prefix match). The '='
+#    prefix forces an exact match, but only on the SESSION part: `=foo` for a
+#    session target, `=foo:` for a window target, and not at all for a pane
+#    target (`capture-pane -t '=foo'` errors).
+if command -v tmux &>/dev/null; then
+
+  # ta [name] — attach to session `name`, creating it if it doesn't exist. With
+  # no name: the basename of the git repo's root, so `ta` from any depth inside
+  # a project lands on the same session — a bare $PWD:t made .config/zsh its own
+  # "zsh" session. Falls back to the current directory outside a repo, and the
+  # default is only expanded when $1 is empty, so `ta foo` never runs git.
+  # Already inside tmux, attach-session refuses to nest, so switch the client.
+  ta() {
+    local base="${1:-$(git rev-parse --show-toplevel 2>/dev/null || print -r -- "$PWD")}"
+    local name="${${base:t}//[.:]/_}"
+    [[ -n "$name" ]] || name=tmux            # $PWD is '/', so :t came back empty
+    if [[ -n "$TMUX" ]]; then
+      tmux has-session -t "=$name" 2>/dev/null || tmux new-session -d -s "$name" || return
+      tmux switch-client -t "=$name"
+    else
+      tmux new-session -A -s "$name"         # -A attaches if it exists; -s is exact
+    fi
+  }
+
+  # ts — fzf picker over live sessions (inherits $FZF_DEFAULT_OPTS set above).
+  # list-sessions doubles as the "is anything running?" probe: a server with zero
+  # sessions cannot exist, so its only failure here is "no server" — which
+  # deserves a word rather than the silent non-zero exit it used to give.
+  ts() {
+    local list sel
+    (( $+commands[fzf] )) || { print -u2 "ts: fzf is not installed"; return 1 }
+    list=$(tmux list-sessions -F $'#{session_name}\t#{session_windows} win#{?session_attached, (attached),}' 2>/dev/null) \
+      || { print -u2 "ts: no tmux server running"; return 1 }
+    sel=$(print -r -- "$list" | fzf --height=40% --reverse --prompt='session> ') || return
+    sel="${sel%%$'\t'*}"                     # names may contain spaces; split on the tab
+    [[ -n "$sel" ]] || return
+    if [[ -n "$TMUX" ]]; then
+      tmux switch-client -t "=$sel"
+    else
+      tmux attach-session -t "=$sel"
+    fi
+  }
+
+  # ^S — the session picker at the prompt: what ^R is for history. A zle widget
+  # rather than another tmux key, because it also works with no server running
+  # (there is no prefix to press yet) and it is where your hands already are.
+  # push-line stashes a half-typed command and the next prompt restores it, and
+  # running `ts` as a real command rather than inside the widget is what lets
+  # attach-session take the terminal when you are not in tmux yet. The leading
+  # space keeps it out of history (hist_ignore_space, set above).
+  # ^S is free at every layer: NO_FLOW_CONTROL released it (so the terminal's
+  # XOFF never sees it), viins leaves it self-insert, the tmux prefix is C-a and
+  # .tmux.conf's C-s is prefix-only. C-h/C-j/C-k/C-l are NOT free — tmux's root
+  # table hands those to vim-tmux-navigator before zsh ever sees them.
+  tmux-session-picker() {
+    zle push-line
+    BUFFER=" ts"
+    zle accept-line
+  }
+  zle -N tmux-session-picker
+  bindkey -M viins '^S' tmux-session-picker
+  bindkey -M vicmd '^S' tmux-session-picker
+
+  # tsvc <name> <command> [args…] — park a long-lived foreground command (a
+  # tunnel or other connection client that must hold a terminal all day) in its
+  # own detached session and return immediately. Keeps it away from editing
+  # panes, so a stray C-c can't kill it, and makes it trivial to find again.
+  # Args are passed as argv, not through a shell — `tsvc x foo 'a; b'` sends
+  # `a; b` as one argument and never runs `b`.
+  tsvc() {
+    (( $# >= 2 )) || { print -u2 "usage: tsvc <name> <command> [args…]"; return 2 }
+    local name="${1//[.:]/_}"; shift
+    # An empty name is not a harmless no-op: tmux creates the session happily,
+    # `-t '='` then fails to resolve, and `-t ''` means the CURRENT session — so
+    # a later tkill would kill the wrong one.
+    [[ -n "$name" ]] || { print -u2 "tsvc: empty session name"; return 2 }
+    if tmux has-session -t "=$name" 2>/dev/null; then
+      # remain-on-exit leaves the corpse behind, so an existing session is NOT
+      # proof the command is still up — restart it in place if it died.
+      # -s makes this a SESSION target: without it `-t name` is a window target,
+      # which resolves to the session's *current window* only, so a dead service
+      # in any other window was reported as "already running".
+      if [[ "$(tmux list-panes -s -t "=$name" -F '#{pane_dead}')" == *1* ]]; then
+        tmux respawn-pane -k -t "=$name" "$@" && print "tsvc: restarted '$name'"
+      else
+        print "tsvc: '$name' already running — attach with: ta ${(q)name}"
+      fi
+      return
+    fi
+    # remain-on-exit rides in the SAME command list on purpose: the server runs
+    # a list to completion before returning to its event loop, so it is already
+    # set even if the command dies instantly. Without it the pane, window and
+    # session all disappear on exit and take the error message with them; with
+    # it the pane stays as "Pane is dead (status N)" with its scrollback.
+    tmux new-session -d -s "$name" "$@" \; set-option -w -t "=$name:" remain-on-exit on \
+      && print "tsvc: '$name' started — attach with: ta ${(q)name}"
+  }
+
+  # tkill [name…] — kill sessions by EXACT name (plain `kill-session -t foo`
+  # would also match `foobar`, and `-t '*'` fnmatches — lethal exactly when you
+  # have a single session, since it takes the server with it). Defaults to the
+  # current dir's basename, like ta. rc is 1 if ANY name failed: a loop's status
+  # is just its last iteration, so `tkill gone alive` used to report success.
+  tkill() {
+    local s rc=0
+    for s in "${@:-${PWD:t}}"; do
+      [[ -n "$s" ]] || { print -u2 "tkill: empty session name"; rc=1; continue }
+      tmux kill-session -t "=${s//[.:]/_}" || rc=1
+    done
+    return $rc
+  }
+
+  # k9 [context] — k9s in a session of its own, one per context, so re-attaching
+  # is instant (k9s keeps its place) and a stray C-c lands in k9s rather than the
+  # editor beside it. Deliberately NOT tsvc: k9s is something you quit, and
+  # tsvc's remain-on-exit would leave a dead pane behind every time you did.
+  # Context defaults to the current one; :t cuts an EKS arn (…:cluster/prod) down
+  # to a name you can type.
+  if command -v k9s &>/dev/null; then
+    k9() {
+      local ctx="${1:-$(kubectl config current-context 2>/dev/null)}"
+      [[ -n "$ctx" ]] || { print -u2 "k9: no current kube context — pass one"; return 1 }
+      local name="k9s-${${ctx:t}//[.:]/_}"
+      if [[ -n "$TMUX" ]]; then
+        tmux has-session -t "=$name" 2>/dev/null \
+          || tmux new-session -d -s "$name" k9s --context "$ctx" || return
+        tmux switch-client -t "=$name"
+      else
+        tmux new-session -A -s "$name" k9s --context "$ctx"
+      fi
+    }
+  fi
+
+  # Tab-complete live session names. compdef only exists once compinit has run
+  # (above), so guard it rather than erroring on a stripped-down shell.
+  if (( $+functions[compdef] )); then
+    _tmux_session_names() {
+      local -a names
+      names=(${(f)"$(tmux list-sessions -F '#{session_name}' 2>/dev/null)"})
+      compadd -a names
+    }
+    # tsvc's first arg is a session, everything after it is the command to run.
+    _tmux_svc() {
+      case $CURRENT in
+        2) _tmux_session_names ;;
+        3) _command_names -e ;;
+        *) _default ;;
+      esac
+    }
+    compdef _tmux_session_names ta tkill
+    compdef _tmux_svc tsvc
+  fi
+fi
+
+# ================================
 # 🪟 Title / Misc
 # ================================
 if [[ $TERM != "xterm-kitty" ]]; then
