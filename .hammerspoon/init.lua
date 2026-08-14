@@ -57,34 +57,48 @@ end
 -- takes precedence globally, and WezTerm's own tabs/panes cover that need.
 local TERMINAL = "WezTerm"
 
+-- isVisible() is false for a window that is minimized or whose app is hidden,
+-- which is exactly the "menu bar says WezTerm, nothing on screen" state.
+local function hasVisibleWindow(app)
+  for _, win in ipairs(app:allWindows()) do
+    if win:isVisible() then
+      return true
+    end
+  end
+  return false
+end
+
 hs.hotkey.bind({ "cmd" }, "`", function()
   local app = hs.application.get(TERMINAL)
   if not app then
     hs.application.launchOrFocus(TERMINAL)
     return
   end
-  if app:isFrontmost() then
+  -- Only toggle off when there's something to toggle off. Minimizing the last
+  -- window leaves the app frontmost, and there the hotkey should restore it.
+  if app:isFrontmost() and hasVisibleWindow(app) then
     app:hide()
-  elseif #app:allWindows() == 0 then
+    return
+  end
+  local wins = app:allWindows()
+  if #wins == 0 then
     -- Running but windowless (last window closed). activate() would focus a
     -- menu bar with no window, so ask the app to open one.
     hs.application.launchOrFocus(TERMINAL)
-  else
-    app:activate()
+    return
   end
-end)
-
--- Reload config on save, so editing this file is the whole feedback loop.
-hs.pathwatcher
-  .new(hs.configdir, function(files)
-    for _, file in ipairs(files) do
-      if file:sub(-4) == ".lua" then
-        hs.reload()
-        return
-      end
+  -- activate() only moves focus: it leaves a hidden app hidden and a minimized
+  -- window in the Dock, so the menu bar switches with no window on screen.
+  -- Undo both first, then activate(true) to raise every window above the
+  -- others rather than just the key one.
+  app:unhide()
+  for _, win in ipairs(wins) do
+    if win:isMinimized() then
+      win:unminimize()
     end
-  end)
-  :start()
+  end
+  app:activate(true)
+end)
 
 -- Command-line control (`hs -c '...'`), used to verify bindings without
 -- clicking. Guarded: it writes into the Homebrew prefix and is not essential.
