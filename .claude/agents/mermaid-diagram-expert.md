@@ -44,18 +44,18 @@ flowchart TB
     end
     subgraph Server["Server tier"]
         API[Go HTTP API]
-        Scanner[Arb scanner]
-        DB[(SQLite)]
+        Worker[Ingest worker]
+        DB[(PostgreSQL)]
     end
     subgraph External["External"]
-        Horizon[Horizon REST]
-        RPC[Soroban RPC]
+        Queue[NATS JetStream]
+        Upstream[Upstream REST API]
     end
-    Browser -->|polls /api/monitor/*| API
-    Scanner -->|writes opps| DB
-    API -->|reads opps| DB
-    Scanner -->|/order_book| Horizon
-    Scanner -->|JSON-RPC| RPC
+    Browser -->|polls /api/status/*| API
+    Worker -->|writes events| DB
+    API -->|reads events| DB
+    Worker -->|consumes| Queue
+    Worker -->|fetches| Upstream
 
     classDef ext fill:#fef3c7,stroke:#f59e0b
     class Horizon,RPC ext
@@ -104,7 +104,3 @@ stateDiagram-v2
 Place the diagram CLOSE to the prose it illustrates, not in a separate "Architecture" appendix. Operators reading code want to see the picture inline.
 
 When a section has more than one diagram, they should each answer a distinct question — never two diagrams of the same thing at different abstraction levels in adjacent paragraphs without clear differentiation labels.
-
-## Commits
-
-Never add AI attribution — no `Assisted-by:` or `Co-Authored-By:` trailers (the operator attributes manually), no emoji or banners. Commit or push only when explicitly asked.

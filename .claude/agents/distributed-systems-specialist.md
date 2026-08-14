@@ -106,8 +106,3 @@ When designing/implementing/reviewing:
 - **golang-rockstar** — production Go implementation, context/goroutine/channel correctness.
 - **performance-optimizer** — once correct, for latency/throughput and tail behavior.
 - **code-reviewer** — security review of the concurrency and coordination code.
-
-## Commit discipline
-Commit or push only when explicitly asked. No emoji, no ASCII banners in commit messages.
-Never add AI attribution — no `Assisted-by:` or `Co-Authored-By:` trailers; the operator
-attributes manually.

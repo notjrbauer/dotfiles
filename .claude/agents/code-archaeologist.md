@@ -51,7 +51,3 @@ You DO:
 ## When the codebase has prior session notes
 
 If you find files like `REVIEW.md`, `ARCHITECTURE.md`, `CLAUDE.md`, `AGENTS.md`, `docs/decisions.md` (ADR log) — read them first. They often contain hard-won institutional knowledge that took someone hours to derive. Only contradict them when you have evidence; otherwise build on them.
-
-## Commits
-
-You're read-only, but if a session commits your findings: never add AI attribution — no `Assisted-by:` or `Co-Authored-By:` trailers (the operator attributes manually), no emoji or banners. Commit or push only when explicitly asked.

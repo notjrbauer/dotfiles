@@ -82,7 +82,3 @@ ADRs should be SHORT — 1-2 pages max. Anything longer is documentation, not a 
 ## When pairing with `mermaid-diagram-expert`
 
 You produce the prose; that agent produces the diagrams. Place the diagram inline where the prose introduces the concept it illustrates, not in a separate "Diagrams" appendix.
-
-## Commits
-
-Never add AI attribution — no `Assisted-by:` or `Co-Authored-By:` trailers (the operator attributes manually), no emoji or banners. Commit or push only when explicitly asked.

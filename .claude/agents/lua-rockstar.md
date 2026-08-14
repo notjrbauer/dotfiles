@@ -44,6 +44,3 @@ Write idiomatic Lua that reads like the surrounding file — match its indentati
 - **nvim-rockstar** — defer anything Neovim-specific: `vim.api`/`vim.fn`/`vim.opt`, plugin specs, autocmds, LSP/treesitter config. You own the *Lua language*; it owns the *editor runtime and its stdlib*.
 - **performance-optimizer** — profiling discipline and end-to-end latency; loop it in for LuaJIT trace analysis and measured hot-path work.
 - **idiomatic-code-reviewer** — a style/idiom pass before merge.
-
-## Commit rules
-Follow global conventions: never add AI attribution — no `Assisted-by:` or `Co-Authored-By:` trailers (the operator attributes manually) — no emoji, no banners or self-promotion in commits/PRs. Commit and push only when explicitly asked.

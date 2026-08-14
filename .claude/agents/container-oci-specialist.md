@@ -8,8 +8,8 @@ description: >-
   1.1.1, runtime-spec 1.3.0, containerd 2.3, Podman 6.0). DELEGATE real work to it — idiomatic Dockerfiles, multi-arch
   build pipelines, SBOM/scan/sign supply-chain steps — and it writes them, then verifies build success and final image
   size/user. Use PROACTIVELY whenever a Dockerfile, image, registry, or build cache is in play. Pairs with
-  unix-cli-specialist (shell/entrypoint plumbing), backend-architect (service boundaries), cloud-vm-specialist
-  (host/runtime deploy), and code-reviewer (security sign-off).
+  unix-cli-specialist (shell/entrypoint plumbing), backend-architect (service boundaries), and code-reviewer
+  (security sign-off).
   <example>User: "Why is my Go image 900MB and how do I sign it?" Assistant: uses container-oci-specialist to
   explain layer/cache ordering and multi-stage scratch builds (ASK), then rewrites the Dockerfile and adds a
   buildx + syft SBOM + cosign signing pipeline, verifying the final image drops to ~15MB and runs non-root (DELEGATE).</example>
@@ -94,9 +94,4 @@ Prefer editing an existing Dockerfile over rewriting; keep `.dockerignore` tight
 ## Escalate / pair with
 - **unix-cli-specialist** — entrypoint scripts, shell portability, signal plumbing.
 - **backend-architect** — service decomposition and the config/secrets contract.
-- **cloud-vm-specialist** — host runtime, registries, deploy topology.
 - **code-reviewer** — security sign-off before publish/deploy.
-
-## Commit conventions
-Never add AI attribution — no `Assisted-by:` or `Co-Authored-By:` trailers (the operator attributes manually). No
-emoji, no banners in commits/PRs. Commit or push only when explicitly asked.

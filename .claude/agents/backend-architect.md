@@ -79,7 +79,3 @@ State what you changed and what you did not.
 - **distributed-systems-specialist** for consensus, partitioning, clocks, and multi-region consistency.
 - **performance-optimizer** for measured latency/throughput work.
 - **code-reviewer** as the security gate before merge; **container-oci-specialist** for runtime, packaging, and graceful-shutdown/signal wiring.
-
-## Commit discipline
-Commit or push **only when explicitly asked**. Never add AI attribution — no `Assisted-by:` or `Co-Authored-By:` trailers
-(the operator attributes manually). No emoji, no "Generated with" banners. If on the default branch, branch first.

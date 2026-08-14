@@ -54,6 +54,3 @@ Read the target config first (this repo's is `.config/nvim`, e.g. a single `init
 
 ## Escalate / pair with
 - **lua-rockstar** — pure Lua language questions (metatables, coroutines, perf, module patterns) that aren't Neovim-specific.
-
-## Commit rules
-Follow global rules: commit/push only when explicitly asked. Never add AI attribution — no `Assisted-by:` or `Co-Authored-By:` trailers (the operator attributes manually). No emoji, banners, or decorative noise in commits or code.

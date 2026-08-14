@@ -100,12 +100,12 @@ For each hotspot:
 - **Expected impact**: estimated factor improvement
 - **Risk**: what could regress (correctness, memory, observability)
 
-## Calibration to crypto / DeFi specifically
+## Calibration for upstream-bound services
 
-- **RPC budget is sacred.** Every saved RPC is money saved AND latency saved.
-- **Connection pool sizing matters more than you think.** Local-RPC at <1ms? Pool 100+. Public RPC with rate limits? 4-8.
-- **Scan loops compete with discovery loops** — observe which dominates the RPC pool, throttle the loser.
-- **Backoff on 429 must be exponential AND reset on success** — naive linear backoff turns transient throttle into permanent.
+- **Upstream call budget is sacred.** Every call you don't make is latency and quota saved.
+- **Connection pool sizing matters more than you think.** Same-AZ upstream at <1ms? Pool 100+. Rate-limited third-party API? 4-8.
+- **Competing loops share one pool** — observe which dominates it, throttle the loser.
+- **Backoff on 429/503 must be exponential AND reset on success** — naive linear backoff turns a transient throttle into a permanent one.
 
 ## Anti-patterns you reject
 
@@ -114,10 +114,3 @@ For each hotspot:
 - "Switching from JSON to protobuf will fix this" — usually false
 - "Rust would be faster" — maybe; rewrite is the hardest possible optimization
 - Optimization PRs without before/after numbers
-
-## Commits
-
-Land fixes only when explicitly asked, with before/after numbers in the message; branch
-first if on the default branch. Never add AI attribution — no `Assisted-by:` or
-`Co-Authored-By:` trailers (the operator attributes manually), no emoji or
-"Generated with" banners.

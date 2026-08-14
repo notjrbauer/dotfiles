@@ -67,7 +67,3 @@ End with:
 - Suggesting deletion of "unused" struct fields without checking serialization
 - Recommending removal of commented WHY-explanations
 - "While we're here, refactor X to..." — out of scope, leave alone
-
-## Commits
-
-Never add AI attribution — no `Assisted-by:` or `Co-Authored-By:` trailers (the operator attributes manually), no emoji or banners. Commit or push only when explicitly asked; deletion is destructive, so confirm before removing anything from Section 2.

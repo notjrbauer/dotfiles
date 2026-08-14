@@ -126,10 +126,3 @@ before baking them in. Get a subagent's `description` trigger-correct with an `<
   API work?"). It answers; you build. Route explainer questions there; keep the authoring here.
 - **A human** — for irreversible or outward-facing actions, or product/design forks (per the global
   "stop and ask" rule). Approval for one action is not standing approval for the next.
-
-## Commit rules (honor exactly)
-
-Never add AI attribution to a commit — no `Assisted-by:` trailer, no `Co-Authored-By:` for an AI,
-and no emoji or "Generated with" banners. The owner adds attribution manually when they choose;
-the scaffold's `.githooks/commit-msg` blocks AI attribution and banners. Commit/push only when
-explicitly asked; branch first if on the default branch.

@@ -1,8 +1,10 @@
 # Claude Code agents
 
-The curated subagent set, version-controlled here and symlinked as a whole
-to `~/.claude/agents` (see `install.sh`). One flat directory — no
-sub-folders, no segregation. Every agent is built to be used **two ways**:
+The curated subagent set, version-controlled here and symlinked into
+`~/.claude/agents` **one entry at a time** (`link_children` in `install.sh`),
+so anything installed there later stays on this machine instead of landing in
+a public repo. One flat directory — no sub-folders, no segregation. Every
+agent is built to be used **two ways**:
 
 - **Ask it** — a current, idiom-accurate answer that *teaches* (the why,
   the exact current API/version, the common footguns).
@@ -21,7 +23,6 @@ it was researched against (re-verify as the world moves).
 | `distributed-systems-specialist` | consistency, consensus, replication, messaging, failure | Kafka 4.3, NATS 2.14, etcd 3.6, Temporal 1.31 |
 | `rust-mentor` | Rust that **teaches** — ownership, async, idioms | Rust 1.97, edition 2024 |
 | `frontend-rockstar` | modern web platform, TS, current frameworks, perf, a11y | React 19.2, Svelte 5, Vite 8, TS 6, Node 24 |
-| `ux-design-specialist` | visual + UI/UX design into real, accessible CSS (owns deep CSS + utility styling) | CSS Baseline (oklch, container queries), WCAG 2.2 |
 | `unix-cli-specialist` | zsh/POSIX, coreutils, kernel/syscalls, tracing, low-level | Linux 6.18/6.12 LTS, macOS Tahoe 26, zsh 5.9 |
 | `container-oci-specialist` | Docker/BuildKit/OCI, minimal secure images, supply chain | Docker 29.6, BuildKit 0.31, OCI 1.1.1 |
 | `lua-rockstar` | idiomatic Lua (5.5/5.4 + LuaJIT), metatables, embedding | Lua 5.5.0 / 5.4.8 |
@@ -39,28 +40,9 @@ tight style and repointed to the current roster.
 - **Understand & document:** `code-archaeologist` (map unfamiliar code),
   `documentation-specialist` (READMEs/runbooks/ADRs), `mermaid-diagram-expert`
   (diagrams-as-code).
-- **Orchestrate:** `project-analyst` (classify a stack), `tech-lead-orchestrator`
-  (break down multi-step work and route it to these agents).
-- **Deploy & domain:** `cloud-vm-specialist` (fly.io/AWS/GCP/Hetzner),
-  `crypto-blockchain-expert` (protocols/DeFi/MEV), `quant-finance-expert`
-  (pricing/risk/position sizing).
-
-## What was removed (and how to get it back)
-
-The prior `~/.claude/agents/` (from the awesome-claude-agents pack) held
-31 agents; several were **bloated** (700–942-line framework agents) or
-**duplicated a rockstar**. Removed:
-
-- **Rockstar duplicates:** `frontend-developer`, `frontend-css-designer`,
-  `tailwind-frontend-expert`, `backend-developer`, `api-architect`,
-  `vim-neovim-lua-expert`, `team-configurator`.
-- **Unused framework packs:** all `react-*`, `vue-*`/`nuxt`, `django-*`,
-  `rails-*`, `laravel-*` (this is a Go/Neovim/shell setup; `frontend-rockstar`
-  and `backend-architect` cover modern web/back-end).
-
-The full original tree is preserved in a tarball at
-`~/.claude/agents-backup-<timestamp>.tar.gz` — restore any file from there
-if a removal was wrong.
+Stack classification and multi-step breakdown are **not** here on purpose:
+the built-in `Explore` agent and plan mode already do that, and a read-only
+planner can only hand back text the main loop must re-execute.
 
 ## Maintaining them
 
