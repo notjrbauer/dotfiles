@@ -190,11 +190,18 @@ alias lla="ls -lA"
 command -v nvim &>/dev/null && alias vim="nvim"
 
 if [[ "$DISABLE_EXA" != true && (-n "$commands[eza]" || -n "$commands[exa]") ]]; then
+  # Bake the binary into the alias bodies. Writing them against `exa` and
+  # relying on the shim below to re-expand worked, but made every listing
+  # alias depend on zsh re-expanding an alias body — one indirection too many.
+  # eza is the maintained fork; exa is archived, so prefer eza when both exist.
+  _lsbin=${commands[eza]:+eza}; : ${_lsbin:=exa}
+  alias ls="$_lsbin --icons --group-directories-first -a"
+  alias ll="$_lsbin --icons --group-directories-first --git -l"
+  alias lla="$_lsbin --icons --group-directories-first --git -la"
+  alias lt="$_lsbin --icons -T"
+  unset _lsbin
+  # Muscle memory: `exa` at the prompt still works on an eza-only machine.
   [[ -n "$commands[eza]" && -z "$commands[exa]" ]] && alias exa="eza"
-  alias ls="exa --icons --group-directories-first -a"
-  alias ll="exa --icons --group-directories-first --git -l"
-  alias lla="exa --icons --group-directories-first --git -la"
-  alias lt="exa --icons -T"
 fi
 
 alias rm="rm -v"
@@ -397,7 +404,7 @@ fi
 # ================================
 if [[ $TERM != "xterm-kitty" ]]; then
   case "$TERM" in
-    cygwin | xterm* | putty* | rxvt* | konsole* | ansi | mlterm* | alacritty | st* | foot* | contour*)
+    xterm* | alacritty | foot*)
       set_window_title() {
         print -Pn "\e]2;${USER}@${HOST}:${PWD/$HOME/~}\a"
       }

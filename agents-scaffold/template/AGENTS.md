@@ -51,8 +51,9 @@ When a tactic conflicts with one of these, the philosophy wins.
 - **Enable the hooks once:** `git config core.hooksPath .githooks` (the
   installer does this for you). For Node projects, also wire it into
   `package.json` `"prepare"` so it survives clones.
-- **Journal every session.** The pre-commit hook requires a staged
-  `project/journal/` entry (`SKIP_JOURNAL=1` for trivial commits). See
+- **Journal every session.** A convention, not a gate — nothing enforces
+  it, so it stays honest. Write a `project/journal/` entry when the
+  session decided something `git log` won't explain. See
   [project/journal/README.md](project/journal/README.md).
 - **Leave it resumable.** The session is disposable; the repo is the
   memory. If it isn't a committed file, it doesn't exist — plans,
