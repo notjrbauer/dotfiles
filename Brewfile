@@ -79,6 +79,9 @@ cask "font-fira-code"
 cask "font-hack-nerd-font"
 cask "font-ioskeley-mono"
 cask "font-jetbrains-mono"
+# Links gcloud/gsutil/bq into the brew prefix, so the SDK's own path.zsh.inc is
+# redundant. $ZDOTDIR/.zshrc sources its completion.zsh.inc from here.
+cask "gcloud-cli"
 cask "ghostty"
 cask "hammerspoon"
 cask "hiddenbar"
