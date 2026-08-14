@@ -117,6 +117,17 @@ zstyle ':completion:*:*:*:*:*' menu select
 [[ -n $LS_COLORS ]] && zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 WORDCHARS='_-'
 
+# gcloud completion. Only the completion half: the gcloud-cli cask already
+# links gcloud/gsutil/bq into $HOMEBREW_PREFIX/bin, so the SDK's path.zsh.inc
+# has nothing to add. Must load AFTER compinit — the script runs its own
+# compinit when compdef is missing, which would bypass the cached branch above
+# (and is why this can't live in .zshenv.local, sourced from .zshenv earlier).
+# Not deferred: it measures under a millisecond warm, and deferring it means
+# the first Tab after login can miss it.
+_gcloud_inc="${HOMEBREW_PREFIX:-/opt/homebrew}/share/google-cloud-sdk/completion.zsh.inc"
+[[ -f "$_gcloud_inc" ]] && source "$_gcloud_inc"
+unset _gcloud_inc
+
 # ================================
 # ⌨️ Keybindings
 # ================================
