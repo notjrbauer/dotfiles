@@ -7,7 +7,7 @@
 #   1. Xcode Command Line Tools   (git/cc — cloning usually triggered this already)
 #   2. Homebrew                   (installed if missing, arch-aware)
 #   3. brew bundle                (Brewfile; mas apps tolerated pre-App-Store-sign-in)
-#   4. ./install.sh               (symlinks, tpm, ~/.gitconfig.local seed)
+#   4. ./install.sh               (symlinks; seeds ~/.gitconfig.*, ~/.zshenv.local)
 #   5. Node LTS via fnm           (nothing else installs an actual node)
 #   6. cargo tools                (tree-sitter CLI; brew's tree-sitter is lib-only)
 #   7. Login shell                (brew zsh; macOS ships an older one at /bin/zsh)
@@ -81,7 +81,7 @@ if ! brew bundle --file="$DOTFILES/Brewfile" --no-upgrade; then
   echo "      brew bundle --file=$DOTFILES/Brewfile"
 fi
 
-# --- 4. Symlinks (+ tpm, ~/.gitconfig.local) -------------------------------
+# --- 4. Symlinks (+ seeded identity/secret files, git hooks) ---------------
 "$DOTFILES/install.sh"
 
 # --- 5. Node LTS via fnm ---------------------------------------------------
