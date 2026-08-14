@@ -333,13 +333,17 @@ if command -v tmux &>/dev/null; then
 
   # tkill [name…] — kill sessions by EXACT name (plain `kill-session -t foo`
   # would also match `foobar`, and `-t '*'` fnmatches — lethal exactly when you
-  # have a single session, since it takes the server with it). Defaults to the
-  # current dir's basename — unlike ta, which uses the repo root. rc is 1 if ANY
-  # name failed: a loop's status
-  # is just its last iteration, so `tkill gone alive` used to report success.
+  # have a single session, since it takes the server with it). With no args it
+  # resolves the same name `ta` would — the repo root's basename — so `ta` then
+  # `tkill` from anywhere in a project act on one session; a bare $PWD:t made
+  # them disagree on every subdirectory. git only runs when no args are given.
+  # rc is 1 if ANY name failed: a loop's status is just its last iteration, so
+  # `tkill gone alive` used to report success.
   tkill() {
     local s rc=0
-    for s in "${@:-${PWD:t}}"; do
+    local -a targets=("$@")
+    (( $# )) || targets=("${${$(git rev-parse --show-toplevel 2>/dev/null || print -r -- "$PWD")}:t}")
+    for s in "${targets[@]}"; do
       [[ -n "$s" ]] || { print -u2 "tkill: empty session name"; rc=1; continue }
       tmux kill-session -t "=${s//[.:]/_}" || rc=1
     done
@@ -407,8 +411,14 @@ zle_highlight+=(paste:none)
 
 # Ghostty backdrop reshuffle — wezterm parity (utils/backdrops.lua :random()
 # runs at every startup). Ghostty reads ~/.cache/ghostty/backdrop-image only at
-# launch/reload, so each Ghostty shell re-rolls the pick for the NEXT launch
-# (or apply now with cmd+shift+,). Guarded to Ghostty shells; runs in ms.
+# launch/reload, so this re-rolls the pick for the NEXT launch (or apply now
+# with cmd+shift+,).
+#
+# It fires far less often than it looks: tmux sets TERM_PROGRAM=tmux in every
+# pane, and ghostty's `command =` starts tmux from a NON-interactive login
+# shell, which never reads this file. So the only shell that runs it is the
+# one you land on after quitting tmux. Move it into ghostty's `command =` if
+# you want it once per launch.
 [[ $TERM_PROGRAM == ghostty ]] && ~/.config/ghostty/backdrop >/dev/null 2>&1
 
 # fnm (Node version manager) — --use-on-cd switches version per directory.

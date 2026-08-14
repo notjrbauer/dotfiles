@@ -40,7 +40,7 @@ From the shell, outside or inside tmux:
 | --- | --- |
 | `ta [name]` | attach to `name`, creating it if needed; defaults to the **git repo root's** basename |
 | `ts` / `^S` | fzf picker over live sessions — `^S` is the keybinding, `C-r` for sessions |
-| `tkill [name…]` | kill sessions by exact name; defaults to the current dir's basename |
+| `tkill [name…]` | kill sessions by exact name; with no args resolves the same name as `ta` |
 | `tsvc <name> <cmd> [args…]` | park a long-running command in its own detached session |
 
 `ta` is the normal entry point: `cd` anywhere inside a project, run `ta`, and you
