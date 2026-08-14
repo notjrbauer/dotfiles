@@ -7,7 +7,6 @@ skip_global_compinit=1
 
 # ---- shell flags ----
 DISABLE_EXA=false                    # set true to fall back from eza to plain ls
-ZSH_AUTOSUGGEST_STRATEGY=(history)   # read by zsh-autosuggestions
 
 # `brew shellenv` prepends to fpath unconditionally AND exports FPATH, so every
 # nested login shell (macOS starts one per terminal; tmux nests another) added a
@@ -19,8 +18,9 @@ ZSH_AUTOSUGGEST_STRATEGY=(history)   # read by zsh-autosuggestions
 typeset -U fpath FPATH
 
 # ---- Toolchain env ----
+# Deliberately $HOME, not Go's ~/go default: this predates the default and is
+# why ~/bin and ~/pkg exist on this machine. Changing it strands both.
 export GOPATH="$HOME"
-export BUNPATH="$HOME/.bun"
 
 # ---- PATH ----
 # PATH additions live in .zprofile, NOT here. macOS's /etc/zprofile runs

@@ -3,7 +3,7 @@
 # WHY THIS FILE EXISTS: macOS's /etc/zprofile runs `eval $(path_helper -s)`,
 # which REBUILDS $PATH from scratch (from /etc/paths + /etc/paths.d) every login.
 # /etc/zprofile is sourced AFTER ~/.zshenv, so any `path=(...)` set in .zshenv is
-# silently clobbered on real login shells (cargo/bun/openjdk vanish from PATH).
+# silently clobbered on real login shells (cargo/go/openjdk vanish from PATH).
 #
 # .zprofile is read from $ZDOTDIR and runs AFTER /etc/zprofile, so PATH additions
 # made here survive path_helper. On macOS every terminal starts a login shell, so
@@ -11,7 +11,7 @@
 # their parent. (Tradeoff vs. putting this in .zshrc: .zprofile also covers
 # non-interactive login shells like `zsh -lc`, and keeps PATH out of the rc file.)
 #
-# GOPATH / BUNPATH are exported in .zshenv (runs earlier), so they're set here.
+# GOPATH is exported in .zshenv (runs earlier), so it's set here.
 
 # Homebrew first: /opt/homebrew (Apple Silicon) is NOT in /etc/paths, and the
 # installer's usual ~/.zprofile append never runs because ZDOTDIR points here.
@@ -26,8 +26,6 @@ typeset -U path PATH
 path=(
   "$HOME/.local/bin"
   "$HOME/.cargo/bin"
-  "$HOME/.opencode/bin"
-  "$BUNPATH/bin"
   "$GOPATH/bin"
   $path
 )

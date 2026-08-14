@@ -124,7 +124,7 @@ without thinking about which one has focus.
 
 | Key | Does |
 | --- | --- |
-| `C-h` `C-j` `C-k` `C-l` | move left/down/up/right (no prefix; Vim- and fzf-aware) |
+| `C-h` `C-j` `C-k` `C-l` | move left/down/up/right (no prefix; Vim-aware, and fzf-aware on `C-j`/`C-k`) |
 | `C-\` | last pane |
 | `C-Space` | next pane |
 | `C-a h/j/k/l` | same moves, with prefix |

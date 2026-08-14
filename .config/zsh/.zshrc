@@ -1,4 +1,5 @@
-# ~/.zshrc – Clean and Fast ZSH Config (Autosuggest + Highlight optimized)
+# ~/.config/zsh/.zshrc — interactive shell: plugins, completion, keys, aliases.
+# Environment and PATH live in .zshenv / .zprofile alongside this file.
 
 # ================================
 # 🧠 Config Paths
@@ -35,16 +36,13 @@ plug-defer() {
 }
 
 # ================================
-# 🧠 Prompt + Visuals (Load last)
+# 🧠 Autosuggestions + syntax highlighting (deferred)
 # ================================
-# Load autosuggestions + syntax highlighting early
 plug-defer zsh-users/zsh-autosuggestions
 ZSH_AUTOSUGGEST_MANUAL_REBIND=1
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
 
 plug-defer zdharma-continuum/fast-syntax-highlighting
-
-# Prompt is starship, initialized at the end of this file.
 
 # ================================
 # 🧩 Platform Tweaks
@@ -58,8 +56,6 @@ plug-defer zdharma-continuum/fast-syntax-highlighting
 if command -v zoxide &>/dev/null; then
   eval "$(zoxide init zsh --cmd j)"
 fi
-[[ -n "$commands[fzf]" ]] && eval "$(fzf --zsh)"
-
 # fzf theme — catppuccin mocha to match the terminal. No `bg` is set (and
 # gutter is -1) so WezTerm's transparent background shows through.
 export FZF_DEFAULT_OPTS="
@@ -80,7 +76,7 @@ export FZF_CTRL_R_OPTS="--bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+ab
 [[ -d "$HOME/.docker/completions" ]] && fpath=("$HOME/.docker/completions" $fpath)
 
 # Run the full fpath security check at most once a day; otherwise skip it with
-# -C (the slowest part of compinit) — measured ~18ms vs ~7ms here. Clause 1
+# -C (the slowest part of compinit) — measured ~12ms vs ~3ms here. Clause 1
 # catches a missing dump: (#qN.mh+24) can't, since N drops a nonexistent file.
 #
 # The third clause is what makes a *newly installed* completion show up today
@@ -89,7 +85,7 @@ export FZF_CTRL_R_OPTS="--bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+ab
 # _foo went unnoticed for up to a day. Linking into a directory bumps that
 # directory's mtime, so "any $fpath dir newer than the dump" is exactly the
 # signal. ${^fpath} expands per entry; (#qN/e[…]) keeps dirs passing the test,
-# and N means a missing entry is skipped instead of erroring. ~0.03ms for 8
+# and N means a missing entry is skipped instead of erroring. ~0.04ms for 5
 # entries — far less than the -C it protects. Wrapped in an anonymous function
 # so the $REPLY that e[…] sets stays out of the global namespace.
 #
@@ -130,8 +126,14 @@ autoload -U down-line-or-beginning-search
 zle -N down-line-or-beginning-search
 
 bindkey -v
-export KEYTIMEOUT=20   # 200ms — snappier `jj`→cmd-mode without breaking multi-key seqs
+KEYTIMEOUT=20   # 200ms — snappier `jj`→cmd-mode without breaking multi-key seqs
 bindkey -M viins 'jj' vi-cmd-mode
+
+# fzf must load AFTER `bindkey -v` and after compinit. Its ^T/^R/\ec go into
+# emacs, viins and vicmd explicitly, but its completion hook is a bare
+# `bindkey '^I' fzf-completion` targeting whatever `main` is at eval time —
+# bound any earlier, `bindkey -v` relinks main to viins and **<TAB> is lost.
+[[ -n "$commands[fzf]" ]] && eval "$(fzf --zsh)"
 
 # Prefix + ↑/↓ (and k/j in cmd mode) searches history for matching commands.
 # Bind the literal sequences, not just $terminfo: kcuu1/kcud1 are the
@@ -152,8 +154,8 @@ bindkey -M vicmd 'j' down-line-or-beginning-search
 # ================================
 HISTFILE="$HOME/.zsh_history"
 HISTSIZE=50000
-SAVEHIST=50000   # was 10000 — matched to HISTSIZE so history isn't silently truncated on save
-# (dropped inc_append_history — share_history already implies incremental append)
+SAVEHIST=50000   # matched to HISTSIZE; a smaller SAVEHIST truncates silently on save
+# share_history implies incremental append — inc_append_history would be redundant
 setopt share_history extended_history \
        hist_ignore_all_dups hist_ignore_space hist_reduce_blanks hist_verify \
        hist_find_no_dups hist_save_no_dups
@@ -191,7 +193,6 @@ if [[ "$DISABLE_EXA" != true && (-n "$commands[eza]" || -n "$commands[exa]") ]];
   [[ -n "$commands[eza]" && -z "$commands[exa]" ]] && alias exa="eza"
   alias ls="exa --icons --group-directories-first -a"
   alias ll="exa --icons --group-directories-first --git -l"
-  alias la="exa --icons --group-directories-first -a"
   alias lla="exa --icons --group-directories-first --git -la"
   alias lt="exa --icons -T"
 fi
@@ -215,12 +216,12 @@ alias d='dirs -v'
 for i in {1..9}; do alias "$i"="cd +$i"; done
 
 # small utilities
-mkcd() { mkdir -p -- "$1" && cd -- "$1"; }   # make a dir and enter it
+mkcd() { mkdir -p -- "$1" && cd -- "$1"; }
 # Fresh-context review worktree: gwr [ref] adds a detached ../<repo>-review and
 # enters it (a separate cwd keys a separate Claude session); gwrx removes it.
 gwr() { local r; r=$(git rev-parse --show-toplevel) && git worktree add --detach "$r-review" "${1:-HEAD}" && cd "$r-review"; }
 gwrx() { local w; w=$(git rev-parse --show-toplevel) && [[ "$w" == *-review ]] || { echo "gwrx: not in a -review worktree" >&2; return 1; }; cd "${w%-review}" && git worktree remove "$w"; }
-alias reload='exec zsh'                        # reload the shell
+alias reload='exec zsh'
 alias path='print -l -- $path'                 # one PATH entry per line
 
 # ================================
@@ -333,7 +334,8 @@ if command -v tmux &>/dev/null; then
   # tkill [name…] — kill sessions by EXACT name (plain `kill-session -t foo`
   # would also match `foobar`, and `-t '*'` fnmatches — lethal exactly when you
   # have a single session, since it takes the server with it). Defaults to the
-  # current dir's basename, like ta. rc is 1 if ANY name failed: a loop's status
+  # current dir's basename — unlike ta, which uses the repo root. rc is 1 if ANY
+  # name failed: a loop's status
   # is just its last iteration, so `tkill gone alive` used to report success.
   tkill() {
     local s rc=0
@@ -409,12 +411,11 @@ zle_highlight+=(paste:none)
 # (or apply now with cmd+shift+,). Guarded to Ghostty shells; runs in ms.
 [[ $TERM_PROGRAM == ghostty ]] && ~/.config/ghostty/backdrop >/dev/null 2>&1
 
-# fnm (Node version manager) — guarded so a machine without fnm still loads.
+# fnm (Node version manager) — --use-on-cd switches version per directory.
 command -v fnm &>/dev/null && eval "$(fnm env --use-on-cd --shell zsh)"
 
-# direnv — per-directory env vars (.envrc). Guarded; no-op if not installed.
+# direnv — per-directory env vars from .envrc.
 command -v direnv &>/dev/null && eval "$(direnv hook zsh)"
 
-# Prompt — load last so nothing overrides it. Guarded so a missing starship
-# doesn't leave you with a broken prompt / startup error.
+# Prompt — starship, last so nothing later overrides it.
 command -v starship &>/dev/null && eval "$(starship init zsh)"
