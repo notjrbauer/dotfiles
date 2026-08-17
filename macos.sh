@@ -77,6 +77,10 @@ defaults write com.apple.dock autohide-delay -float 0
 defaults write com.apple.dock autohide-time-modifier -float 0
 defaults write com.apple.dock autohide -bool true
 
+# No recent-applications section. Not a speed setting -- it's the trailing
+# segment that shifts every icon's position as apps come and go.
+defaults write com.apple.dock show-recents -bool false
+
 # Mission Control and window resize.
 defaults write com.apple.dock expose-animation-duration -float 0.1
 defaults write NSGlobalDomain NSWindowResizeTime -float 0.001
@@ -103,6 +107,9 @@ defaults write com.apple.finder AppleShowAllFiles -bool true
 defaults write com.apple.finder ShowStatusBar -bool true
 defaults write com.apple.finder ShowPathbar -bool true
 defaults write com.apple.finder _FXShowPosixPathInTitle -bool true
+
+# Folders before files, rather than interleaved alphabetically.
+defaults write com.apple.finder _FXSortFoldersFirst -bool true
 
 # Search the current folder, not the whole Mac, by default.
 defaults write com.apple.finder FXDefaultSearchScope -string "SCcf"
