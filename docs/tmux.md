@@ -136,10 +136,42 @@ without thinking about which one has focus.
 | `C-a q` | kill pane |
 | `C-a m` | open a man page in a split |
 | `C-a u` | **URL picker** — fzf over every URL in this pane's scrollback, Enter opens it (Tab multi-selects) |
+| `C-a g` | **agent-log picker** — fzf over `~/.cache/agent-logs/`, newest first, Enter pages it in `less -R` |
 
 Resizing, when a zoom won't do: `C-a -` `=` `(` `)` nudge by 10 cells, or
 `C-a R` for sticky resize mode — then `h/j/k/l` repeatedly, `Escape` or `q` to
 leave.
+
+## Agents
+
+Claude Code runs in a pane like anything else, but two conventions keep its
+output out of your scrollback.
+
+| Key | Does |
+| --- | --- |
+| `C-a g` | page an agent log — fzf popup over `~/.cache/agent-logs/`, newest first |
+| `C-a A` | open a **lead** Claude with tmux teammates, in a window of its own |
+
+`~/.cache/agent-logs/` is the agreed drop for long command output. An agent that
+runs something loud — a test suite, build, migration, benchmark — is instructed
+(`~/.claude/CLAUDE.md`, and the `tmux-panes` skill) to put it in a window of its
+own, tee it to `~/.cache/agent-logs/<job>.log`, and report a summary plus the
+path rather than pasting the body back at you. `C-a g` is how you then read it:
+a popup costs no rows, floats over the whole window, and closes on `q`. Nothing
+prunes that directory — `rm ~/.cache/agent-logs/*` when it gets noisy.
+
+Why a window and not a split, for the loud case: on a 120-column window one
+`split-window` halves the pane you are reading the agent in, so splitting to fix
+"I can't read this" makes it worse. A window costs nothing and is one `C-a Tab`
+away.
+
+`C-a A` is deliberately a separate window too. Agent teams are experimental and
+their tmux backend splits whatever window the lead starts in — from your editor
+window that would flatten the layout you were working in. It passes
+`--teammate-mode tmux` rather than `auto`, because `auto` decides by reading
+`$TMUX` inside Claude's own process and falls back to in-process when it can't
+see it. Keep to 2-3 teammates; more than that and the panes are too narrow to
+read.
 
 ## Copy and paste
 
