@@ -220,4 +220,14 @@ you can leave a selection highlighted, look at another pane, and come back.
 
 `C-a r` (or `C-a C-r`) reloads `~/.tmux.conf` and says so.
 
+One thing a reload cannot do is re-evaluate an **attached client**, so a change
+to `terminal-features` (see the block in `.tmux.conf`) does not take until you
+detach and reattach — `C-a d`, then `tmux attach`. Never `tmux kill-server` for
+this: it takes every session on the machine with it, and a reattach is enough.
+Check what the client actually negotiated with:
+
+```sh
+tmux display-message -p '#{client_termfeatures}'
+```
+
 This is stock tmux plus `fzf` — no plugin manager, nothing to install.
