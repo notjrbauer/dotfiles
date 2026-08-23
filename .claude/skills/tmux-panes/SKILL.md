@@ -1,13 +1,24 @@
 ---
 name: tmux-panes
-description: Run a command in a tmux session, window, or split and read its output back. Use when starting a dev server, watcher, tunnel, log tail, or interactive TUI that must outlive a single tool call, when the user asks to *see* something running live, or when driving an interactive TUI with send-keys. Covers the exact invocations, the -d flag, capture-pane read-back, and the rules for not disturbing panes you did not create.
+description: Run a command in a tmux session, window, split, or popup and read its output back. Use whenever a command's output is long enough to be worth scrolling — a test suite, build, lint, plan, migration, or benchmark — as well as for a dev server, watcher, tunnel, log tail, or interactive TUI that must outlive a single tool call, when the user asks to see something running live, or when driving a TUI with send-keys. Covers the exact invocations, the -d flag, capture-pane read-back, popups, and the rules for not disturbing panes you did not create.
 ---
 
 # Running things in tmux
 
-`$TMUX` is set inside Bash calls — this machine lives in tmux, and you are
-already inside the user's attached session, in the pane `$TMUX_PANE`.
-Bindings and layout: `docs/tmux.md` in the dotfiles repo.
+`$TMUX` and `$TMUX_PANE` are **empty** inside Bash calls — the tool runs outside
+the pane you appear in — but tmux itself works fine, and it is the user's live
+attached server. Never target `-t "$TMUX_PANE"`: it expands to `-t ""`, which
+silently falls back to whatever pane is active. Omit `-t` to mean "the active
+pane" on purpose, or resolve an id first:
+
+```sh
+tmux list-panes -a -F '#{pane_id} #{session_name}:#{window_index}.#{pane_index} #{pane_current_command}'
+```
+
+Shell state does not survive between Bash calls either, so a `pane=$(...)`
+capture is dead by the next call — print the `%N` id, then paste it literally
+into the commands that follow. Bindings and layout: `docs/tmux.md` in the
+dotfiles repo.
 
 ## Long-running and unattended — its own session
 
@@ -26,43 +37,105 @@ place — it's a zsh function, so reach it as `zsh -ic 'tsvc <name> <cmd>'`.
 
 ## The user wants to watch it — split next to yourself
 
-`$TMUX_PANE` is your own pane, so this lands in their current window with no
-index guessing, and `-d` leaves their cursor where it was:
+With no `-t` this splits the active pane — the one they are reading you in — so
+it lands in their current window with no index guessing, and `-d` leaves their
+cursor where it was. `-P -F` prints the new pane's id:
 
 ```sh
-pane=$(tmux split-window -d -h -l 40% -t "$TMUX_PANE" \
-         -c /abs/dir -P -F '#{pane_id}' '<cmd>')
+tmux split-window -d -h -l 40% -c /abs/dir -P -F '#{pane_id}' '<cmd>'
+# prints e.g. %7 — paste that literal id into the commands below
 ```
 
-This resizes their window, so do it when they asked to see something — not for
-your own bookkeeping — and say that the pane appeared. To drive an interactive
-TUI in a pane **you** created: `tmux send-keys -t "$pane" '<keys>' Enter`, then
-capture.
+A split resizes their window, which is fine; that is what the window is for.
+Use one whenever the output deserves a screen of its own, and say that the pane
+appeared and how to reach it. Check the width first, though: below ~160 columns
+a `-h` split leaves both halves too narrow for wrapped output or a table, so
+prefer a new window there.
+
+```sh
+tmux display-message -p '#{window_width}x#{window_height}'
+```
+
+To drive an interactive TUI in a pane **you** created:
+`tmux send-keys -t %7 '<keys>' Enter`, then capture.
+
+## Short-lived but loud — a window you read and close
+
+A one-shot command with a lot of output — a test suite, build, lint, plan,
+migration, benchmark — goes in a window, not a split. A split takes rows off the
+pane they are reading you in; a window takes none, and they reach it with
+`prefix Tab` or `prefix w`.
+
+```sh
+tmux new-window -d -n <job> -c /abs/dir -P -F '#{pane_id}' \
+  'sh -c "<cmd> 2>&1 | tee ~/.cache/agent-logs/<job>.log"'
+```
+
+Poll until the pane is gone (`tmux list-panes -a -F '#{pane_id}' | grep -q %7`),
+then read the **log**, not the capture — the pane dies with the command and the
+capture is bounded by the pane height. Report the summary and the log path; do
+not paste the body into the transcript.
+
+## Page it right now — a popup
+
+A popup is the surface for "read this log, then get out of my way": it floats
+over the whole window at whatever size you ask, costs no rows, and vanishes on
+`q`. It is modal, so it fits reading — never a persistent process.
+
+```sh
+tmux run-shell -b "tmux display-popup -E -w 90% -h 85% -T ' <job> ' \
+  'less -R ~/.cache/agent-logs/<job>.log'"
+```
+
+`run-shell -b` is load-bearing: a foreground `display-popup -E` running an
+interactive pager blocks the tool call until a human presses `q`, which is
+indistinguishable from a wedged command. Backgrounded it returns in
+milliseconds. A popup running a command that *exits on its own* is safe in the
+foreground — `display-popup -E -w 20% -h 3 'sleep 1'` returns `rc=0` — but
+prefer `-b` and you never have to make the distinction.
+
+`-E` closes the popup when the command exits; without it the user is stuck with
+a dead popup. `-T ' title '` labels it. Tilde expands in both the `tee` and the
+popup forms above — verified, not assumed.
+
+**A popup needs an attached client.** On a server with nobody attached it fails
+silently: `run-shell -b` swallows the error, the command inside never runs, and
+you get no output and no exit code to notice. So a popup is only ever for the
+user's live session — never for a `tmux -L <scratch>` server, and never as a way
+to run something you need the result of. Use a window for that.
+
+The user also has `prefix g`, an fzf popup over `~/.cache/agent-logs/`, so naming
+the log well is the handoff.
 
 ## Read it back with `capture-pane -p`
 
 Without the read-back a detached pane is a black hole; without the `-p` you
 hijack the user's clipboard — plain `capture-pane` pushes the dump onto the
 paste-buffer stack, so their next paste inserts your screen scrape. Target the
-`%N` id you captured above: pane and window *indices* shift with `base-index`
-and will quietly hit the wrong thing.
+`%N` id printed above: pane and window *indices* shift with `base-index` and
+will quietly hit the wrong thing.
 
 ```sh
-tmux capture-pane -p -J -t "$pane"          # -J unwraps wrapped lines
-tmux capture-pane -p -J -S -200 -t "$pane"  # with scrollback
+tmux capture-pane -p -J -t %7          # -J unwraps wrapped lines
+tmux capture-pane -p -J -S -200 -t %7  # with scrollback
 ```
 
 A pane dies with its command and takes the output with it, so tee anything you
-need afterwards: `'<cmd> 2>&1 | tee /abs/scratch/job.log'`. `remain-on-exit` is
-no substitute — a dead pane captures as `Pane is dead (status N)`, not as your
-output.
+need afterwards: `'<cmd> 2>&1 | tee ~/.cache/agent-logs/<job>.log'`.
+`remain-on-exit` is no substitute — a dead pane captures as `Pane is dead
+(status N)`, not as your output. `~/.cache/agent-logs/` is the agreed scratch
+dir; `prefix g` pages anything in it.
 
 ## Don't disturb what you didn't create
 
 `new-window` / `split-window` default to the *current* session and select what
-they create, so always pass `-d` and an explicit `-t`. Experiments that need to
-change server state go on a private socket — `tmux -L <name> …` — and you kill
-only that: `tmux -L <name> kill-server`.
+they create, so always pass `-d`. Experiments that need to change server state
+go on a private socket — `tmux -L <name> …` — and you kill only that:
+`tmux -L <name> kill-server`.
+
+Never run a popup with an interactive pager in the foreground (above), and never
+`set-option -g` on the user's server to make something work — their `.tmux.conf`
+is the source of truth and a runtime override silently diverges from it.
 
 ## Clean up, then report
 

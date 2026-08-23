@@ -68,27 +68,43 @@ Approval for one action is **not** standing approval for the next. Re-ask.
 - **One-off work gets the direct path.** For operational or infrequent tasks,
   do the simplest end-to-end thing. Don't build wrappers, verifiers, or
   automation unless a concrete blocker or a repeated need earns the machinery.
-- **Temp files go to a scratch dir**, never littered into the repo.
+- **Temp files go to a scratch dir**, never littered into the repo. Agent
+  logs and command output go under `~/.cache/agent-logs/` — `prefix g`
+  pages them in a popup, so anything you tee there is one keypress away.
 
 ## tmux
 
-`$TMUX` is set inside your Bash calls — this machine lives in tmux, and you are
-already inside the user's attached session, in the pane `$TMUX_PANE`. Use it: a
-dev server, watcher, tunnel, log tail, or interactive TUI belongs in a pane of
-its own instead of blocking a tool call. **Creating sessions, windows, and
-splits is expected.** Invocations and read-back: the `tmux-panes` skill.
+`$TMUX` and `$TMUX_PANE` are **empty** inside your Bash calls — the tool runs
+outside the pane you appear in — but tmux itself works fine. Resolve targets
+explicitly (`tmux list-panes -a -F '#{pane_id} #{pane_current_command}'`) or
+omit `-t` and accept the active pane; never trust those two variables.
+
+This machine lives in tmux, so a dev server, watcher, tunnel, log tail,
+interactive TUI, or **any command whose output is longer than a screen** belongs
+in a window or pane of its own rather than a wall of text in the transcript.
+**Creating sessions, windows, and splits is expected.** Invocations and
+read-back: the `tmux-panes` skill.
 
 | The thing… | Goes in |
 | --- | --- |
-| runs and exits | `run_in_background` — not tmux |
+| runs and exits, output is short | `run_in_background` — not tmux |
+| runs and exits, output is long or worth scrolling | its own window, tee'd to a log under `~/.cache/agent-logs/` |
 | must keep running, nobody needs to watch | its own detached session |
-| the user asked to *see* live | a split beside you, in their window |
+| is worth watching happen, or they asked to see it | a split beside them, in their window |
 | is a whole parallel workstream | its own session; then tell them the name |
+| is a log they want to page through *now* | a backgrounded `display-popup` over the log file |
 
-Three rules a permission glob can't express:
+A window, not a split, is the default for one-shot loud output: a split takes
+rows off the pane they are reading you in, a window takes none. Report the
+summary and the log path — never paste the log body back into the transcript.
+
+Four rules a permission glob can't express:
 
 - **`-d` is not optional** on `new-session`/`new-window`/`split-window` — a tool
   call has no terminal, and the flag also stops you yanking the user's cursor.
 - **`capture-pane -p`, never bare `capture-pane`** — without `-p` you push the
   dump onto the paste-buffer stack and their next paste inserts your scrape.
 - **Never `send-keys` into a pane you didn't create.**
+- **Background any popup that runs an interactive pager** — `tmux run-shell -b
+  "tmux display-popup -E …"`. A popup itself returns fine from a tool call; one
+  running `less` blocks until a human presses `q`.
