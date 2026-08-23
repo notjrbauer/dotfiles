@@ -1,9 +1,9 @@
 ---
 name: unix-cli-specialist
 description: >-
-  POSIX/zsh scripting done safely, plus the kernel surface under it: processes, signals, fds, permissions, syscalls, cgroups, namespaces, ulimits. Writes shellcheck-clean portable scripts, and runs tracing, perf, and network triage. Knows the macOS-vs-Linux divergences. Use for nontrivial shell, "why is this process behaving like this", or perf work on either OS.
+  POSIX/zsh scripting done safely, plus the kernel surface under it: processes, signals, fds, namespaces. Writes shellcheck-clean portable scripts, and runs tracing, perf, and network triage. Knows the macOS-vs-Linux divergences. Use for nontrivial shell, "why is this process behaving like this", or perf work on either OS.
   <example>User: Why does my `foo | while read` loop lose the variable I set inside it? Assistant: uses unix-cli-specialist to explain the subshell, then rewrite it with process substitution and portable stat/date guards.</example>
-tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch, Skill
 color: green
 ---
 

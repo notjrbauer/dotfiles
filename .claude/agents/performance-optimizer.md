@@ -3,7 +3,7 @@ name: performance-optimizer
 description: >-
   Latency, throughput, memory, and CPU work with measurement discipline: profile first, fix, then measure again on a real workload. Use for "this feels slow", scaling decisions, and pre-launch capacity reviews.
   <example>User: The scan loop is slow. Assistant: uses performance-optimizer to instrument it, profile, find the bottleneck, fix it, and report before/after numbers.</example>
-tools: Read, Grep, Glob, Edit, Bash, WebFetch
+tools: Read, Grep, Glob, Edit, Bash, WebFetch, Skill
 color: orange
 ---
 

@@ -2,57 +2,40 @@
   "permissions": {
     "allow": [
       "Bash(tmux list-*)",
+      "Bash(tmux ls*)",
       "Bash(tmux show-*)",
       "Bash(tmux has-session*)",
       "Bash(tmux display-message -p*)",
-      "Bash(tmux capture-pane -p*)",
-      "Bash(tmux new-session -d *)",
-      "Bash(tmux new-window -d *)",
-      "Bash(tmux split-window -d *)"
+      "Bash(tmux capture-pane -p*)"
     ],
     "deny": [
-      "Bash(tmux kill-server*)",
-      "Bash(tmux attach*)",
-      "Bash(tmux switch-client*)",
-      "Bash(tmux source-file*)",
+      "Bash(tmux a*)",
+      "Bash(tmux kill-ser*)",
+      "Bash(tmux swit*)",
+      "Bash(tmux source*)",
       "Bash(killall tmux*)",
       "Bash(pkill*tmux*)",
       "Bash(tmux -L default*)",
-      "Bash(tmux -S *default*)"
+      "Bash(tmux -S *default*)",
+      "Read(~/.zshenv.local)"
     ],
     "ask": [
       "Bash(tmux send-keys*)",
+      "Bash(tmux send*)",
       "Bash(tmux kill-session*)",
+      "Bash(tmux kills*)",
       "Bash(tmux kill-window*)",
+      "Bash(tmux killw*)",
       "Bash(tmux kill-pane*)",
-      "Bash(tmux respawn-*)",
-      "Bash(tmux rename-session*)"
+      "Bash(tmux killp*)",
+      "Bash(tmux respawn*)",
+      "Bash(tmux rename*)",
+      "Bash(tmux run-shell*)",
+      "Bash(tmux run*)",
+      "Bash(tmux display-popup*)"
     ],
     "defaultMode": "auto"
   },
-  "outputStyle": "Concise",
-  "statusLine": {
-    "type": "command",
-    "command": "input=$(cat); model=$(echo \"$input\" | jq -r '.model.display_name'); used=$(echo \"$input\" | jq -r '.context_window.used_percentage // empty'); if [ -n \"$used\" ]; then printf \"%s | ctx: %.0f%% used\" \"$model\" \"$used\"; else printf \"%s\" \"$model\"; fi"
-  },
-  "enabledPlugins": {
-    "typescript-lsp@claude-plugins-official": true,
-    "lua-lsp@claude-plugins-official": true,
-    "gopls-lsp@claude-plugins-official": true,
-    "lkctl@lkctl": true,
-    "pyright-lsp@claude-plugins-official": true
-  },
-  "extraKnownMarketplaces": {
-    "lkctl": {
-      "source": {
-        "source": "github",
-        "repo": "livekit/lkctl",
-        "ref": "main"
-      }
-    }
-  },
-  "skipWorkflowUsageWarning": true,
-  "preferredNotifChannel": "terminal_bell",
   "hooks": {
     "UserPromptSubmit": [
       {
@@ -84,5 +67,29 @@
         ]
       }
     ]
-  }
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "input=$(cat); model=$(echo \"$input\" | jq -r '.model.display_name'); used=$(echo \"$input\" | jq -r '.context_window.used_percentage // empty'); if [ -n \"$used\" ]; then printf \"%s | ctx: %.0f%% used\" \"$model\" \"$used\"; else printf \"%s\" \"$model\"; fi"
+  },
+  "enabledPlugins": {
+    "typescript-lsp@claude-plugins-official": true,
+    "lua-lsp@claude-plugins-official": true,
+    "gopls-lsp@claude-plugins-official": true,
+    "lkctl@lkctl": true,
+    "pyright-lsp@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "lkctl": {
+      "source": {
+        "source": "github",
+        "repo": "livekit/lkctl",
+        "ref": "main"
+      }
+    }
+  },
+  "outputStyle": "Concise",
+  "skipWorkflowUsageWarning": true,
+  "preferredNotifChannel": "terminal_bell",
+  "model": "claude-fable-5[1m]"
 }

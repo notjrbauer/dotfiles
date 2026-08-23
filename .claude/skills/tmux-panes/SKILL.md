@@ -5,13 +5,21 @@ description: Run a command in a tmux session, window, split, or popup and read i
 
 # Running things in tmux
 
+| The thing… | Goes in |
+| --- | --- |
+| runs and exits, output is short | `run_in_background` — not tmux |
+| runs and exits, output is long or worth scrolling | its own window, tee'd to a log under `~/.cache/agent-logs/` |
+| must keep running, nobody needs to watch | its own detached session |
+| is worth watching happen, or they asked to see it | a split beside them, in their window |
+| is a whole parallel workstream | its own session; then tell them the name |
+| is a log they want to page through *now* | a backgrounded `display-popup` over the log file |
+
 `$TMUX` and `$TMUX_PANE` **are** populated inside Bash calls — measured:
-`TMUX=/private/tmp/tmux-501/default,<pid>,0`, `TMUX_PANE=%1`. This file used to
-say they were empty; they are not. What matters is what they point at: the
-user's live attached server, and a pane you did not create. So never target
-`-t "$TMUX_PANE"` — not because it expands to `-t ""`, but because it expands
-to *their* pane. Omit `-t` to mean "the active pane" on purpose, or resolve an
-id first:
+`TMUX=/private/tmp/tmux-501/default,<pid>,0`, `TMUX_PANE=%1`. What matters is
+what they point at: the user's live attached server, and a pane you did not
+create. So never target `-t "$TMUX_PANE"` — not because it expands to `-t ""`,
+but because it expands to *their* pane. Omit `-t` to mean "the active pane" on
+purpose, or resolve an id first:
 
 ```sh
 tmux list-panes -a -F '#{pane_id} #{session_name}:#{window_index}.#{pane_index} #{pane_current_command}'
@@ -131,9 +139,13 @@ dir; `prefix g` pages anything in it.
 ## Don't disturb what you didn't create
 
 `new-window` / `split-window` default to the *current* session and select what
-they create, so always pass `-d`. Experiments that need to change server state
-go on a private socket — `tmux -L <name> …` — and you kill only that:
-`tmux -L <name> kill-server`.
+they create, so always pass `-d`. **Never `send-keys` into a pane you did not
+create** — only into one whose `%N` you printed yourself.
+
+Experiments that need to change server state go on a private socket —
+`tmux -L <name> …` — and you kill only that: `tmux -L <name> kill-server`.
+Pick a name nothing else uses: **`-L default` is not isolation, it is the
+user's live server**.
 
 Never run a popup with an interactive pager in the foreground (above), and never
 `set-option -g` on the user's server to make something work — their `.tmux.conf`

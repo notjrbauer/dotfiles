@@ -101,15 +101,16 @@ stands alone on teammates' machines and CI. See
 
 - **tmux is the multiplexer** (3.7, same palette), inside WezTerm or Ghostty —
   one session per project, one window per task. `C-a` is the leader everywhere:
-  split `s`/`v`, navigate `h/j/k/l`, resize mode `r` (tmux: `R`), zoom `z`,
+  split `s`/`v`, navigate `h/j/k/l`, resize `-`/`=`/`(`/`)`, zoom `z`,
   copy-mode `[`. Sessions get `S` (tree), `C-s` (new), plus `ta`/`ts`/`tsvc`
   from the shell. Full guide: [`docs/tmux.md`](docs/tmux.md).
 - **Selecting isn't copying.** In tmux the mouse only highlights; `y` is the
   one path to the clipboard, so a drag in the pane you're pasting *into* can't
   clobber the buffer you just filled.
-- **No key clash:** bare `C-h/j/k/l` crosses Neovim windows *and* tmux panes —
-  it's Vim- and fzf-aware, so the same keys work wherever focus is; `C-a
-  h/j/k/l` is the explicit-prefix form. `Cmd+C`/`Cmd+V` are the terminal's own
+- **Pane movement is unconditional:** bare `C-h/j/k/l` always moves between
+  tmux panes, in every pane including Neovim, fzf and Claude Code. Use `C-w
+  h/j/k/l` for Neovim's own splits and the arrows in fzf; `C-a h/j/k/l` is the
+  explicit-prefix form. `Cmd+C`/`Cmd+V` are the terminal's own
   copy/paste (in a full-screen TUI, hold **Shift while dragging** to select
   first) — inside tmux, prefer `y`.
 - **Docker:** colima (`colima start`). The `default` context targets colima.

@@ -3,7 +3,7 @@ name: container-oci-specialist
 description: >-
   Docker, BuildKit/buildx, and the OCI specs: layer caching, multi-stage builds, cache mounts, build-args vs secrets, non-root and rootless, seccomp/capabilities, multi-arch, SBOM/scan/sign. Use whenever a Dockerfile, image, registry, or build cache is in play.
   <example>User: Why is my Go image 900MB and how do I sign it? Assistant: uses container-oci-specialist to explain layer ordering, then rewrite it multi-stage and add a buildx + SBOM + cosign pipeline.</example>
-tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch, Skill
 color: blue
 ---
 

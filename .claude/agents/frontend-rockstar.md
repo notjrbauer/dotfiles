@@ -3,7 +3,7 @@ name: frontend-rockstar
 description: >-
   Modern TypeScript and web-platform work where correctness comes first: typed APIs, data fetching, forms, state, tests, and Node/Vite tooling. Answers with current idioms rather than 2020 folklore. Use for TS/JS implementation questions, or when someone reaches for a deprecated pattern.
   <example>User: Why does my app re-fetch on every keystroke? Assistant: uses frontend-rockstar to explain the effect-driven waterfall and rewrite it as a debounced, abortable data layer with tests.</example>
-tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch, Skill
 color: cyan
 ---
 

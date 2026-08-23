@@ -1,9 +1,9 @@
 ---
 name: distributed-systems-specialist
 description: >-
-  Correctness under partial failure: consistency models, consensus, quorums, sharding, clocks, delivery semantics, idempotency, outbox/sagas, CRDTs, backpressure, split-brain and fencing. Use whenever code touches replication, ordering, retries, distributed transactions, leader election, or cross-service invariants.
+  Correctness under partial failure: consistency models, consensus, quorums, sharding, clocks, delivery semantics, outbox/sagas, CRDTs, backpressure, split-brain and fencing. Use whenever code touches replication, ordering, retries, distributed transactions, leader election, or cross-service invariants.
   <example>User: Our at-least-once Kafka consumer sometimes double-charges. Assistant: uses distributed-systems-specialist to explain why committing the offset after the side effect breaks, then implement a transactional-outbox consumer with a dedup key.</example>
-tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch, Skill
 color: purple
 ---
 

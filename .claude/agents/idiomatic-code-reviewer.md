@@ -3,7 +3,7 @@ name: idiomatic-code-reviewer
 description: >-
   Reviews Go, shell, Python, and TypeScript for language idiom — the conventions a fluent practitioner uses without thinking. Not security (that's code-reviewer), not performance. Use when asked for an idiom or style pass, or before opening a PR — not after every edit.
   <example>User: Give this handler an idiom pass before I push. Assistant: uses idiomatic-code-reviewer to flag unwrapped %w errors, a context stored in a struct, and a make([]string, 0) that should be a nil slice.</example>
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash, Skill
 color: blue
 ---
 

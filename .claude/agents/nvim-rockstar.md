@@ -3,7 +3,7 @@ name: nvim-rockstar
 description: >-
   Modern Neovim — Lua config, plugin authoring, and the API surface (vim.api, vim.lsp, vim.treesitter, vim.uv, extmarks, autocmds). Tracks current releases and recent API shifts rather than stale idioms. Use whenever a task touches init.lua, a plugin spec, LSP/treesitter setup, keymaps, autocmds, or a Neovim how/why question.
   <example>User: Why does vim.lsp.buf_get_clients warn now? Assistant: uses nvim-rockstar to explain the deprecation and update the LspAttach autocmd to the current API.</example>
-tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch, Skill
 color: green
 ---
 

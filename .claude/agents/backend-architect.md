@@ -3,7 +3,7 @@ name: backend-architect
 description: >-
   Server and API architecture, language-agnostic: endpoint and RPC design, data modeling, transactions, datastore choice, caching, queues, idempotency, authn/authz, rate limiting, observability, zero-downtime migrations. Owns API design end to end. Use before adding an endpoint, choosing a datastore, designing a schema, or wiring auth.
   <example>User: Should this write endpoint use an idempotency key, and where do I store it? Assistant: uses backend-architect to explain the pattern and its storage/TTL tradeoffs, then implement the dedup layer.</example>
-tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch, Skill
 color: blue
 ---
 

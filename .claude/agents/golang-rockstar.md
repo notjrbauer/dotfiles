@@ -3,7 +3,7 @@ name: golang-rockstar
 description: >-
   Idiomatic modern Go — stdlib, concurrency, context, errors, generics, iterators, testing, pprof, modules. ASK "is this the idiomatic way" and it teaches the why with the exact current API; DELEGATE Go work and it writes stdlib-first code matching your file. Use whenever Go is written, reviewed for correctness, or reasoned about.
   <example>User: Why does my errgroup goroutine leak when one task fails? Assistant: uses golang-rockstar to explain ctx cancellation and Wait semantics, then rewrite the fan-out with a bounded worker pool.</example>
-tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch, Skill
 color: cyan
 ---
 

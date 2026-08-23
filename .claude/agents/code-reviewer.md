@@ -1,7 +1,7 @@
 ---
 name: code-reviewer
 description: >-
-  Security-first review: injection, auth bypass, leaked secrets, race conditions, resource exhaustion, the OWASP top 10. Read-only — it reports, it doesn't commit. Use before a merge or deploy. For idiom and style, use idiomatic-code-reviewer instead.
+  Security-first review: injection, auth bypass, leaked secrets, race conditions, resource exhaustion, the OWASP top 10. Reports findings and never edits; hands fixes to the owning specialist. Use before a merge or deploy. For idiom and style, use idiomatic-code-reviewer instead.
   <example>User: I'm about to merge this PR. Assistant: uses code-reviewer to verify auth, input handling, and secret handling before it lands.</example>
 tools: Read, Grep, Glob, Agent
 color: red

@@ -12,6 +12,26 @@ ZCOMPDUMP_PATH="$CACHE_DIR/.zcompdump"
 # ⚙️  Early Bootstrapping
 # ================================
 [[ ! -d "$CACHE_DIR" ]] && mkdir -p "$CACHE_DIR"
+
+# Cache `<tool> init` output, keyed on the tool binary's mtime. Measured here:
+# zoxide 8ms, fzf 10ms, starship 12ms per shell, and all three emit identical
+# text per version. Written via a temp file + mv so a tool that dies mid-write
+# cannot leave a partial init for the next shell to source. Falls back to a
+# live eval if anything about the cache looks wrong.
+_evalcache() {  # _evalcache <name> <command...>
+  local f="$CACHE_DIR/init-$1.zsh"; shift
+  local bin="$commands[$1]"
+  if [[ -s $f && -n $bin && $f -nt $bin ]]; then
+    source "$f"
+    return
+  fi
+  local t="$f.$$"
+  if "$@" >| "$t" 2>/dev/null && [[ -s $t ]]; then
+    command mv -f "$t" "$f" && source "$f" && return
+  fi
+  command rm -f "$t"
+  eval "$("$@" 2>/dev/null)"
+}
 [[ ! -d "$ZAP_DIR" ]] && git clone https://github.com/zap-zsh/zap.git --depth=1 "$ZAP_DIR"
 [[ -f "$ZAP_DIR/zap.zsh" ]] && source "$ZAP_DIR/zap.zsh"
 # Fallback stub if zap didn't load (e.g. offline on a fresh machine) so the
@@ -53,9 +73,6 @@ plug-defer zdharma-continuum/fast-syntax-highlighting
 # ================================
 # ⚡ Environment + Tools
 # ================================
-if command -v zoxide &>/dev/null; then
-  eval "$(zoxide init zsh --cmd j)"
-fi
 # fzf theme — catppuccin mocha to match the terminal. No `bg` is set (and
 # gutter is -1) so WezTerm's transparent background shows through.
 export FZF_DEFAULT_OPTS="
@@ -64,8 +81,6 @@ export FZF_DEFAULT_OPTS="
   --color=spinner:#f5e0dc,header:#94e2d5,border:#585b70,gutter:-1
 "
 
-export BAT_COLOR="ansi"
-export FZF_PREVIEW_COMMAND="COLORTERM=truecolor bat --style=numbers --color=always {}"
 export FZF_CTRL_T_OPTS="--walker-skip .git,node_modules,target --preview 'bat -n --color=always {}' --bind 'ctrl-/:change-preview-window(down|hidden|)'"
 export FZF_CTRL_R_OPTS="--bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort' --header 'Press CTRL-Y to copy command into clipboard'"
 
@@ -128,6 +143,13 @@ _gcloud_inc="${HOMEBREW_PREFIX:-/opt/homebrew}/share/google-cloud-sdk/completion
 [[ -f "$_gcloud_inc" ]] && source "$_gcloud_inc"
 unset _gcloud_inc
 
+# zoxide — AFTER compinit for the same reason gcloud is: its init ends with
+# `[[ ${+functions[compdef]} -ne 0 ]] && compdef __zoxide_z_complete j`, so run
+# any earlier and it silently skips the registration — `j <TAB>` does nothing.
+if command -v zoxide &>/dev/null; then
+  _evalcache zoxide zoxide init zsh --cmd j
+fi
+
 # ================================
 # ⌨️ Keybindings
 # ================================
@@ -144,7 +166,7 @@ bindkey -M viins 'jj' vi-cmd-mode
 # emacs, viins and vicmd explicitly, but its completion hook is a bare
 # `bindkey '^I' fzf-completion` targeting whatever `main` is at eval time —
 # bound any earlier, `bindkey -v` relinks main to viins and **<TAB> is lost.
-[[ -n "$commands[fzf]" ]] && eval "$(fzf --zsh)"
+[[ -n "$commands[fzf]" ]] && _evalcache fzf fzf --zsh
 
 # Prefix + ↑/↓ (and k/j in cmd mode) searches history for matching commands.
 # Bind the literal sequences, not just $terminfo: kcuu1/kcud1 are the
@@ -186,7 +208,7 @@ setopt NO_BEEP
 # ================================
 # 📁 Aliases
 # ================================
-if [[ "$(uname)" = "Darwin" ]]; then
+if [[ $OSTYPE == darwin* ]]; then
   alias ls="ls -Ga"
 else
   alias ls="ls --color=auto -a"
@@ -382,8 +404,13 @@ if command -v tmux &>/dev/null; then
       # -s makes this a SESSION target: without it `-t name` is a window target,
       # which resolves to the session's *current window* only, so a dead service
       # in any other window was reported as "already running".
-      if [[ "$(tmux list-panes -s -t "=$name" -F '#{pane_dead}')" == *1* ]]; then
-        tmux respawn-pane -k -t "=$name" "$@" && print "tsvc: restarted '$name'"
+      local dead
+      dead=$(tmux list-panes -s -t "=$name" -F '#{pane_dead} #{pane_id}' | awk '$1==1{print $2; exit}')
+      if [[ -n $dead ]]; then
+        # respawn-pane takes a PANE target, where '=' is rejected outright
+        # ("can't find pane: =name") — see rule 2 above. Resolve the exact pane
+        # id via the session target instead of guessing by name.
+        tmux respawn-pane -k -t "$dead" "$@" && print "tsvc: restarted '$name'"
       else
         print "tsvc: '$name' already running — attach with: ta ${(q)name}"
       fi
@@ -409,7 +436,14 @@ if command -v tmux &>/dev/null; then
   tkill() {
     local s rc=0
     local -a targets=("$@")
-    (( $# )) || targets=("${${$(git rev-parse --show-toplevel 2>/dev/null || print -r -- "$PWD")}:t}")
+    if (( ! $# )); then
+      # Same resolution as ta: --git-common-dir, not --show-toplevel, so a
+      # linked worktree still names the MAIN repo. See ta's comment above.
+      local root base
+      root=$(git rev-parse --git-common-dir 2>/dev/null) &&
+        base=$(cd -- "$root/.." 2>/dev/null && pwd)
+      targets=("${${base:-$PWD}:t}")
+    fi
     for s in "${targets[@]}"; do
       [[ -n "$s" ]] || { print -u2 "tkill: empty session name"; rc=1; continue }
       tmux kill-session -t "=${s//[.:]/_}" || rc=1
@@ -466,7 +500,7 @@ if [[ $TERM != "xterm-kitty" ]]; then
   case "$TERM" in
     xterm* | alacritty | foot*)
       set_window_title() {
-        print -Pn "\e]2;${USER}@${HOST}:${PWD/$HOME/~}\a"
+        print -rn -- $'\e]2;'"${USER}@${HOST}:${PWD/$HOME/~}"$'\a'
       }
       autoload -Uz add-zsh-hook
       add-zsh-hook precmd set_window_title
@@ -489,10 +523,17 @@ zle_highlight+=(paste:none)
 [[ $TERM_PROGRAM == ghostty ]] && ~/.config/ghostty/backdrop >/dev/null 2>&1
 
 # fnm (Node version manager) — --use-on-cd switches version per directory.
-command -v fnm &>/dev/null && eval "$(fnm env --use-on-cd --shell zsh)"
+# fnm prepends a fresh per-shell multishell dir every time it runs and never
+# drops the parent's, so a nested shell (tmux pane -> ta -> reload -> claude)
+# accumulates one dead PATH entry per level. typeset -U cannot dedupe them —
+# each is a distinct string. Strip the inherited one before adding ours.
+if command -v fnm &>/dev/null; then
+  [[ -n $FNM_MULTISHELL_PATH ]] && path=(${path:#"$FNM_MULTISHELL_PATH/bin"})
+  eval "$(fnm env --use-on-cd --shell zsh)"
+fi
 
 # direnv — per-directory env vars from .envrc.
 command -v direnv &>/dev/null && eval "$(direnv hook zsh)"
 
 # Prompt — starship, last so nothing later overrides it.
-command -v starship &>/dev/null && eval "$(starship init zsh)"
+command -v starship &>/dev/null && _evalcache starship starship init zsh

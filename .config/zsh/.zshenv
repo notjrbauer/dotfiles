@@ -22,6 +22,12 @@ typeset -U fpath FPATH
 # why ~/bin and ~/pkg exist on this machine. Changing it strands both.
 export GOPATH="$HOME"
 
+# Editor. Here, not .zshrc: `kubectl edit`, `crontab -e` and friends often run
+# from scripts or non-interactive shells, which never read the rc file.
+# `nvim` on PATH is the nightly in ~/.local/bin. .gitconfig sets core.editor.
+export EDITOR=nvim
+export VISUAL="$EDITOR"
+
 # ---- PATH ----
 # PATH additions live in .zprofile, NOT here. macOS's /etc/zprofile runs
 # `path_helper` AFTER .zshenv and rebuilds $PATH from /etc/paths, which would

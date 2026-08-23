@@ -34,8 +34,8 @@ when a rule shouldn't be shared, and review `git diff` before committing.
 ```
 ~/.claude/CLAUDE.md      -> .claude/CLAUDE.md      # loaded every session
 ~/.claude/settings.json  -> .claude/settings.json  # model, permissions, plugins
-~/.claude/agents         -> .claude/agents         # whole curated set (one link)
-~/.claude/skills         -> .claude/skills         # whole skills dir (one link)
+~/.claude/agents/*       -> .claude/agents/*       # per-entry (link_children)
+~/.claude/skills/*       -> .claude/skills/*       # per-entry (link_children)
 ```
 
 ## Bootstrapping a fresh machine

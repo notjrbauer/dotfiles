@@ -1,9 +1,9 @@
 ---
 name: lua-rockstar
 description: >-
-  Idiomatic Lua as a language — 5.4/5.5 and LuaJIT: tables and metatables, closures, coroutines, pcall/xpcall, 1-based indexing and the length-operator border rules, the integer/float subtype, module patterns, the C API. Cites which behavior belongs to which version. Use for standalone Lua — Hammerspoon, plugins, embedding; defer Neovim APIs to nvim-rockstar.
+  Idiomatic Lua as a language — 5.4/5.5 and LuaJIT: metatables, coroutines, the length-operator border rules, the integer/float subtype, the C API. Cites which behavior belongs to which version. Use for standalone Lua — Hammerspoon, plugins, embedding; defer Neovim APIs to nvim-rockstar.
   <example>User: Why does `#t` return 2 for a table I set indices 1, 2 and 4 on? Assistant: uses lua-rockstar to explain the length operator's border rule and sparse-table undefined behavior.</example>
-tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch
+tools: Read, Write, Edit, Bash, Grep, Glob, WebFetch, WebSearch, Skill
 color: blue
 ---
 

@@ -3,7 +3,7 @@ name: code-archaeologist
 description: >-
   Maps unfamiliar or legacy code — architecture, entry points, data flow, and why a subsystem exists. Read-only. Use when opening an unknown repo, tracing how a subsystem actually works, or deciding whether something is safe to remove.
   <example>User: How does this repo work? Assistant: uses code-archaeologist to map entry points, critical paths, and what the system talks to.</example>
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash, Skill
 color: brown
 ---
 

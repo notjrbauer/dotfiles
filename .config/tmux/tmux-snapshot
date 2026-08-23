@@ -124,9 +124,14 @@ save() {
     # exactly the scope that matters. Skipped when there is no server to lock
     # against, where there is also no concurrency to guard.
     [ -n "$sock" ] && tmux wait-for -L snapshot 2>/dev/null
+    # Release on signal death too. An orphaned channel locks every later save,
+    # and client-detached's hook is un-backgrounded on purpose — it would hang
+    # the detach. Installed after the lock so it can never free another saver's.
+    trap 'tmux wait-for -U snapshot 2>/dev/null' EXIT INT TERM
     [ -f "$snap" ] && cp "$snap" "$snap.prev"
     printf '%s\n' "$panes" > "$snap.tmp" && mv "$snap.tmp" "$snap"
     [ -n "$sock" ] && tmux wait-for -U snapshot 2>/dev/null
+    trap - EXIT INT TERM
     return 0
 }
 

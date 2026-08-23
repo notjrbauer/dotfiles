@@ -3,7 +3,7 @@ name: documentation-specialist
 description: >-
   Writes docs people actually read — READMEs, architecture docs, API references, runbooks, ADRs — and the Mermaid diagrams that belong in them. Use when docs are explicitly requested, when a doc contradicts the code, or when shipping something with no runbook. Not for inline comments or commit messages.
   <example>User: Write a runbook for the failover procedure. Assistant: uses documentation-specialist to produce numbered steps, each with the command, expected output, verification, and rollback.</example>
-tools: Read, Write, Edit, Glob, Grep, WebFetch
+tools: Read, Write, Edit, Glob, Grep, WebFetch, Skill
 color: gray
 ---
 
