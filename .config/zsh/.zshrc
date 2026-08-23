@@ -263,8 +263,21 @@ if command -v tmux &>/dev/null; then
   # "zsh" session. Falls back to the current directory outside a repo, and the
   # default is only expanded when $1 is empty, so `ta foo` never runs git.
   # Already inside tmux, attach-session refuses to nest, so switch the client.
+  #
+  # --git-common-dir, not --show-toplevel: inside a linked worktree, toplevel is
+  # the *worktree* directory, so `ta` in repo__worktrees/feature-auth opened a
+  # session called "feature-auth" with the repo name gone — and a "fix-tests"
+  # worktree in two different repos collided onto one session, silently
+  # attaching you to the wrong agent. --git-common-dir points at the main
+  # repo's .git from both a worktree and the main checkout, so its parent is
+  # the repo root in either. See tw below for the per-worktree sessions.
   ta() {
-    local base="${1:-$(git rev-parse --show-toplevel 2>/dev/null || print -r -- "$PWD")}"
+    local base=$1 root
+    if [[ -z $base ]]; then
+      root=$(git rev-parse --git-common-dir 2>/dev/null) &&
+        base=$(cd -- "$root/.." 2>/dev/null && pwd)
+      [[ -n $base ]] || base=$PWD
+    fi
     local name="${${base:t}//[.:]/_}"
     [[ -n "$name" ]] || name=tmux            # $PWD is '/', so :t came back empty
     if [[ -n "$TMUX" ]]; then
@@ -272,6 +285,42 @@ if command -v tmux &>/dev/null; then
       tmux switch-client -t "=$name"
     else
       tmux new-session -A -s "$name"         # -A attaches if it exists; -s is exact
+    fi
+  }
+
+  # tw <branch> — a git worktree and a tmux session for it, in one keystroke.
+  # The session is named <repo>-<branch>, from the MAIN repo, so every worktree
+  # of one project sorts together under its prefix in `prefix S` and two repos
+  # with the same branch name never collide. Worktrees live beside the repo as
+  # <repo>__worktrees/<branch>, never inside it, so `git status` in the main
+  # checkout stays clean. Sanitized the same way ta does it — '.' and ':' are
+  # tmux's own target separators.
+  #
+  # Worth knowing before you lean on this: a worktree is a checkout, not a copy.
+  # Gitignored files do not come along, so .env, node_modules and .venv are
+  # absent and an agent will fail on its first command until you put them there.
+  tw() {
+    local b=$1 root wt name
+    [[ -n $b ]] || { print -u2 "tw: usage: tw <branch>"; return 1 }
+    root=$(git rev-parse --git-common-dir 2>/dev/null) \
+      && root=$(cd -- "$root/.." 2>/dev/null && pwd) \
+      || { print -u2 "tw: not inside a git repository"; return 1 }
+    wt="${root}__worktrees/${b//\//-}"
+    if [[ ! -d $wt ]]; then
+      # An existing branch is checked out; a new one is created. `worktree add
+      # -b` on a branch that already exists is a hard error, not a no-op.
+      if git -C "$root" show-ref --verify --quiet "refs/heads/$b"; then
+        git -C "$root" worktree add "$wt" "$b" || return
+      else
+        git -C "$root" worktree add -b "$b" "$wt" || return
+      fi
+    fi
+    name="${${root:t}//[.:]/_}-${${b//\//-}//[.:]/_}"
+    if [[ -n $TMUX ]]; then
+      tmux has-session -t "=$name" 2>/dev/null || tmux new-session -d -s "$name" -c "$wt" || return
+      tmux switch-client -t "=$name"
+    else
+      tmux new-session -A -s "$name" -c "$wt"
     fi
   }
 

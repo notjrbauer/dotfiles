@@ -74,10 +74,18 @@ Approval for one action is **not** standing approval for the next. Re-ask.
 
 ## tmux
 
-`$TMUX` and `$TMUX_PANE` are **empty** inside your Bash calls — the tool runs
-outside the pane you appear in — but tmux itself works fine. Resolve targets
-explicitly (`tmux list-panes -a -F '#{pane_id} #{pane_current_command}'`) or
-omit `-t` and accept the active pane; never trust those two variables.
+`$TMUX` and `$TMUX_PANE` **are** set inside your Bash calls, and they point at
+the user's own live pane — measured: `TMUX=/private/tmp/tmux-501/default,<pid>,0`,
+`TMUX_PANE=%1`. (This file used to claim they were empty. They are not, and a
+rule built on a falsehood gets "corrected" by the next agent that tests it.)
+That makes them a hazard, not a convenience: `-t "$TMUX_PANE"` targets a pane
+you did not create. Resolve targets explicitly instead
+(`tmux list-panes -a -F '#{pane_id} #{pane_current_command}'`), or omit `-t`
+and accept the active pane on purpose.
+
+**`-L <socket>` is how you stay off the user's server, and `-L default` is not
+that.** The default socket *is* their live server. Give your own socket a name
+nothing else uses, and kill it when you are done.
 
 This machine lives in tmux, so a dev server, watcher, tunnel, log tail,
 interactive TUI, or **any command whose output is longer than a screen** belongs

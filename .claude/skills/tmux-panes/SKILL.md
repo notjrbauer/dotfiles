@@ -5,11 +5,13 @@ description: Run a command in a tmux session, window, split, or popup and read i
 
 # Running things in tmux
 
-`$TMUX` and `$TMUX_PANE` are **empty** inside Bash calls — the tool runs outside
-the pane you appear in — but tmux itself works fine, and it is the user's live
-attached server. Never target `-t "$TMUX_PANE"`: it expands to `-t ""`, which
-silently falls back to whatever pane is active. Omit `-t` to mean "the active
-pane" on purpose, or resolve an id first:
+`$TMUX` and `$TMUX_PANE` **are** populated inside Bash calls — measured:
+`TMUX=/private/tmp/tmux-501/default,<pid>,0`, `TMUX_PANE=%1`. This file used to
+say they were empty; they are not. What matters is what they point at: the
+user's live attached server, and a pane you did not create. So never target
+`-t "$TMUX_PANE"` — not because it expands to `-t ""`, but because it expands
+to *their* pane. Omit `-t` to mean "the active pane" on purpose, or resolve an
+id first:
 
 ```sh
 tmux list-panes -a -F '#{pane_id} #{session_name}:#{window_index}.#{pane_index} #{pane_current_command}'

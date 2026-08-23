@@ -1,0 +1,59 @@
+#!/bin/sh
+# tmux-agent-state — badge the tmux window an agent is working in.
+#
+#   tmux-agent-state running | done | wait | clear
+#
+# Sets (or unsets) the window option @agent, which .tmux.conf renders in
+# window-status-format: red ! = this window wants you, green * = it finished
+# while you were looking somewhere else. Driven by Claude Code hooks in
+# .claude/settings.json — UserPromptSubmit -> running, Stop -> done,
+# Notification -> wait.
+#
+# The bell in .tmux.conf is the floor for anything that only rings; this is the
+# precise version, and it is what makes a background agent visible in the
+# window list rather than only for the moment the bell sounded.
+set -u
+
+command -v tmux >/dev/null 2>&1 || exit 0
+[ -n "${TMUX:-}" ] || exit 0
+
+# Hooks and statusLine commands run as children of the pane's own process, so
+# they inherit $TMUX_PANE. A background or dispatched session does not, so walk
+# up the process tree until a PID matches a pane. (Note: contrary to a comment
+# that used to be in ~/.claude/CLAUDE.md, $TMUX_PANE is populated in ordinary
+# Bash tool calls too — but the walk costs nothing and covers the cases where
+# it genuinely is not.)
+pane="${TMUX_PANE:-}"
+if [ -z "$pane" ]; then
+    p=$PPID
+    while [ "${p:-0}" -gt 1 ]; do
+        pane=$(tmux list-panes -a -F '#{pane_id} #{pane_pid}' 2>/dev/null \
+               | awk -v pid="$p" '$2 == pid { print $1; exit }')
+        [ -n "$pane" ] && break
+        p=$(ps -o ppid= -p "$p" 2>/dev/null | tr -d ' ')
+        [ -n "$p" ] || exit 0
+    done
+fi
+[ -n "$pane" ] || exit 0
+
+state=${1:-}
+
+# Never badge the window you are already staring at — a * on the window you are
+# reading is noise. "wait" is the exception: a permission prompt still needs
+# saying even if you are looking straight at it, because you may not be.
+if [ "$state" != wait ] &&
+   [ "$(tmux display-message -p -t "$pane" '#{window_active}' 2>/dev/null)" = 1 ]; then
+    exit 0
+fi
+
+case "$state" in
+    running) tmux set-option -w -t "$pane" -u @agent 2>/dev/null ;;
+    clear)   tmux set-option -w -t "$pane" -u @agent 2>/dev/null ;;
+    done|wait) tmux set-option -w -t "$pane" @agent "$state" 2>/dev/null ;;
+    *) printf 'usage: %s running|done|wait|clear\n' "${0##*/}" >&2; exit 2 ;;
+esac
+
+# status-interval is 15s, and a badge that shows up a quarter-minute late is
+# not an alert.
+tmux refresh-client -S 2>/dev/null || true
+exit 0

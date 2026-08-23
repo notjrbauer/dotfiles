@@ -122,6 +122,16 @@ seed "$HOME/.gitconfig.local" '; Machine-local git overrides (untracked). Identi
 ; .gitconfig — keep this for things that are genuinely per-machine, like
 ; signing keys or credential helpers.'
 
+# --- tmux local overrides -------------------------------------------------
+# Sourced last by .tmux.conf (`source-file -q`), so it wins over everything
+# above it. Same reason as the git and shell files: .tmux.conf is a symlink
+# into a public repo. It is also where the platform split belongs — `y` pipes
+# to pbcopy and the URL picker calls `open`, both macOS-only.
+seed "$HOME/.tmux.conf.local" '# Machine-local tmux overrides (untracked), sourced last by ~/.tmux.conf.
+# Reload with prefix r. Examples:
+#   set -g status-position bottom
+#   bind -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "wl-copy"   # Linux'
+
 # --- Shell secrets --------------------------------------------------------
 # Sourced by $ZDOTDIR/.zshenv. Deliberately in $HOME and not ~/.config/zsh —
 # that path is a symlink to this repo, so a secrets file there would sit in a
@@ -136,6 +146,14 @@ seed "$HOME/.zshenv.local" '# Machine-local shell env (untracked) — sourced by
 # export HOMEBREW_GITHUB_API_TOKEN=ghp_xxx'
 chmod 600 "$HOME/.zshenv.local" \
   || echo "warn: could not chmod 600 ~/.zshenv.local (owned by someone else?) — it holds tokens"
+
+# --- Agent log drop -------------------------------------------------------
+# ~/.claude/CLAUDE.md and the tmux-panes skill both tell agents to tee long
+# command output here instead of pasting it into the transcript, and .tmux.conf
+# binds prefix g to page it. Nothing created it, so on a fresh machine the
+# first `tee ~/.cache/agent-logs/x.log` failed and prefix g just said "no agent
+# logs yet" forever.
+mkdir -p "$HOME/.cache/agent-logs" && echo "ensured    $HOME/.cache/agent-logs"
 
 # --- Git hooks ------------------------------------------------------------
 # .githooks/pre-commit blocks staged credentials. Only wired if nothing else

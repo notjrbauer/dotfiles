@@ -14,7 +14,11 @@
       "Bash(tmux kill-server*)",
       "Bash(tmux attach*)",
       "Bash(tmux switch-client*)",
-      "Bash(tmux source-file*)"
+      "Bash(tmux source-file*)",
+      "Bash(killall tmux*)",
+      "Bash(pkill*tmux*)",
+      "Bash(tmux -L default*)",
+      "Bash(tmux -S *default*)"
     ],
     "ask": [
       "Bash(tmux send-keys*)",
@@ -47,5 +51,38 @@
       }
     }
   },
-  "skipWorkflowUsageWarning": true
+  "skipWorkflowUsageWarning": true,
+  "preferredNotifChannel": "terminal_bell",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${XDG_CONFIG_HOME:-$HOME/.config}/tmux/tmux-agent-state\" running"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${XDG_CONFIG_HOME:-$HOME/.config}/tmux/tmux-agent-state\" done"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${XDG_CONFIG_HOME:-$HOME/.config}/tmux/tmux-agent-state\" wait"
+          }
+        ]
+      }
+    ]
+  }
 }
