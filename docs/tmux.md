@@ -173,6 +173,44 @@ window that would flatten the layout you were working in. It passes
 see it. Keep to 2-3 teammates; more than that and the panes are too narrow to
 read.
 
+## Sessions that survive the server
+
+`C-a V` puts your sessions back after a reboot or a `tmux kill-server`. There
+is no plugin manager here; `~/.config/tmux/tmux-snapshot` is a POSIX shell
+script the config shells out to.
+
+| Key | Does |
+| --- | --- |
+| `C-a W` | write a snapshot now |
+| `C-a V` | revive every session in the snapshot that is not already open |
+
+A snapshot records session names, window indexes and names, each window's
+layout string, and every pane's working directory. It deliberately does **not**
+record the commands that were running. Restoring those is how resurrect-style
+tools end up re-running a migration at you on login; panes come back as shells
+in the right directory, and you restart what you meant to restart.
+
+Saving is automatic: `status-right` ends in a `#(…)` that runs the script every
+`status-interval`. That is the only periodic hook a tmux config without a
+plugin manager gets, and it is the same mechanism tmux-continuum uses. It
+prints nothing, and it returns immediately when the shape has not changed, so
+the snapshot only rotates when you actually open or close something.
+
+Two things keep an autosave from destroying what you want back:
+
+- it **refuses to record a one-pane server** — that is the shape of a tmux that
+  has just come back from nothing, and recording it would overwrite the
+  snapshot you are about to restore from. `C-a W` still writes it if you mean
+  to.
+- the previous snapshot is kept beside it as `snapshot.prev`.
+
+Both live under `~/.local/state/tmux/`. `C-a V` never touches a session that
+already exists, so it is safe to press twice, and safe when only some of your
+sessions are gone.
+
+The one thing it cannot save you from is a config reload: a `terminal-features`
+change needs a detach and reattach, **not** a `kill-server` — see Config below.
+
 ## Copy and paste
 
 **Selecting is inert; copying is an act.** Stock tmux binds `copy-pipe-and-cancel`

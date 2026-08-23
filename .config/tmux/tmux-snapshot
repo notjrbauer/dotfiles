@@ -1,0 +1,130 @@
+#!/bin/sh
+# tmux-snapshot — save the shape of every tmux session, and put it back.
+#
+# What a snapshot holds: session names, window indexes and names, the layout
+# string of each window, and every pane's working directory. What it
+# deliberately does NOT hold: the programs that were running. Re-executing a
+# recorded command line on restore is how tmux-resurrect surprises people —
+# it will happily re-run a migration or a deploy. Panes come back as shells,
+# in the right directory, and you restart what you meant to restart.
+#
+#   tmux-snapshot save          write a snapshot now
+#   tmux-snapshot save auto     same, but refuse to record a just-restarted
+#                               server (see the guard in save())
+#   tmux-snapshot restore       recreate every session the snapshot names and
+#                               that does not already exist
+#   tmux-snapshot path          print the snapshot path
+set -u
+
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/tmux"
+snap="$state_dir/snapshot"
+tab=$(printf '\t')
+# Panes are recorded in tmux's own pane-index order, and restored in it. Do
+# not "improve" this by sorting on pane_top/pane_left: select-layout maps a
+# window's panes onto the layout string's cells in index order, and the cells
+# are listed in tree-traversal order, which is only row-major by accident. A
+# 2x2 grid built as one horizontal split with a vertical split in each half
+# traverses column-major, so a visually-sorted snapshot restores that window
+# with the two middle directories transposed.
+fmt=$(printf '#{session_name}\t#{window_index}\t#{window_name}\t#{window_layout}\t#{pane_index}\t#{pane_current_path}')
+
+save() {
+    panes=$(tmux list-panes -a -F "$fmt" 2>/dev/null) || return 0
+    [ -n "$panes" ] || return 0
+
+    # A server that has just come back from nothing is one session, one window,
+    # one pane. Refuse to autosave that shape: the poll would otherwise
+    # overwrite the snapshot you are about to restore from with the empty
+    # state that replaced it — the save racing the restore is the whole risk
+    # in doing this automatically at all. An explicit `save` still writes.
+    if [ "${1:-}" = auto ] && [ "$(printf '%s\n' "$panes" | wc -l)" -le 1 ]; then
+        return 0
+    fi
+
+    # Nothing changed since the last write: leave the file, and more
+    # importantly leave .prev alone. The poll runs every status-interval, and
+    # rotating a good snapshot into .prev fifteen seconds at a time would
+    # make the backup as worthless as the thing it backs up.
+    if [ -f "$snap" ] && [ "$panes" = "$(cat "$snap")" ]; then
+        return 0
+    fi
+
+    mkdir -p "$state_dir" || return 1
+    [ -f "$snap" ] && cp "$snap" "$snap.prev"
+    printf '%s\n' "$panes" > "$snap.tmp" && mv "$snap.tmp" "$snap"
+}
+
+restore() {
+    [ -f "$snap" ] || { tmux display-message "[tmux] no snapshot at $snap"; return 1; }
+
+    # Size new sessions to the attached client. A detached session is 80x24 by
+    # default, and select-layout silently reflows any layout that will not fit
+    # — so a restore run without this comes back with the panes in the wrong
+    # places and no error to explain it.
+    w=$(tmux display-message -p '#{client_width}' 2>/dev/null || true)
+    h=$(tmux display-message -p '#{client_height}' 2>/dev/null || true)
+    case $w in '' | 0 | *[!0-9]*) w=200 ;; esac
+    case $h in '' | 0 | *[!0-9]*) h=50 ;; esac
+
+    sorted=$(mktemp) || return 1
+    trap 'rm -f "$sorted"' EXIT INT TERM
+    # session, then window index, then pane index — all numeric where it counts
+    sort -t"$tab" -k1,1 -k2,2n -k5,5n "$snap" > "$sorted"
+
+    made=0 skipped=0 new_session=0 skip_session=0
+    cur_s='' cur_w='' pending_win='' pending_layout='' last_pane=''
+    while IFS="$tab" read -r s wi wn layout pi cwd; do
+        [ -n "$s" ] || continue
+        [ -d "$cwd" ] || cwd=$HOME
+
+        if [ "$s" != "$cur_s" ]; then
+            cur_s=$s cur_w='' skip_session=0
+            # -t= is an exact match; a plain -t would let "work" latch onto
+            # an existing "work-scratch" and merge the two.
+            if tmux has-session -t="$s" 2>/dev/null; then
+                skip_session=1 skipped=$((skipped + 1))
+                continue
+            fi
+            new_session=1
+        fi
+        [ "$skip_session" -eq 1 ] && continue
+
+        if [ "$wi" != "$cur_w" ]; then
+            [ -n "$pending_win" ] && tmux select-layout -t "$pending_win" "$pending_layout" >/dev/null 2>&1
+            cur_w=$wi
+            if [ "$new_session" -eq 1 ]; then
+                # Create the session AS its first window rather than making a
+                # placeholder and killing it later: killing the last window
+                # kills the session, and a placeholder sitting on a real
+                # window's index makes new-window pick a different one.
+                out=$(tmux new-session -d -P -F '#{window_index} #{pane_id}' \
+                    -s "$s" -n "$wn" -c "$cwd" -x "$w" -y "$h") || { skip_session=1; continue; }
+                got=${out%% *} last_pane=${out##* }
+                [ "$got" = "$wi" ] || tmux move-window -s "$s:$got" -t "$s:$wi" 2>/dev/null
+                new_session=0 made=$((made + 1))
+            else
+                last_pane=$(tmux new-window -d -P -F '#{pane_id}' -t "$s:$wi" -n "$wn" -c "$cwd" 2>/dev/null)
+            fi
+            pending_win="$s:$wi" pending_layout=$layout
+        else
+            # Split the pane we made last, by id — NOT the window. split-window
+            # targeting a window splits that window's *active* pane, and -d
+            # leaves the first pane active, so every later pane lands directly
+            # under pane 1 and the directories come back in the wrong slots.
+            last_pane=$(tmux split-window -d -P -F '#{pane_id}' -t "$last_pane" -c "$cwd" 2>/dev/null) || continue
+            # Re-tile as we go: past four or five panes a default split has no
+            # room left and fails, and the real layout only lands at the end.
+            tmux select-layout -t "$pending_win" tiled >/dev/null 2>&1
+        fi
+    done < "$sorted"
+    [ -n "$pending_win" ] && tmux select-layout -t "$pending_win" "$pending_layout" >/dev/null 2>&1
+
+    tmux display-message "[tmux] restored $made session(s), skipped $skipped already open"
+}
+
+case "${1:-}" in
+    save) save "${2:-}" ;;
+    restore) restore ;;
+    path) printf '%s\n' "$snap" ;;
+    *) printf 'usage: %s save [auto] | restore | path\n' "${0##*/}" >&2; exit 2 ;;
+esac

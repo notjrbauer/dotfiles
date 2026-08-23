@@ -80,6 +80,11 @@ link "$DOTFILES/.config/nvim"        "$XDG_CONFIG_HOME/nvim"
 link "$DOTFILES/.config/wezterm"     "$XDG_CONFIG_HOME/wezterm"
 link "$DOTFILES/.config/ghostty"     "$XDG_CONFIG_HOME/ghostty"
 link "$DOTFILES/.tmux.conf"          "$HOME/.tmux.conf"
+# The conf stays at ~/.tmux.conf; only the helper scripts it shells out to are
+# XDG. Nothing here is named tmux.conf on purpose — tmux also looks for
+# $XDG_CONFIG_HOME/tmux/tmux.conf, and a second config found there would load
+# instead of the one above.
+link "$DOTFILES/.config/tmux"        "$XDG_CONFIG_HOME/tmux"
 
 # Hammerspoon: link the file, not ~/.hammerspoon itself — Spoons install into
 # that directory and would otherwise land in this repo (same trap as .claude).
