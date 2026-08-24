@@ -47,3 +47,6 @@ backups/
 .last-*
 *.bak.*
 *.tar.gz
+
+# claude --worktree checkouts
+worktrees/

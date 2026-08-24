@@ -14,9 +14,9 @@ Code writes as you work, and none of it belongs in git:
 | `CLAUDE.md` — global defaults | `projects/` — session transcripts (tens of MB) |
 | `agents/` — the curated subagents | `.credentials.json` — OAuth tokens |
 | `settings.json` — model/permissions/plugins | `~/.claude.json` — usage, project history, MCP |
-| `skills/` — portable skills | `plugins/` — cloned plugin repos (reinstall) |
-| (future) `commands/`, `output-styles/` |  |
-|  | `*-cache/`, `file-history/`, `history.jsonl`, `sessions/`, `daemon*`, `jobs/`, `tasks/` |
+| `skills/` — portable skills (custom slash commands live here too) | `plugins/` — cloned plugin repos (reinstall) |
+| `rules/` — path-scoped reference sheets (Go, Lua, shell…); load only with matching files | `*-cache/`, `file-history/`, `history.jsonl`, `sessions/`, `daemon*`, `jobs/`, `tasks/` |
+| `hooks/` — scripts `settings.json`'s hooks run (tmux guard, pane recorder) |  |
 
 So `~/.claude` itself stays a real directory; only the portable files are
 symlinks back into this repo. The `.gitignore` here is a belt-and-suspenders
@@ -36,7 +36,26 @@ when a rule shouldn't be shared, and review `git diff` before committing.
 ~/.claude/settings.json  -> .claude/settings.json  # model, permissions, plugins
 ~/.claude/agents/*       -> .claude/agents/*       # per-entry (link_children)
 ~/.claude/skills/*       -> .claude/skills/*       # per-entry (link_children)
+~/.claude/rules/*        -> .claude/rules/*        # per-entry; each has `paths:` frontmatter
+~/.claude/hooks/*        -> .claude/hooks/*        # per-entry
 ```
+
+## What the hooks in `settings.json` do
+
+All of them shell out to small scripts so the JSON stays readable:
+
+- **tmux badge** (`~/.config/tmux/tmux-agent-state`): `UserPromptSubmit` clears,
+  `Stop` sets `done`, `PermissionRequest` / `StopFailure` / a filtered
+  `Notification` set `wait` (and send a WezTerm toast), `SessionEnd` clears.
+- **resume after reboot**: `SessionStart` stores the session id as the tmux
+  pane option `@claude_session`; `tmux-snapshot` records it and a restore
+  types `claude -r <id>` into the pane, unsent.
+- **tmux guard** (`hooks/tmux-guard.sh`, `PreToolUse` on Bash): denies
+  `new-session`/`new-window`/`split-window` without `-d`, `capture-pane`
+  without `-p`, and `send-keys` into any pane this session did not create.
+  `hooks/tmux-record-pane.sh` (`PostToolUse`) is how it knows which panes
+  those are. These used to be three sentences in `CLAUDE.md`; a hook holds
+  every time, a sentence does not.
 
 ## Bootstrapping a fresh machine
 
@@ -59,6 +78,6 @@ this file. Don't "clean it up"; only the name is exposed.
 
 Drop it in this directory, add a `link` line in `../install.sh`, and (if
 it's a new top-level name) it's already covered — the `.gitignore` blocks
-runtime state, not config. Custom slash commands go in `commands/`, custom
-output styles in `output-styles/`; both are auto-discovered under `~/.claude`.
+runtime state, not config. A custom slash command is a skill (`skills/<name>/SKILL.md`);
+`commands/` was merged into skills.
 See `agents/README.md` for the subagent roster.

@@ -11,9 +11,10 @@ it. `install.sh` is idempotent, and moves a pre-existing real file to
 `<path>.bak.<timestamp>` before linking. Every new managed file needs a
 `link` line there.
 
-- `.claude/agents/*.md` — personal specialist subagents, symlinked into
-  `~/.claude/agents` one entry at a time (`link_children`) so agents
-  installed there later stay out of this public repo.
+- `.claude/agents/*.md`, `.claude/rules/*.md`, `.claude/skills/*` —
+  personal subagents, path-scoped rules, and skills, symlinked into
+  `~/.claude/{agents,rules,skills}` one entry at a time (`link_children`)
+  so anything installed there later stays out of this public repo.
 - `agents-scaffold/` — a **portable, self-contained** scaffold (AGENTS.md +
   ADR log + journal + git hooks) dropped into *other* repos. It must not
   depend on `~/.claude/CLAUDE.md`; it runs on machines without it.
@@ -40,8 +41,10 @@ it. `install.sh` is idempotent, and moves a pre-existing real file to
 
 - **Secrets → `~/.zshenv.local`** (untracked, sourced last). Never a token in
   `.config/zsh/` — that path is a symlink into this public repo.
-- **Git identity → `~/.gitconfig.local`** (untracked, included last). Don't
-  put an email back in the tracked `.gitconfig`.
+- **Git identity by directory → `~/.gitconfig.work` / `~/.gitconfig.personal`**
+  (untracked, `includeIf` in `.gitconfig`); machine-local overrides →
+  `~/.gitconfig.local`. The tracked `.gitconfig` keeps the personal address as
+  the fallback on purpose; never a work address or employer name there.
 - **The Brewfile is curated by hand.** Never `brew bundle dump` — it re-adds
   transitive deps, re-pins `terraform` to the disabled core formula, and
   resurrects removed tools.
@@ -54,9 +57,12 @@ documented in the Brewfile itself, and the neovim nightly-vs-brew split in
 
 ## The specialists
 
-`.claude/agents/` holds personal subagents — each is both an ask-me and a
-delegate-to-me. Hand agent work to `ai-claude-specialist`; roster in
-`.claude/agents/README.md`.
+Three subagents for jobs that need isolation (`code-archaeologist`,
+`code-reviewer`, `idiomatic-code-reviewer`), six path-scoped rules in
+`.claude/rules/` that load with a matching file (Go, Lua/Neovim, frontend,
+shell, Docker, docs), and two reference skills (`backend-design`, `/perf`).
+Roster, rationale, and how to add one: `.claude/agents/README.md`. Claude
+Code questions go to the built-in `claude-code-guide` agent.
 
 Keep this file to what nearly every session here needs; point at the
 authoritative file instead of restating it. Commits: `.claude/CLAUDE.md`

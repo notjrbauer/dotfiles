@@ -5,6 +5,13 @@ description: >-
   "fresh review", "adversarial review", "review this diff with fresh
   eyes", or /fresh-review — given a diff (or base ref) and a one-line
   task statement.
+# context: fork is what makes "fresh" true. As a plain skill this ran INSIDE
+# the authoring session, with the plan and transcript it forbids itself from
+# reading already in context. A forked subagent starts empty.
+context: fork
+background: false
+# Only ever wanted by name; keeps its description out of every other session.
+disable-model-invocation: true
 ---
 
 # Fresh-context adversarial review

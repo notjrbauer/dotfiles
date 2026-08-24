@@ -62,6 +62,6 @@ belongs in one rather than in the transcript. Something that just runs and
 exits with short output goes in `run_in_background`, not tmux.
 
 Invocations, read-back, and cleanup: the `tmux-panes` skill. Bindings:
-`docs/tmux.md` in the dotfiles repo. Three traps no permission glob can catch
-— `-d` on every `new-session`/`new-window`/`split-window`, `-p` on every
-`capture-pane`, and never `send-keys` into a pane you didn't create.
+`docs/tmux.md` in the dotfiles repo. A `PreToolUse` hook denies the three
+traps — a create without `-d`, a `capture-pane` without `-p`, `send-keys`
+into a pane you didn't create — so a denial there is the rule, not a fluke.
