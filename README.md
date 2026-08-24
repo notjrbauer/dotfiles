@@ -27,8 +27,9 @@ make install      # or: ./install.sh
 
 `make install` (via `install.sh`) is idempotent and safe to re-run: it
 refreshes existing symlinks and backs up any pre-existing **real** file to
-`<path>.bak.<timestamp>` before linking. It also seeds `~/.gitconfig.local`
-(machine-local git identity — set your work email there) and
+`<path>.bak.<timestamp>` before linking. It also seeds `~/.gitconfig.work` /
+`~/.gitconfig.personal` (identity by directory — fill in the work address
+there), `~/.gitconfig.local` (machine-local git overrides) and
 `~/.zshenv.local` (machine-local shell env — put API tokens there).
 
 ```sh
@@ -91,11 +92,11 @@ stands alone on teammates' machines and CI. See
 
 ## Stack
 
-- **Shell:** zsh + [zap](https://github.com/zap-zsh/zap), XDG layout via `ZDOTDIR`
+- **Shell:** zsh, no plugins, XDG layout via `ZDOTDIR`
 - **Prompt:** [starship](https://starship.rs)
 - **Terminal:** [WezTerm](https://wezterm.org) (a [Ghostty](https://ghostty.org) config is maintained in parallel)
 - **Editor:** [Neovim](https://neovim.io) 0.12+
-- **Tools:** fnm (node) · colima (docker) · zoxide (`j`) · fzf · eza · bat
+- **Tools:** fnm (node) · OrbStack (docker) · zoxide (`j`) · fzf · eza · bat
 
 ## Conventions
 
@@ -107,13 +108,12 @@ stands alone on teammates' machines and CI. See
 - **Selecting isn't copying.** In tmux the mouse only highlights; `y` is the
   one path to the clipboard, so a drag in the pane you're pasting *into* can't
   clobber the buffer you just filled.
-- **Pane movement is unconditional:** bare `C-h/j/k/l` always moves between
-  tmux panes, in every pane including Neovim, fzf and Claude Code. Use `C-w
-  h/j/k/l` for Neovim's own splits and the arrows in fzf; `C-a h/j/k/l` is the
-  explicit-prefix form. `Cmd+C`/`Cmd+V` are the terminal's own
-  copy/paste (in a full-screen TUI, hold **Shift while dragging** to select
-  first) — inside tmux, prefer `y`.
-- **Docker:** colima (`colima start`). The `default` context targets colima.
+- **Pane movement is Vim- and fzf-aware:** bare `C-h/j/k/l` moves between
+  tmux panes, and inside Neovim or fzf is passed through (Neovim hops to the
+  next tmux pane at a window edge). `C-a h/j/k/l` is the explicit-prefix form.
+  `Cmd+C`/`Cmd+V` are the terminal's own copy/paste (in a full-screen TUI, hold
+  **Shift while dragging** to select first) — inside tmux, prefer `y`.
+- **Docker:** OrbStack owns the `docker` CLI (`/usr/local/bin/docker` → OrbStack); colima is installed but not the default context.
 - **AI commits:** no AI attribution — never add `Assisted-by:` or
   `Co-Authored-By:` for an AI; the owner attributes manually. See
   `.claude/CLAUDE.md`.

@@ -1,4 +1,4 @@
-# settings.json permission tightening — DRAFT, not applied
+# settings.json permission tightening — APPLIED (the block below is what `.claude/settings.json` carries)
 
 Three holes, all pre-existing. Each was reproduced on tmux 3.7c against a
 throwaway socket, never the live server.

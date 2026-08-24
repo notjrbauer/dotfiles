@@ -19,7 +19,9 @@ brew "awscli"
 brew "bat"
 brew "colima"
 brew "direnv"
-brew "docker"
+# No `brew "docker"`: the docker CLI here is OrbStack's (/usr/local/bin/docker
+# -> OrbStack.app/…/xbin/docker), and `brew bundle` tried to `brew link` the
+# formula over that symlink and failed on every run.
 brew "exiftool"
 brew "eza"
 brew "ffmpeg"
@@ -49,7 +51,8 @@ brew "mysql"
 brew "neovim"
 brew "protobuf"
 brew "ripgrep"
-brew "rust"
+# rustup only — it conflicts with the `rust` formula, and the toolchain it
+# manages lives in ~/.cargo (cargo/rustc resolve there; see .zprofile).
 brew "rustup"
 brew "saml2aws"
 brew "starship"
@@ -95,4 +98,6 @@ cask "qlmarkdown"
 cask "tableplus"
 cask "the-unarchiver"
 cask "typora"
-cask "wezterm"
+# The nightly, not the stable cask: both install WezTerm.app, so listing the
+# one that is not installed makes `brew bundle` abort on the existing app.
+cask "wezterm@nightly"
