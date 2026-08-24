@@ -138,7 +138,7 @@ test:
 	@command -v nvim >/dev/null 2>&1 || { echo "❌ nvim not found on PATH — run 'make install'"; exit 1; }
 	@nvim --version | head -1
 	@echo "→ loading config headlessly (installs missing plugins on first run)…"
-	@nvim --headless "+lua print('init.lua loaded: ok')" +qa
+	@nvim --headless "+lua print('init.lua loaded: ok')" +qa; echo
 	@echo "→ running :checkhealth …"
 	@nvim --headless "+silent! checkhealth" "+silent! write! /tmp/nvim_checkhealth.txt" "+qa!" >/dev/null 2>&1 || true
 	@echo "── checkhealth: ERROR / WARNING lines ──"
@@ -320,6 +320,6 @@ debug:
 	nvim --clean init.lua
 
 wezterm:
-	brew upgrade --cask wezterm@nightly --no-quarantine --greedy-latest
+	brew upgrade --cask wezterm@nightly --greedy-latest   # brew 6 has no --no-quarantine
 
 reset: clean upgrade

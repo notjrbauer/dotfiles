@@ -40,5 +40,4 @@ end
 
 return {
   default_prog = prog,
-  launch_menu = {},
 }

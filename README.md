@@ -47,7 +47,7 @@ make help        # list targets
 | `.config/zsh/` | `ZDOTDIR`: `.zshenv` (env), `.zprofile` (PATH), `.zshrc` (interactive + aliases) |
 | `.config/starship.toml` | Prompt config |
 | `.config/nvim/` | Neovim 0.12 — native LSP, `vim.pack`, blink.cmp, fzf-lua, treesitter |
-| `.config/wezterm/` | WezTerm — catppuccin mocha, tmux-style `C-a` leader |
+| `.config/wezterm/` | WezTerm — catppuccin mocha, SUPER-side chords only; tmux owns `C-a` |
 | `.config/ghostty/` | Ghostty — same palette/font, native tabs & splits |
 | `.gitconfig`, `.psqlrc`, `.tmux.conf`, `Brewfile` | Git / psql / tmux / Homebrew bundle |
 | `docs/` | Guides — [`tmux.md`](docs/tmux.md) (sessions, panes, copy/paste) |
@@ -92,7 +92,7 @@ stands alone on teammates' machines and CI. See
 
 ## Stack
 
-- **Shell:** zsh, no plugins, XDG layout via `ZDOTDIR`
+- **Shell:** zsh, two plugins (syntax highlighting, autosuggestions) sourced without a manager, XDG layout via `ZDOTDIR`
 - **Prompt:** [starship](https://starship.rs)
 - **Terminal:** [WezTerm](https://wezterm.org) (a [Ghostty](https://ghostty.org) config is maintained in parallel)
 - **Editor:** [Neovim](https://neovim.io) 0.12+

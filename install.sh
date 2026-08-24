@@ -195,6 +195,15 @@ link_children "$DOTFILES/.claude/skills" "$HOME/.claude/skills"
 link_children "$DOTFILES/.claude/rules"  "$HOME/.claude/rules"    # path-scoped, load with matching files
 link_children "$DOTFILES/.claude/hooks"  "$HOME/.claude/hooks"    # scripts settings.json's hooks call
 chmod +x "$DOTFILES"/.claude/hooks/*.sh 2>/dev/null || true
+# A subagent or skill with bad frontmatter is skipped silently by Claude Code;
+# validate here so the failure has a face. Non-fatal: claude may not be
+# installed yet on a fresh machine.
+if command -v claude >/dev/null 2>&1; then
+  for d in agents skills; do
+    claude plugin validate "$DOTFILES/.claude/$d" >/dev/null 2>&1 \
+      || echo "warn: claude plugin validate .claude/$d reported problems — run it to see them"
+  done
+fi
 
 echo ""
 echo "Done. Start a new shell (or run: exec zsh -l) to pick up the changes."

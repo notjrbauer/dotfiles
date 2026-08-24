@@ -147,6 +147,7 @@ Claude Code runs in a pane like anything else.
 | Key | Does |
 | --- | --- |
 | `C-a g` | page an agent log — fzf popup over `~/.cache/agent-logs/`, newest first |
+| `C-a a` | **jump to a Claude** — fzf popup over `claude agents --json` (state, name, dir); picks the pane whose session it is |
 | `C-a A` | open a **lead** Claude with tmux teammates, in a window of its own |
 
 `~/.cache/agent-logs/` is the agreed drop for long command output. An agent that
@@ -195,6 +196,15 @@ in two places without you looking:
 - **the pane border.** Every pane's border shows its title: Claude Code writes
   its current task there, Neovim its file, and a shell its directory (or the
   running command). So a glance at a window says what each pane is doing.
+- **the window list.** A window whose active pane is a Claude shows 󱚝 and the
+  agent's live title instead of the window name (its `pane_current_command` is
+  Claude's version string, which nothing else looks like). A green `*` only
+  appears when the agent has nothing running in the background — a `Stop`
+  with background tasks still going is not "done".
+- **session names.** A `SessionStart` hook names every session `<repo>@<branch>`
+  (unless you `/rename`d it), so `claude -r dotfiles@main` resumes by name and
+  `C-a a` shows something readable. `terminalTitleFromRename` is off so the
+  pane border keeps the live task title rather than the name.
 
 Hook edits in `settings.json` are picked up by a running `claude` within a few
 seconds (it watches the file); only a hook that never appears needs a restart.
@@ -320,3 +330,9 @@ which is macOS-only. `%if` cannot help — it is evaluated at parse time while
 on macOS.
 
 This is stock tmux plus `fzf` — no plugin manager, nothing to install.
+
+tmux 3.8 (unreleased as of Aug 2026) makes `mouse` default on, binds `Tab` to a
+new `switch-mode` (this config's `bind Tab last-window` still wins), and turns
+hooks into events with payloads — `set-hook -B` and OSC 133
+`pane-command-finished` could then replace the bell-driven badge for plain
+shells. Nothing here needs to change for it.

@@ -59,13 +59,13 @@ fi
 # single package installs, and a stray `exit` in it would end the run reporting
 # success. A throwaway zsh contains that, and keeps every other secret in the
 # file out of brew's environment.
-if [ -z "${HOMEBREW_GITHUB_API_TOKEN:-}" ] && [ -f "$HOME/.zshenv.local" ]; then
+if [[ -z "${HOMEBREW_GITHUB_API_TOKEN:-}" && -f "$HOME/.zshenv.local" ]]; then
   token="$(zsh -fc '. "$HOME/.zshenv.local" >/dev/null 2>&1
                     print -rn -- "${HOMEBREW_GITHUB_API_TOKEN-}"' 2>/dev/null)" || token=""
-  [ -n "$token" ] && export HOMEBREW_GITHUB_API_TOKEN="$token"
+  [[ -n "$token" ]] && export HOMEBREW_GITHUB_API_TOKEN="$token"
   unset token
 fi
-if [ -z "${HOMEBREW_GITHUB_API_TOKEN:-}" ]; then
+if [[ -z "${HOMEBREW_GITHUB_API_TOKEN:-}" ]]; then
   echo "warn: HOMEBREW_GITHUB_API_TOKEN unset — livekit/{lkctl,nebula} will fail."
   echo "      Step 4 creates ~/.zshenv.local; put the token there (needs \`repo\`"
   echo "      scope) and re-run ./bootstrap.sh."
@@ -120,7 +120,7 @@ comp="${XDG_DATA_HOME:-$HOME/.local/share}/zsh/site-functions"
 mkdir -p "$comp"
 command -v rustup >/dev/null 2>&1 && rustup completions zsh cargo > "$comp/_cargo"
 command -v uv     >/dev/null 2>&1 && uv generate-shell-completion zsh > "$comp/_uv"
-if command -v go >/dev/null 2>&1 && [ ! -f "$comp/_golang" ]; then
+if command -v go >/dev/null 2>&1 && [[ ! -f "$comp/_golang" ]]; then
   curl -fsSL https://raw.githubusercontent.com/zsh-users/zsh-completions/master/src/_golang -o "$comp/_golang" \
     || echo "warn: could not fetch _golang completion"
 fi

@@ -18,7 +18,8 @@ cmd=$(printf '%s' "$in" | jq -r '.tool_input.command // empty')
 [ -n "$cmd" ] || exit 0
 case $cmd in *tmux*) ;; *) exit 0 ;; esac
 sid=$(printf '%s' "$in" | jq -r '.session_id // empty')
-panes="${XDG_CACHE_HOME:-$HOME/.cache}/agent-panes/$sid"
+case $sid in *[!0-9a-fA-F-]*) sid='' ;; esac   # a path component; UUID shape only
+panes="${XDG_CACHE_HOME:-$HOME/.cache}/agent-panes/${sid:-none}"
 
 deny() {
     jq -n --arg r "$1" '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:$r}}'

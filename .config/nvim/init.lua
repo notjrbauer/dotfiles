@@ -136,7 +136,7 @@ opt.splitbelow = true
 opt.splitright = true
 opt.splitkeep = "screen"
 opt.timeoutlen = 300
-opt.updatetime = 200
+opt.updatetime = 200 -- CursorHold latency for anything that hooks it (typescript-tools code lens, gitsigns blame)
 opt.scrolloff = 8
 opt.sidescrolloff = 8
 
@@ -1065,7 +1065,6 @@ end
 
 -- Escape / search
 map("i", "jj", "<Esc>", { desc = "Exit insert mode" })
-map("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Clear search highlight" })
 
 -- Save / quit
 map("n", "<leader>w", "<cmd>w<CR>", { desc = "Save file" })
@@ -1093,7 +1092,21 @@ end
 map("n", "<C-h>", win_or_tmux("h", "-L"), { desc = "Go to Left Window / tmux pane" })
 map("n", "<C-j>", win_or_tmux("j", "-D"), { desc = "Go to Lower Window / tmux pane" })
 map("n", "<C-k>", win_or_tmux("k", "-U"), { desc = "Go to Upper Window / tmux pane" })
+map("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Clear search highlight" })
 map("n", "<C-l>", win_or_tmux("l", "-R"), { desc = "Go to Right Window / tmux pane" })
+-- The two other keys .tmux.conf forwards into nvim: last pane and next pane.
+-- Normal mode only — blink keeps insert-mode C-Space, :terminal keeps C-\ C-n.
+-- (tmux select-pane wraps at a window edge; vim-tmux-navigator does the same.)
+map("n", "<C-\\>", function()
+  if vim.env.TMUX then
+    vim.system({ "tmux", "select-pane", "-l" })
+  end
+end, { desc = "Last tmux pane" })
+map("n", "<C-Space>", function()
+  if vim.env.TMUX then
+    vim.system({ "tmux", "select-pane", "-t:.+" })
+  end
+end, { desc = "Next tmux pane" })
 map("n", "<C-Up>", "<cmd>resize +2<CR>", { desc = "Increase Window Height" })
 map("n", "<C-Down>", "<cmd>resize -2<CR>", { desc = "Decrease Window Height" })
 map("n", "<C-Left>", "<cmd>vertical resize -2<CR>", { desc = "Decrease Window Width" })
@@ -1595,13 +1608,15 @@ map("n", "s", function()
   flash_jump({ multiline = true })
 end, { desc = "Flash (visible)" })
 
--- Intentionally not enabling ui2 by default here.
--- It is still experimental in 0.12, so keep it opt-in.
+-- Neovim's experimental message UI (ui2). Opt-in: it can only be reached
+-- before this file runs, so `nvim --cmd "lua vim.g.enable_ui2 = true"` (or an
+-- alias). Option names follow $VIMRUNTIME/lua/vim/_core/ui2.lua: `msg.targets`
+-- (plural) and the timeout nested under `msg.msg`.
 if vim.g.enable_ui2 == true then
   pcall(function()
     require("vim._core.ui2").enable({
       enable = true,
-      msg = { target = "msg", timeout = 4000 },
+      msg = { targets = "msg", msg = { timeout = 4000 } },
     })
   end)
 end

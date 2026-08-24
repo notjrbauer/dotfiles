@@ -165,10 +165,15 @@ restore() {
     while IFS="$tab" read -r s wi wn layout pi cwd cid; do
         [ -n "$s" ] || continue
         [ -d "$cwd" ] || cwd=$HOME
-        # Only a UUID is ever typed into a pane; anything else in the column
-        # (an older snapshot without it, a stray value) is dropped.
+        # Only a UUID is ever typed into a pane. The snapshot file is plain
+        # text any local process could append to, and what passes here is
+        # typed onto a live command line one Enter away from running — so the
+        # check is the full shape: 36 chars, hex and dashes only. (A glob
+        # skeleton like [0-9a-f]*-… is NOT that: every * accepts spaces, ';'
+        # and '$(…)', which a review demonstrated.)
         case $cid in
-            [0-9a-f]*-[0-9a-f]*-[0-9a-f]*-[0-9a-f]*-[0-9a-f]*) ;;
+            *[!0-9a-f-]*) cid='' ;;
+            ????????-????-????-????-????????????) ;;
             *) cid='' ;;
         esac
         # ~auto~ means "this window had automatic-rename on" — create it with

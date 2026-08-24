@@ -50,6 +50,10 @@ All of them shell out to small scripts so the JSON stays readable:
 - **resume after reboot**: `SessionStart` stores the session id as the tmux
   pane option `@claude_session`; `tmux-snapshot` records it and a restore
   types `claude -r <id>` into the pane, unsent.
+- **session names** (`hooks/session-title.sh`, `SessionStart`): `<repo>@<branch>`
+  unless already named, so `claude -r dotfiles@main` works and `C-a a` lists
+  something readable. `terminalTitleFromRename: false` keeps the pane border
+  on Claude's live task title.
 - **tmux guard** (`hooks/tmux-guard.sh`, `PreToolUse` on Bash): denies
   `new-session`/`new-window`/`split-window` without `-d`, `capture-pane`
   without `-p`, and `send-keys` into any pane this session did not create.

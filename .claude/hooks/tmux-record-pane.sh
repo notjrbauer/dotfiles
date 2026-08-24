@@ -7,9 +7,13 @@ in=$(cat)
 cmd=$(printf '%s' "$in" | jq -r '.tool_input.command // empty')
 case $cmd in *tmux*-P*) ;; *) exit 0 ;; esac
 sid=$(printf '%s' "$in" | jq -r '.session_id // empty')
-[ -n "$sid" ] || exit 0
+# The id is a path component; a UUID is the only shape it ever has.
+case $sid in ''|*[!0-9a-fA-F-]*) exit 0 ;; esac
 d="${XDG_CACHE_HOME:-$HOME/.cache}/agent-panes"
 mkdir -p "$d"
+# Only the id the creation printed: the first %N on the LAST line of stdout.
+# Recording every %N anywhere in the output let a command that also echoed
+# the user's pane id put that pane on the allowlist.
 printf '%s' "$in" | jq -r '(.tool_response.stdout // .tool_response // "") | tostring' \
-    | grep -oE '%[0-9]+' >> "$d/$sid"
+    | awk 'NF { last = $0 } END { print last }' | grep -oE '%[0-9]+' | head -1 >> "$d/$sid"
 exit 0

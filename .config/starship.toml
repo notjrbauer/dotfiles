@@ -4,9 +4,10 @@
 
 add_newline = false
 
-# Safety net for git in very large working trees. fsmonitor is disabled
-# globally now, so git_status is a single ~25ms `git status` fork on normal
-# repos (measured); this headroom only matters when cd'ing into a huge repo.
+# Safety net for git in very large working trees. git_status and git_branch
+# go through gitoxide (use_git_executable = false, the default) and share one
+# repo open — ~25ms on a normal repo (measured); this headroom only matters
+# when cd'ing into a huge repo.
 command_timeout = 1000
 
 format = """

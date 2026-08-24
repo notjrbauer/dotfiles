@@ -50,6 +50,10 @@
           {
             "type": "command",
             "command": "[ -n \"$TMUX_PANE\" ] && tmux set-option -p -t \"$TMUX_PANE\" @claude_session \"$(jq -r .session_id)\" 2>/dev/null; exit 0"
+          },
+          {
+            "type": "command",
+            "command": "\"$HOME/.claude/hooks/session-title.sh\""
           }
         ]
       }
@@ -91,7 +95,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${XDG_CONFIG_HOME:-$HOME/.config}/tmux/tmux-agent-state\" done"
+            "command": "jq -e '((.background_tasks // []) + (.session_crons // [])) | length == 0' >/dev/null && \"${XDG_CONFIG_HOME:-$HOME/.config}/tmux/tmux-agent-state\" done; exit 0"
           }
         ]
       }
@@ -159,6 +163,11 @@
       }
     }
   },
+  "subagentStatusLine": {
+    "type": "command",
+    "command": "jq -c '.tasks[] | {id, content: \"\\(.name) \\(.model // \"\") \\(.status) ctx \\((((.tokenCount // 0) * 100) / (.contextWindowSize // 200000)) | floor)%\"}'"
+  },
+  "terminalTitleFromRename": false,
   "outputStyle": "Concise",
   "skipWorkflowUsageWarning": true,
   "preferredNotifChannel": "terminal_bell"

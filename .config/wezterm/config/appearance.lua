@@ -7,10 +7,10 @@ return {
   -- 20240128). No adapter pinning: the old pick_best() forced the discrete
   -- Radeon on for a terminal, and webgpu_preferred_adapter overrides
   -- webgpu_power_preference anyway, so one of the two was always dead.
-  -- LowPower is the default and what a laptop wants. The panel is 60 Hz;
-  -- animation_fps only drives cursor-blink and bell easing.
+  -- LowPower is the default and what a laptop wants. max_fps stays at its
+  -- default (60, the panel's rate); animation_fps only drives cursor-blink
+  -- and bell easing and defaults to 10.
   front_end = 'WebGpu',
-  max_fps = 60,
   animation_fps = 60,
 
   -- Cursor
@@ -21,7 +21,6 @@ return {
   force_reverse_video_cursor = true,
 
   -- Styling
-  bold_brightens_ansi_colors = true,
   underline_thickness = '1.5pt',
   colors = colors,
   font = fonts.font,

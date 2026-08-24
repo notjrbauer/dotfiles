@@ -15,10 +15,10 @@ ZCOMPDUMP_PATH="$CACHE_DIR/.zcompdump"
 # `_evalcache` (init-output cache for fzf/zoxide/starship) lives in .zshenv so
 # .zprofile can use it for brew shellenv too.
 #
-# No plugins, no plugin manager. Everything here is zsh, the tools' own init
-# scripts, and completion files. (Autosuggestions and syntax highlighting were
-# the last two; dropped on purpose, and with them zsh-defer, which only
-# existed to hide their load time.)
+# No plugin manager. Exactly two plugins, at the very end of this file — the
+# two things zsh cannot do itself: syntax colouring and ghost-text
+# suggestions. Everything else is zsh, the tools' own init scripts, and
+# completion files.
 
 # ================================
 # 🧩 Platform Tweaks
@@ -110,7 +110,7 @@ unset _gcloud_inc
 # zoxide — AFTER compinit for the same reason gcloud is: its init ends with
 # `[[ ${+functions[compdef]} -ne 0 ]] && compdef __zoxide_z_complete j`, so run
 # any earlier and it silently skips the registration — `j <TAB>` does nothing.
-if command -v zoxide &>/dev/null; then
+if (( $+commands[zoxide] )); then
   _evalcache zoxide zoxide init zsh --cmd j
 fi
 
@@ -143,7 +143,7 @@ unset _k
 # emacs, viins and vicmd explicitly, but its completion hook is a bare
 # `bindkey '^I' fzf-completion` targeting whatever `main` is at eval time —
 # bound any earlier, `bindkey -v` relinks main to viins and **<TAB> is lost.
-[[ -n "$commands[fzf]" ]] && _evalcache fzf fzf --zsh
+(( $+commands[fzf] )) && _evalcache fzf fzf --zsh
 
 # Prefix + ↑/↓ (and k/j in cmd mode) searches history for matching commands.
 # Bind the literal sequences, not just $terminfo: kcuu1/kcud1 are the
@@ -193,14 +193,14 @@ else
 fi
 
 alias grep="grep --color=auto"
-[[ -n "$commands[tree]" ]] && alias lt="tree"
+(( $+commands[tree] )) && alias lt="tree"
 
 alias la="ls -A"
 alias ll="ls -l"
 alias lla="ls -lA"
-command -v nvim &>/dev/null && alias vim="nvim"
+(( $+commands[nvim] )) && alias vim="nvim"
 
-if [[ "$DISABLE_EXA" != true && (-n "$commands[eza]" || -n "$commands[exa]") ]]; then
+if [[ "$DISABLE_EXA" != true ]] && (( $+commands[eza] || $+commands[exa] )); then
   # Bake the binary into the alias bodies. Writing them against `exa` and
   # relying on the shim below to re-expand worked, but made every listing
   # alias depend on zsh re-expanding an alias body — one indirection too many.
@@ -212,14 +212,14 @@ if [[ "$DISABLE_EXA" != true && (-n "$commands[eza]" || -n "$commands[exa]") ]];
   alias lt="$_lsbin --icons -T"
   unset _lsbin
   # Muscle memory: `exa` at the prompt still works on an eza-only machine.
-  [[ -n "$commands[eza]" && -z "$commands[exa]" ]] && alias exa="eza"
+  (( $+commands[eza] && ! $+commands[exa] )) && alias exa="eza"
 fi
 
 alias rm="rm -v"
 alias cp="cp -vi"
 alias mv="mv -vi"
 
-if command -v bat &>/dev/null; then
+if (( $+commands[bat] )); then
   alias cat="bat"
 fi
 
@@ -238,7 +238,7 @@ mkcd() { mkdir -p -- "$1" && cd -- "$1"; }
 # Fresh-context review worktree: gwr [ref] adds a detached ../<repo>-review and
 # enters it (a separate cwd keys a separate Claude session); gwrx removes it.
 gwr() { local r; r=$(git rev-parse --show-toplevel) && git worktree add --detach "$r-review" "${1:-HEAD}" && cd "$r-review"; }
-gwrx() { local w; w=$(git rev-parse --show-toplevel) && [[ "$w" == *-review ]] || { echo "gwrx: not in a -review worktree" >&2; return 1; }; cd "${w%-review}" && git worktree remove "$w"; }
+gwrx() { local w; w=$(git rev-parse --show-toplevel) && [[ "$w" == *-review ]] || { print -u2 "gwrx: not in a -review worktree"; return 1; }; cd "${w%-review}" && git worktree remove "$w"; }
 alias reload='exec zsh'
 alias path='print -l -- $path'                 # one PATH entry per line
 
@@ -255,7 +255,7 @@ alias path='print -l -- $path'                 # one PATH entry per line
 #    prefix forces an exact match, but only on the SESSION part: `=foo` for a
 #    session target, `=foo:` for a window target, and not at all for a pane
 #    target (`capture-pane -t '=foo'` errors).
-if command -v tmux &>/dev/null; then
+if (( $+commands[tmux] )); then
 
   # ta [name] — attach to session `name`, creating it if it doesn't exist. With
   # no name: the basename of the git repo's root, so `ta` from any depth inside
@@ -402,7 +402,7 @@ if command -v tmux &>/dev/null; then
   # tsvc's remain-on-exit would leave a dead pane behind every time you did.
   # Context defaults to the current one; :t cuts an EKS arn (…:cluster/prod) down
   # to a name you can type.
-  if command -v k9s &>/dev/null; then
+  if (( $+commands[k9s] )); then
     k9() {
       local ctx="${1:-$(kubectl config current-context 2>/dev/null)}"
       [[ -n "$ctx" ]] || { print -u2 "k9: no current kube context — pass one"; return 1 }
@@ -464,18 +464,6 @@ esac
 # changes: pasted text is no longer drawn in standout.
 zle_highlight+=(paste:none)
 
-# Ghostty backdrop reshuffle — wezterm parity (utils/backdrops.lua :random()
-# runs at every startup). Ghostty reads ~/.cache/ghostty/backdrop-image only at
-# launch/reload, so this re-rolls the pick for the NEXT launch (or apply now
-# with cmd+shift+,).
-#
-# It fires far less often than it looks: tmux sets TERM_PROGRAM=tmux in every
-# pane, and ghostty's `command =` starts tmux from a NON-interactive login
-# shell, which never reads this file. So the only shell that runs it is the
-# one you land on after quitting tmux. Move it into ghostty's `command =` if
-# you want it once per launch.
-[[ $TERM_PROGRAM == ghostty ]] && ~/.config/ghostty/backdrop >/dev/null 2>&1
-
 # fnm (Node version manager) — --use-on-cd switches version per directory.
 # fnm prepends a fresh per-shell multishell dir every time it runs and never
 # drops the parent's, so a nested shell (tmux pane -> ta -> reload -> claude)
@@ -503,5 +491,29 @@ fi
 # direnv — per-directory env vars from .envrc.
 (( $+commands[direnv] )) && _evalcache direnv direnv hook zsh
 
-# Prompt — starship, last so nothing later overrides it.
+# Prompt — starship.
 (( $+commands[starship] )) && _evalcache starship starship init zsh
+
+# ================================
+# 🎨 The two plugins
+# ================================
+# Cloned once, pinned to a commit, sourced — no manager. Their dirs go on
+# fpath so any completion they ship is visible (compinit has already run;
+# it sees them on the next dump rebuild). Highlighting is sourced LAST: it
+# wraps every zle widget, so anything bound after it is not coloured.
+# ~10ms together, not deferred — deferral needed a third plugin.
+ZSH_AUTOSUGGEST_MANUAL_REBIND=1          # skip per-prompt rebinding: nothing rebinds after startup
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
+_plugin() {  # _plugin owner/repo sha
+  local dir="${XDG_DATA_HOME:-$HOME/.local/share}/zsh/plugins/${1:t}"
+  if [[ ! -d $dir ]]; then
+    git clone -q --depth 1 "https://github.com/$1" "$dir" \
+      && git -C "$dir" fetch -q --depth 1 origin "$2" && git -C "$dir" checkout -q "$2" \
+      || { print -u2 "zshrc: could not fetch $1"; return }
+  fi
+  fpath+=("$dir")
+  source "$dir/${1:t}.plugin.zsh"
+}
+_plugin zsh-users/zsh-autosuggestions        0e810e5afa27acbd074398eefbe28d13005dbc15
+_plugin zdharma-continuum/fast-syntax-highlighting cf318e06a9b7c9f2219d78f41b46fa6e06011fd9
+unfunction _plugin

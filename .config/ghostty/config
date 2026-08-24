@@ -142,7 +142,11 @@ split-divider-color = #6c7086
 # $SHELL, not a hardcoded path: it resolves to the login shell (brew zsh here)
 # and stays correct on Intel, where Homebrew lives at /usr/local. The login zsh
 # sources .zprofile, which is what puts tmux on PATH at all.
-command = shell:"$SHELL" -l -c 'tmux new-session -A -s main; exec "$SHELL" -l'
+# The backdrop roll runs here, not in .zshrc: tmux sets TERM_PROGRAM=tmux in
+# every pane and this -c shell never reads .zshrc, so .zshrc only ever ran it
+# after quitting tmux. Rolls the fragment for the NEXT launch (config is read
+# before command runs).
+command = shell:~/.config/ghostty/backdrop >/dev/null 2>&1; "$SHELL" -l -c 'tmux new-session -A -s main; exec "$SHELL" -l'
 
 # Detection reads the command's filename, which is now `sh`, not a shell it
 # knows how to inject into — so name the scheme explicitly or the features
@@ -163,8 +167,9 @@ mouse-hide-while-typing = true
 # replaces the clipboard you just filled in another pane. Selection still works;
 # super+c is the deliberate copy.
 copy-on-select = false
-# Always treat Option as Alt so alt+ maps in nvim/tmux work on any layout.
-macos-option-as-alt = true
+# Left Option is Alt (nvim/tmux alt+ maps); right Option composes — the same
+# split as wezterm's macOS default (send_composed_key_when_*_alt_is_pressed).
+macos-option-as-alt = left
 # Restore windows/tabs across relaunches (wezterm has no equivalent).
 window-save-state = always
 # wezterm visual_bell approximation: mark dock/title and flash the surface border.
@@ -204,8 +209,7 @@ keybind = f12=inspector:toggle
 
 # ---------------------------------------------------------------------------
 # NOT SUPPORTED (wezterm-only), for the record:
-# - Lua config / utils.gpu adapter picking (Ghostty: plain text; Metal is
-#   automatic on macOS)
+# - Lua config (Ghostty: plain text; Metal is automatic on macOS)
 # - max_fps / animation_fps caps (Ghostty renders on-demand, synced to display)
 # - visual_bell fade animation + color (custom.lua mocha.red); bell-features
 #   above is the closest
