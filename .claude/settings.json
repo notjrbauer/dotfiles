@@ -43,9 +43,6 @@
     "defaultMode": "auto"
   },
   "model": "claude-fable-5[1m]",
-  "env": {
-    "CLAUDE_CODE_TMUX_TRUECOLOR": "1"
-  },
   "hooks": {
     "SessionStart": [
       {

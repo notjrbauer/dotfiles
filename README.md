@@ -96,7 +96,7 @@ stands alone on teammates' machines and CI. See
 - **Prompt:** [starship](https://starship.rs)
 - **Terminal:** [WezTerm](https://wezterm.org) (a [Ghostty](https://ghostty.org) config is maintained in parallel)
 - **Editor:** [Neovim](https://neovim.io) 0.12+
-- **Tools:** fnm (node) · OrbStack (docker) · zoxide (`j`) · fzf · eza · bat
+- **Tools:** fnm (node) · colima (docker) · zoxide (`j`) · fzf · eza · bat
 
 ## Conventions
 
@@ -113,7 +113,7 @@ stands alone on teammates' machines and CI. See
   next tmux pane at a window edge). `C-a h/j/k/l` is the explicit-prefix form.
   `Cmd+C`/`Cmd+V` are the terminal's own copy/paste (in a full-screen TUI, hold
   **Shift while dragging** to select first) — inside tmux, prefer `y`.
-- **Docker:** OrbStack owns the `docker` CLI (`/usr/local/bin/docker` → OrbStack); colima is installed but not the default context.
+- **Docker:** colima (`colima start`); the `docker` CLI is the brew formula. The `default` context targets colima.
 - **AI commits:** no AI attribution — never add `Assisted-by:` or
   `Co-Authored-By:` for an AI; the owner attributes manually. See
   `.claude/CLAUDE.md`.

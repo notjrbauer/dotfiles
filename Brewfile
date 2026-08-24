@@ -19,9 +19,7 @@ brew "awscli"
 brew "bat"
 brew "colima"
 brew "direnv"
-# No `brew "docker"`: the docker CLI here is OrbStack's (/usr/local/bin/docker
-# -> OrbStack.app/…/xbin/docker), and `brew bundle` tried to `brew link` the
-# formula over that symlink and failed on every run.
+brew "docker"   # the CLI; colima is the daemon
 brew "exiftool"
 brew "eza"
 brew "ffmpeg"

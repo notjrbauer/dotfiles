@@ -25,9 +25,14 @@ deny() {
     exit 0
 }
 
-# One subcommand per line: rules must hold for each part of a pipeline.
+# One subcommand per line: rules must hold for each part of a pipeline. Only a
+# subcommand whose command word IS tmux (bare, by path, or behind env/command)
+# is checked — not any text that mentions tmux, so quoting a tmux command inside
+# another program's argument is not a false positive. `sh -c '…'` wrappers are
+# left to the permission classifier.
 printf '%s\n' "$cmd" | sed -E 's/(&&|\|\||;|\|)/\n/g' | while IFS= read -r c; do
-    case $c in *tmux*) ;; *) continue ;; esac
+    c=$(printf '%s' "$c" | sed -E 's/^[[:space:]]*//; s/^(command[[:space:]]+|env([[:space:]]+[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*)*[[:space:]]+)*//; s#^[^[:space:]]*/tmux([[:space:]]|$)#tmux\1#')
+    case $c in tmux\ *|tmux) ;; *) continue ;; esac
     case $c in
         *new-session*|*new-window*|*split-window*|*tmux\ new\ *|*tmux\ neww\ *|*tmux\ splitw\ *|*tmux\ new-s\ *|*tmux\ new-w\ *|*tmux\ split\ *)
             printf '%s' "$c" | grep -qE -- '(^|[[:space:]])-[A-Za-z]*d' \
