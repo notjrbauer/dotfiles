@@ -2,6 +2,9 @@
 .tmux/plugins
 .DS_Store
 .zsh/history
+# /etc/zshrc sets HISTFILE=$ZDOTDIR/.zsh_history before .zshrc overrides it —
+# a shell that bails early would write history into this repo.
+.config/zsh/.zsh_history
 .config/AWSVPNClient/*
 .config/*/*.log
 bin/
@@ -21,3 +24,6 @@ bin/
 
 # Claude Code: per-machine settings (permissions etc.) — never shared
 .claude/settings.local.json
+
+# claude --worktree creates checkouts here
+.claude/worktrees/

@@ -2,8 +2,34 @@
 # Keep this limited to environment: vars, PATH, and framework flags. No output
 # and no interactive-only settings (those belong in .zshrc).
 
-# Improves performance on Debian-based distros (skips the global compinit).
+# Ubuntu's /etc/zsh/zshrc runs a global compinit unless this is set (Debian
+# proper does not); a no-op on macOS, kept for the Linux install.
 skip_global_compinit=1
+
+# Cache `<tool> init` output. Measured here: brew shellenv 30ms, starship 12ms,
+# fzf 10ms, zoxide 8ms per shell, and each emits identical text per version.
+# Stale when the cache is older than the binary OR the binary's resolved path
+# changed — bottle binaries carry BUILD mtimes, which can predate a cache
+# written before the upgrade, and a Cellar path carries the version. Written
+# via temp file + mv so a tool that dies mid-write cannot leave a partial init
+# for the next shell; falls back to a live eval if anything looks wrong. Here,
+# not .zshrc, because .zprofile uses it for brew before .zshrc exists.
+_evalcache() {  # _evalcache <name-or-path> <command...>
+  local f="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/init-${${1:t}}.zsh"; shift
+  local bin="${1:/[^\/]*/$commands[$1]}" first
+  [[ -n $bin ]] && bin=${bin:A}
+  if [[ -s $f && -n $bin && $f -nt $bin ]] && { read -r first < "$f"; [[ $first == "# $bin" ]] }; then
+    source "$f"
+    return
+  fi
+  local t="$f.$$"
+  [[ -d ${f:h} ]] || command mkdir -p -- "${f:h}"
+  if { print -r -- "# $bin"; "$@" } >| "$t" 2>/dev/null && [[ -s $t ]]; then
+    command mv -f "$t" "$f" && source "$f" && return
+  fi
+  command rm -f "$t"
+  eval "$("$@" 2>/dev/null)"
+}
 
 # ---- shell flags ----
 DISABLE_EXA=false                    # set true to fall back from eza to plain ls
@@ -30,8 +56,9 @@ export VISUAL="$EDITOR"
 
 # ---- PATH ----
 # PATH additions live in .zprofile, NOT here. macOS's /etc/zprofile runs
-# `path_helper` AFTER .zshenv and rebuilds $PATH from /etc/paths, which would
-# clobber anything set here on login shells. See $ZDOTDIR/.zprofile.
+# `path_helper` AFTER .zshenv and rebuilds $PATH from /etc/paths, appending
+# whatever was already set — so anything prepended here lands BEHIND
+# /usr/local/bin on login shells and is shadowed. See $ZDOTDIR/.zprofile.
 # (Homebrew is initialized there too, via `brew shellenv` — /opt/homebrew is
 # not in /etc/paths on Apple Silicon.)
 

@@ -5,7 +5,6 @@
 # 🧠 Config Paths
 # ================================
 CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
-ZAP_DIR="${XDG_DATA_HOME:-${HOME}/.local/share}/zap"
 ZCOMPDUMP_PATH="$CACHE_DIR/.zcompdump"
 
 # ================================
@@ -13,56 +12,13 @@ ZCOMPDUMP_PATH="$CACHE_DIR/.zcompdump"
 # ================================
 [[ ! -d "$CACHE_DIR" ]] && mkdir -p "$CACHE_DIR"
 
-# Cache `<tool> init` output, keyed on the tool binary's mtime. Measured here:
-# zoxide 8ms, fzf 10ms, starship 12ms per shell, and all three emit identical
-# text per version. Written via a temp file + mv so a tool that dies mid-write
-# cannot leave a partial init for the next shell to source. Falls back to a
-# live eval if anything about the cache looks wrong.
-_evalcache() {  # _evalcache <name> <command...>
-  local f="$CACHE_DIR/init-$1.zsh"; shift
-  local bin="$commands[$1]"
-  if [[ -s $f && -n $bin && $f -nt $bin ]]; then
-    source "$f"
-    return
-  fi
-  local t="$f.$$"
-  if "$@" >| "$t" 2>/dev/null && [[ -s $t ]]; then
-    command mv -f "$t" "$f" && source "$f" && return
-  fi
-  command rm -f "$t"
-  eval "$("$@" 2>/dev/null)"
-}
-[[ ! -d "$ZAP_DIR" ]] && git clone https://github.com/zap-zsh/zap.git --depth=1 "$ZAP_DIR"
-[[ -f "$ZAP_DIR/zap.zsh" ]] && source "$ZAP_DIR/zap.zsh"
-# Fallback stub if zap didn't load (e.g. offline on a fresh machine) so the
-# rest of this file degrades gracefully instead of erroring on every `plug`.
-(( $+functions[plug] )) || plug() { :; }
-
-# ================================
-# 🔌 Plugin System
-# ================================
-plug romkatv/zsh-defer
-# zsh-defer comes from the plug above; if it didn't load, run eagerly instead.
-(( $+functions[zsh-defer] )) || zsh-defer() { "$@" }
-
-# Deferred plugin loader: git-clone into zap's plugin dir if missing, then
-# source with zsh-defer for instant-prompt startup. (Inlined from zunder-zsh.)
-plug-defer() {
-  [[ -n "$ZAP_PLUGIN_DIR" ]] || return 0   # zap absent — don't clone into /
-  local repo="$1" dir="$ZAP_PLUGIN_DIR/${1:t}"
-  [[ -d "$dir" ]] || git clone -q --depth 1 "https://github.com/$repo.git" "$dir"
-  local files=("$dir"/*.plugin.zsh(N) "$dir"/*.zsh(N))
-  (( $#files )) && zsh-defer source "$files[1]"
-}
-
-# ================================
-# 🧠 Autosuggestions + syntax highlighting (deferred)
-# ================================
-plug-defer zsh-users/zsh-autosuggestions
-ZSH_AUTOSUGGEST_MANUAL_REBIND=1
-ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
-
-plug-defer zdharma-continuum/fast-syntax-highlighting
+# `_evalcache` (init-output cache for fzf/zoxide/starship) lives in .zshenv so
+# .zprofile can use it for brew shellenv too.
+#
+# No plugins, no plugin manager. Everything here is zsh, the tools' own init
+# scripts, and completion files. (Autosuggestions and syntax highlighting were
+# the last two; dropped on purpose, and with them zsh-defer, which only
+# existed to hide their load time.)
 
 # ================================
 # 🧩 Platform Tweaks
@@ -88,6 +44,10 @@ export FZF_CTRL_R_OPTS="--bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+ab
 # ✅ Completions
 # ================================
 # Extra completion dirs must be on $fpath BEFORE compinit or they won't load.
+# ~/.local/share/zsh/site-functions holds completions no package ships in a
+# usable form — _cargo (rustup), _uv, _golang (zsh's own _go completes gccgo,
+# not go). bootstrap.sh writes them; the dir-mtime probe below sees new ones.
+fpath=("${XDG_DATA_HOME:-$HOME/.local/share}/zsh/site-functions"(N) $fpath)
 [[ -d "$HOME/.docker/completions" ]] && fpath=("$HOME/.docker/completions" $fpath)
 
 # Run the full fpath security check at most once a day; otherwise skip it with
@@ -106,10 +66,11 @@ export FZF_CTRL_R_OPTS="--bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+ab
 #
 # EXTENDED_GLOB is required, not cosmetic: inside [[ … ]] a bare trailing
 # (N.mh+24) is NOT expanded — it stays a literal non-empty string and the test
-# is silently always true. Only (#q…) forces globbing there.
-setopt EXTENDED_GLOB           # ^, ~, # glob operators — needed here for (#q…) below
+# is silently always true. Only (#q…) forces globbing there. It is LOCAL to the
+# probe: set globally it makes `^` a glob operator at the prompt, and
+# `git show HEAD^` fails with "no matches found: HEAD^".
 autoload -Uz compinit
-if () { local REPLY
+if () { setopt localoptions extendedglob; local REPLY
         [[ ! -f "$ZCOMPDUMP_PATH" || -n $ZCOMPDUMP_PATH(#qN.mh+24) \
            || -n ${^fpath}(#qN/e['[[ $REPLY -nt $ZCOMPDUMP_PATH ]]']) ]]
       }; then
@@ -122,15 +83,18 @@ if () { local REPLY
 else
   compinit -C -d "$ZCOMPDUMP_PATH"
 fi
-[[ "$ZCOMPDUMP_PATH.zwc" -nt "$ZCOMPDUMP_PATH" ]] || zsh-defer zcompile "$ZCOMPDUMP_PATH"
+# Compiled dump loads in 4ms vs 10ms for the text one. Recompiled inline only
+# when stale — a few ms, on the shells right after a compinit rebuild.
+[[ "$ZCOMPDUMP_PATH.zwc" -nt "$ZCOMPDUMP_PATH" ]] || zcompile "$ZCOMPDUMP_PATH"
 
 zstyle ':completion:*' matcher-list 'm:{[:lower:][:upper:]-_}={[:upper:][:lower:]_-}' 'r:|=*' 'l:|=* r:|=*'
 zstyle ':completion:*' use-cache true
 zstyle ':completion:*' cache-path "$CACHE_DIR/.zcompcache"
 zstyle ':completion:*' rehash true
-zstyle ':completion:*:*:*:*:*' menu select
-[[ -n $LS_COLORS ]] && zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
-WORDCHARS='_-'
+zstyle ':completion:*' menu select
+# Empty when LS_COLORS is unset (eza does not set it) — that selects zsh's own
+# default colours rather than none at all.
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS:-}
 
 # gcloud completion. Only the completion half: the gcloud-cli cask already
 # links gcloud/gsutil/bq into $HOMEBREW_PREFIX/bin, so the SDK's path.zsh.inc
@@ -153,14 +117,27 @@ fi
 # ================================
 # ⌨️ Keybindings
 # ================================
-autoload -U up-line-or-beginning-search
+autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
 zle -N up-line-or-beginning-search
-autoload -U down-line-or-beginning-search
 zle -N down-line-or-beginning-search
 
 bindkey -v
-KEYTIMEOUT=20   # 200ms — snappier `jj`→cmd-mode without breaking multi-key seqs
+# KEYTIMEOUT is in hundredths: 200ms is the window `jj` needs to be typeable
+# and short enough that a bare Esc feels instant. (The common `KEYTIMEOUT=1`
+# would make `jj` impossible.) Local escape sequences arrive in <1ms.
+KEYTIMEOUT=20
 bindkey -M viins 'jj' vi-cmd-mode
+# /etc/zshrc binds Home/End/Delete into `emacs` before `bindkey -v` relinks
+# main to viins, so in viins they were undefined-key (measured). tmux sends
+# ^[[1~ / ^[[4~, WezTerm ^[[H / ^[[F; terminfo covers application mode.
+for _k in '^[[H' '^[OH' '^[[1~' "$terminfo[khome]"; do
+  [[ -n $_k ]] && bindkey -M viins "$_k" beginning-of-line
+done
+for _k in '^[[F' '^[OF' '^[[4~' "$terminfo[kend]"; do
+  [[ -n $_k ]] && bindkey -M viins "$_k" end-of-line
+done
+[[ -n $terminfo[kdch1] ]] && bindkey -M viins "$terminfo[kdch1]" delete-char
+unset _k
 
 # fzf must load AFTER `bindkey -v` and after compinit. Its ^T/^R/\ec go into
 # emacs, viins and vicmd explicitly, but its completion hook is a bare
@@ -188,8 +165,9 @@ bindkey -M vicmd 'j' down-line-or-beginning-search
 HISTFILE="$HOME/.zsh_history"
 HISTSIZE=50000
 SAVEHIST=50000   # matched to HISTSIZE; a smaller SAVEHIST truncates silently on save
-# share_history implies incremental append — inc_append_history would be redundant
-setopt share_history extended_history \
+# share_history implies incremental append — inc_append_history would be redundant.
+# hist_fcntl_lock: a dozen panes append to one file; lock it rather than race.
+setopt share_history extended_history hist_fcntl_lock \
        hist_ignore_all_dups hist_ignore_space hist_reduce_blanks hist_verify \
        hist_find_no_dups hist_save_no_dups
 
@@ -200,7 +178,7 @@ setopt AUTO_CD                 # bare `foo/` behaves like `cd foo/`
 setopt AUTO_PUSHD              # every cd pushes onto the dir stack
 setopt PUSHD_IGNORE_DUPS       # no duplicate stack entries
 setopt PUSHD_SILENT            # don't dump the stack on pushd/popd
-# (EXTENDED_GLOB is set earlier, in the Completions section)
+# No EXTENDED_GLOB here: it turns `^` into a glob operator and breaks `HEAD^`.
 setopt INTERACTIVE_COMMENTS    # allow `# comments` at the prompt
 setopt NO_FLOW_CONTROL         # free ^S / ^Q (matters for fzf + history search)
 setopt NO_BEEP
@@ -292,7 +270,10 @@ if command -v tmux &>/dev/null; then
   # worktree in two different repos collided onto one session, silently
   # attaching you to the wrong agent. --git-common-dir points at the main
   # repo's .git from both a worktree and the main checkout, so its parent is
-  # the repo root in either. See tw below for the per-worktree sessions.
+  # the repo root in either. Per-worktree sessions are Claude Code's own
+  # `claude --worktree <name> --tmux=classic` (worktree under .claude/worktrees/,
+  # gitignored files copied per .worktreeinclude) — the tw() that lived here
+  # did the same by hand.
   ta() {
     local base=$1 root
     if [[ -z $base ]]; then
@@ -307,42 +288,6 @@ if command -v tmux &>/dev/null; then
       tmux switch-client -t "=$name"
     else
       tmux new-session -A -s "$name"         # -A attaches if it exists; -s is exact
-    fi
-  }
-
-  # tw <branch> — a git worktree and a tmux session for it, in one keystroke.
-  # The session is named <repo>-<branch>, from the MAIN repo, so every worktree
-  # of one project sorts together under its prefix in `prefix S` and two repos
-  # with the same branch name never collide. Worktrees live beside the repo as
-  # <repo>__worktrees/<branch>, never inside it, so `git status` in the main
-  # checkout stays clean. Sanitized the same way ta does it — '.' and ':' are
-  # tmux's own target separators.
-  #
-  # Worth knowing before you lean on this: a worktree is a checkout, not a copy.
-  # Gitignored files do not come along, so .env, node_modules and .venv are
-  # absent and an agent will fail on its first command until you put them there.
-  tw() {
-    local b=$1 root wt name
-    [[ -n $b ]] || { print -u2 "tw: usage: tw <branch>"; return 1 }
-    root=$(git rev-parse --git-common-dir 2>/dev/null) \
-      && root=$(cd -- "$root/.." 2>/dev/null && pwd) \
-      || { print -u2 "tw: not inside a git repository"; return 1 }
-    wt="${root}__worktrees/${b//\//-}"
-    if [[ ! -d $wt ]]; then
-      # An existing branch is checked out; a new one is created. `worktree add
-      # -b` on a branch that already exists is a hard error, not a no-op.
-      if git -C "$root" show-ref --verify --quiet "refs/heads/$b"; then
-        git -C "$root" worktree add "$wt" "$b" || return
-      else
-        git -C "$root" worktree add -b "$b" "$wt" || return
-      fi
-    fi
-    name="${${root:t}//[.:]/_}-${${b//\//-}//[.:]/_}"
-    if [[ -n $TMUX ]]; then
-      tmux has-session -t "=$name" 2>/dev/null || tmux new-session -d -s "$name" -c "$wt" || return
-      tmux switch-client -t "=$name"
-    else
-      tmux new-session -A -s "$name" -c "$wt"
     fi
   }
 
@@ -496,18 +441,27 @@ fi
 # ================================
 # 🪟 Title / Misc
 # ================================
-if [[ $TERM != "xterm-kitty" ]]; then
-  case "$TERM" in
-    xterm* | alacritty | foot*)
-      set_window_title() {
-        print -rn -- $'\e]2;'"${USER}@${HOST}:${PWD/$HOME/~}"$'\a'
-      }
-      autoload -Uz add-zsh-hook
-      add-zsh-hook precmd set_window_title
-      ;;
-  esac
-fi
+# Pane title. Inside tmux OSC 2 sets #{pane_title}, which .tmux.conf draws on
+# every pane border — so a shell pane names its directory at the prompt and
+# the command while one runs, the same signal Claude Code gives its own pane.
+# TERM inside tmux is tmux-256color; the old xterm*-only match skipped it, and
+# every shell pane showed tmux's fallback — the hostname — all day.
+# kitty sets titles through its own shell integration; leave it alone.
+case "$TERM" in
+  xterm-kitty) ;;
+  xterm* | tmux* | screen* | alacritty | foot*)
+    _title() { print -rn -- $'\e]2;'"$1"$'\a' }
+    _title_precmd()  { _title "${(%):-%~}" }
+    _title_preexec() { _title "${1[(w)1]} · ${(%):-%~}" }   # first word of the command
+    autoload -Uz add-zsh-hook
+    add-zsh-hook precmd _title_precmd
+    add-zsh-hook preexec _title_preexec
+    ;;
+esac
 
+# zle_highlight is unset by default, so this is the whole array — but zsh
+# applies its built-in defaults to every context not listed, so only paste
+# changes: pasted text is no longer drawn in standout.
 zle_highlight+=(paste:none)
 
 # Ghostty backdrop reshuffle — wezterm parity (utils/backdrops.lua :random()
@@ -527,13 +481,27 @@ zle_highlight+=(paste:none)
 # drops the parent's, so a nested shell (tmux pane -> ta -> reload -> claude)
 # accumulates one dead PATH entry per level. typeset -U cannot dedupe them —
 # each is a distinct string. Strip the inherited one before adding ours.
-if command -v fnm &>/dev/null; then
+if (( $+commands[fnm] )); then
   [[ -n $FNM_MULTISHELL_PATH ]] && path=(${path:#"$FNM_MULTISHELL_PATH/bin"})
   eval "$(fnm env --use-on-cd --shell zsh)"
+  # fnm never removes the per-shell symlink it made (Schniz/fnm#1157, closed
+  # won't-fix) — 1,412 dead ones here against 2 live shells. Drop ours on exit,
+  # and once the prompt is up sweep the graveyard: the name starts with the pid
+  # of the shell that made it, and a dead pid is a dead shell.
+  _fnm_cleanup() { [[ -L $FNM_MULTISHELL_PATH ]] && command rm -f -- "$FNM_MULTISHELL_PATH" }
+  _fnm_sweep() {
+    local d
+    for d in ${FNM_MULTISHELL_PATH:h}/*(@N); do
+      kill -0 "${${d:t}%%_*}" 2>/dev/null || command rm -f -- "$d"
+    done
+  }
+  autoload -Uz add-zsh-hook
+  add-zsh-hook zshexit _fnm_cleanup
+  _fnm_sweep   # a handful of entries once the exit hook is doing its job
 fi
 
 # direnv — per-directory env vars from .envrc.
-command -v direnv &>/dev/null && eval "$(direnv hook zsh)"
+(( $+commands[direnv] )) && _evalcache direnv direnv hook zsh
 
 # Prompt — starship, last so nothing later overrides it.
-command -v starship &>/dev/null && _evalcache starship starship init zsh
+(( $+commands[starship] )) && _evalcache starship starship init zsh
