@@ -1,17 +1,17 @@
-local gpu_adapters = require('utils.gpu')
 local backdrops = require('utils.backdrops')
 local colors = require('colors.custom')
 local fonts = require('config.fonts')
 
 return {
-  -- Performance
-  max_fps = 120,
-  animation_fps = 120,
+  -- Rendering. WebGpu is a real choice (the default reverted to OpenGL in
+  -- 20240128). No adapter pinning: the old pick_best() forced the discrete
+  -- Radeon on for a terminal, and webgpu_preferred_adapter overrides
+  -- webgpu_power_preference anyway, so one of the two was always dead.
+  -- LowPower is the default and what a laptop wants. The panel is 60 Hz;
+  -- animation_fps only drives cursor-blink and bell easing.
   front_end = 'WebGpu',
-  webgpu_power_preference = 'HighPerformance',
-  webgpu_preferred_adapter = gpu_adapters:pick_best(),
-  -- webgpu_preferred_adapter = gpu_adapters:pick_manual('Dx12', 'IntegratedGpu'),
-  -- webgpu_preferred_adapter = gpu_adapters:pick_manual('Gl', 'Other'),
+  max_fps = 60,
+  animation_fps = 60,
 
   -- Cursor
   default_cursor_style = 'BlinkingBlock',
@@ -28,7 +28,7 @@ return {
   font_size = fonts.font_size,
 
   -- Background
-  background = backdrops:initial_options(false), -- set to true for focus mode
+  background = backdrops:initial_options(),
 
   -- Window
   window_padding = {
@@ -44,16 +44,9 @@ return {
   window_close_confirmation = 'NeverPrompt',
   adjust_window_size_when_changing_font_size = false,
 
-  -- Tabs
+  -- Tabs: tmux owns tabs and windows; the bar is off, so no bar styling.
   enable_tab_bar = false,
-  hide_tab_bar_if_only_one_tab = false,
-  use_fancy_tab_bar = false,
-  tab_max_width = 25,
-  show_tab_index_in_tab_bar = false,
   switch_to_last_active_tab_when_closing_tab = true,
-
-  -- Scrollbar
-  enable_scroll_bar = false,
 
   -- Inactive pane styling
   inactive_pane_hsb = {

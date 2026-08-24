@@ -43,21 +43,6 @@ local keys = {
   { key = 'v', mods = 'SUPER', action = act.PasteFrom('Clipboard') },
 }
 
-local key_tables = {
-  search_mode = {
-    { key = 'Enter', mods = 'NONE', action = act.CopyMode('PriorMatch') },
-    { key = 'Escape', mods = 'NONE', action = act.CopyMode('Close') },
-    { key = 'n', mods = 'CTRL', action = act.CopyMode('NextMatch') },
-    { key = 'p', mods = 'CTRL', action = act.CopyMode('PriorMatch') },
-    { key = 'r', mods = 'CTRL', action = act.CopyMode('CycleMatchType') },
-    { key = 'u', mods = 'CTRL', action = act.CopyMode('ClearPattern') },
-    { key = 'PageUp', mods = 'NONE', action = act.CopyMode('PriorMatchPage') },
-    { key = 'PageDown', mods = 'NONE', action = act.CopyMode('NextMatchPage') },
-    { key = 'UpArrow', mods = 'NONE', action = act.CopyMode('PriorMatch') },
-    { key = 'DownArrow', mods = 'NONE', action = act.CopyMode('NextMatch') },
-  },
-}
-
 local mouse_bindings = {
   -- Ctrl-click opens the link under the cursor
   {
@@ -66,38 +51,27 @@ local mouse_bindings = {
     action = act.OpenLinkAtMouseCursor,
   },
   -- Selecting is inert here too — the same rule as .tmux.conf (Copy-mode).
-  -- Every wezterm default ends a left-button release in
-  -- CompleteSelection('ClipboardAndPrimarySelection'), including streaks 2 and 3
-  -- and including the SHIFT variants. SHIFT is the mouse-reporting bypass, so
-  -- inside tmux (mouse on) a Shift-drag is handled HERE rather than by tmux, and
-  -- it would overwrite the clipboard the tmux copy-mode bindings are careful not
-  -- to touch. 'PrimarySelection' is a no-op writer on macOS: the highlight stays,
-  -- the clipboard does not move, and SUPER-c still copies deliberately.
-  {
-    event = { Up = { streak = 1, button = 'Left' } },
-    mods = 'NONE',
-    action = act.CompleteSelection 'PrimarySelection',
-  },
-  {
-    event = { Up = { streak = 1, button = 'Left' } },
-    mods = 'SHIFT',
-    action = act.CompleteSelection 'PrimarySelection',
-  },
-  {
-    event = { Up = { streak = 2, button = 'Left' } },
-    mods = 'NONE',
-    action = act.CompleteSelection 'PrimarySelection',
-  },
-  {
-    event = { Up = { streak = 3, button = 'Left' } },
-    mods = 'NONE',
-    action = act.CompleteSelection 'PrimarySelection',
-  },
+  -- Every wezterm default ends a left-button release in a CompleteSelection,
+  -- including streaks 2 and 3 and the SHIFT/ALT variants. SHIFT is the
+  -- mouse-reporting bypass, so inside tmux (mouse on) a Shift-drag is handled
+  -- HERE rather than by tmux, and it would overwrite the clipboard the tmux
+  -- copy-mode bindings are careful not to touch.
+  --
+  -- Not CompleteSelection('PrimarySelection'): on macOS the window backend
+  -- ignores the destination and writes the general pasteboard either way
+  -- (window/src/os/macos/window.rs set_clipboard, tag 20250713), so that
+  -- "no-op writer" copied on every drag. Nop ends the gesture without copying;
+  -- the highlight made on Down/Drag stays, and SUPER-c copies it deliberately.
+  -- Check: `printf sentinel | pbcopy`, drag-select, `pbpaste` → sentinel.
+  { event = { Up = { streak = 1, button = 'Left' } }, mods = 'NONE', action = act.Nop },
+  { event = { Up = { streak = 1, button = 'Left' } }, mods = 'SHIFT', action = act.Nop },
+  { event = { Up = { streak = 1, button = 'Left' } }, mods = 'ALT', action = act.Nop },
+  { event = { Up = { streak = 1, button = 'Left' } }, mods = 'SHIFT|ALT', action = act.Nop },
+  { event = { Up = { streak = 2, button = 'Left' } }, mods = 'NONE', action = act.Nop },
+  { event = { Up = { streak = 3, button = 'Left' } }, mods = 'NONE', action = act.Nop },
 }
 
 return {
-  disable_default_key_bindings = false,
   keys = keys,
-  key_tables = key_tables,
   mouse_bindings = mouse_bindings,
 }

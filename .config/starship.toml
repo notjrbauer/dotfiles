@@ -26,7 +26,6 @@ truncation_length = 3          # show up to 3 trailing path components
 truncate_to_repo = false       # show the actual path tail, not just repo root
 truncation_symbol = "…/"       # marker shown when the path was shortened
 style = "blue"
-repo_root_style = "bold blue"  # make the repo name stand out
 read_only = " "
 read_only_style = "red"
 

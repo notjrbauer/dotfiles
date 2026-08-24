@@ -20,6 +20,13 @@ for _, plugin in ipairs({
 }) do
   vim.g["loaded_" .. plugin] = 1
 end
+-- No remote-plugin providers are used here (typescript-tools and the LSPs
+-- spawn their own processes). Off, they stop costing a `:checkhealth` warning
+-- each and, on the nightly, a provider health exception (ENOENT) that turned
+-- `make test` red for no reason.
+for _, provider in ipairs({ "node", "perl", "python3", "ruby" }) do
+  vim.g["loaded_" .. provider .. "_provider"] = 0
+end
 
 local opt = vim.opt
 
@@ -30,6 +37,11 @@ opt.signcolumn = "yes"
 opt.cursorline = true
 opt.cursorlineopt = "number,line"
 opt.termguicolors = true
+-- Terminal title, off by default. Inside tmux it is #{pane_title}, drawn on
+-- every pane border by .tmux.conf, so an nvim pane names its file the way a
+-- shell pane names its directory and a Claude pane its task.
+opt.title = true
+opt.titlestring = "%t%( %M%) — nvim"
 opt.showmode = false
 opt.laststatus = 3
 opt.cmdheight = 0

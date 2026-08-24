@@ -143,7 +143,13 @@ test:
 	@nvim --headless "+silent! checkhealth" "+silent! write! /tmp/nvim_checkhealth.txt" "+qa!" >/dev/null 2>&1 || true
 	@echo "── checkhealth: ERROR / WARNING lines ──"
 	@grep -nE "ERROR|WARNING" /tmp/nvim_checkhealth.txt 2>/dev/null | head -40 || echo "(report not written)"
-	@echo "✅ Smoke test complete (review any ERROR lines above; WARNINGs are usually optional)."
+	@# A gate that cannot go red is not a gate: a stale lockfile showed nine
+	@# ERRORs here for weeks and this target kept printing the green tick.
+	@# "Graphics protocol" is excluded: headless nvim has no terminal to probe,
+	@# so that line is an artefact of how this target runs, not of the config.
+	@if grep "ERROR" /tmp/nvim_checkhealth.txt 2>/dev/null | grep -qv "Graphics protocol"; then \
+	  echo "❌ checkhealth reported ERROR lines — fix them (see above)."; exit 1; fi
+	@echo "✅ Smoke test complete (WARNINGs are usually optional)."
 
 # Create benchmark directory if it doesn't exist
 $(BENCH_DIR):
