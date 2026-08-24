@@ -7,9 +7,10 @@ the build got here, so any session can resume cold.
 - **Summary at the TOP** (a few lines: what this session was about,
   where it landed), then entries **appended at the BOTTOM** —
   oldest → newest, never prepend.
-- Every commit stages a journal change (enforced by
-  `.githooks/pre-commit`; `SKIP_JOURNAL=1` for trivial commits) — an
-  entry can be one or two lines: what changed and why.
+- Write an entry when a session decided something `git log` won't
+  explain. A convention, not a gate — nothing enforces it (see
+  `.githooks/pre-commit` for why). An entry can be one or two lines:
+  what changed and why.
 - No stale "current state" blocks — the living docs (`docs/`) carry
   current state; the journal carries history.
 

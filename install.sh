@@ -17,9 +17,13 @@ link() {
     return
   fi
   mkdir -p "$(dirname "$dest")"
-  if [ -L "$dest" ]; then
-    ln -sfn "$src" "$dest"                       # refresh an existing symlink
-  elif [ -e "$dest" ]; then
+  # Only a link that already points into this repo is ours to refresh in
+  # place. A link that points anywhere else — another dotfiles manager, stow, a
+  # hand-made one — is the user's, and gets the same back-up as a real file
+  # (mv moves the link itself, dangling or not, and never follows it).
+  if [ -L "$dest" ] && case "$(readlink "$dest")" in "$DOTFILES"/*) true ;; *) false ;; esac; then
+    ln -sfn "$src" "$dest"                       # refresh our own symlink
+  elif [ -e "$dest" ] || [ -L "$dest" ]; then
     local bak="$dest.bak.$(date +%Y%m%d%H%M%S)"
     mv "$dest" "$bak"
     echo "backed up  $dest -> $bak"
@@ -65,6 +69,8 @@ link_children() {
 
   for entry in "$src"/*; do
     [ -e "$entry" ] || continue # unmatched glob
+    # The roster README is documentation for this repo, not an agent or skill.
+    case "$(basename "$entry")" in README.md) continue ;; esac
     link "$entry" "$dest/$(basename "$entry")"
   done
 }
@@ -98,7 +104,9 @@ link "$DOTFILES/.psqlrc"             "$HOME/.psqlrc"
 # selects between them by directory, so a work machine never has to remember to
 # override anything: repos under ~/dev get the work address, ~/dev/notjrbauer/
 # carves personal back out, everything else falls back to .gitconfig's [user].
-# The work address is a placeholder here on purpose — this repo is public.
+# The work address is a placeholder here on purpose — this repo is public — and
+# it is seeded COMMENTED OUT: a live placeholder was the identity every commit
+# under ~/dev got until someone noticed (git config --show-origin user.email).
 seed() {
   local path="$1" body="$2"
   [ -f "$path" ] && return
@@ -107,9 +115,11 @@ seed() {
 }
 
 seed "$HOME/.gitconfig.work" '; Work identity (untracked). Applied to every repo under ~/dev.
-[user]
-	name = john b
-	email = you@company.example'
+; Uncomment and fill in. Until then git falls back to [user] in .gitconfig
+; rather than committing under a placeholder address.
+;[user]
+;	name = john b
+;	email = you@company.example'
 
 seed "$HOME/.gitconfig.personal" '; Personal identity (untracked). Applied to repos under ~/dev/notjrbauer/,
 ; which sits inside the work tree and so needs to override it.
@@ -160,12 +170,16 @@ mkdir -p "$HOME/.cache/agent-logs" && echo "ensured    $HOME/.cache/agent-logs"
 # owns core.hooksPath, so a different hooks setup here is never clobbered.
 # Reversible with: git config --unset core.hooksPath
 chmod +x "$DOTFILES/.githooks/pre-commit" 2>/dev/null || true
-existing="$(git -C "$DOTFILES" config --local --get core.hooksPath || true)"
-if [ -z "$existing" ]; then
-  git -C "$DOTFILES" config --local core.hooksPath .githooks
-  echo "wired      core.hooksPath -> .githooks"
-elif [ "$existing" != ".githooks" ]; then
-  echo "skip: core.hooksPath is already '$existing' — leaving it alone"
+if git -C "$DOTFILES" rev-parse --git-dir >/dev/null 2>&1; then
+  existing="$(git -C "$DOTFILES" config --local --get core.hooksPath || true)"
+  if [ -z "$existing" ]; then
+    git -C "$DOTFILES" config --local core.hooksPath .githooks
+    echo "wired      core.hooksPath -> .githooks"
+  elif [ "$existing" != ".githooks" ]; then
+    echo "skip: core.hooksPath is already '$existing' — leaving it alone"
+  fi
+else
+  echo "skip: $DOTFILES is not a git checkout — hooks not wired"   # a tarball; set -e would have aborted here
 fi
 
 # --- Claude Code ---------------------------------------------------------
@@ -178,6 +192,9 @@ link "$DOTFILES/.claude/CLAUDE.md"      "$HOME/.claude/CLAUDE.md"
 link "$DOTFILES/.claude/settings.json"  "$HOME/.claude/settings.json"
 link_children "$DOTFILES/.claude/agents" "$HOME/.claude/agents"
 link_children "$DOTFILES/.claude/skills" "$HOME/.claude/skills"
+link_children "$DOTFILES/.claude/rules"  "$HOME/.claude/rules"    # path-scoped, load with matching files
+link_children "$DOTFILES/.claude/hooks"  "$HOME/.claude/hooks"    # scripts settings.json's hooks call
+chmod +x "$DOTFILES"/.claude/hooks/*.sh 2>/dev/null || true
 
 echo ""
 echo "Done. Start a new shell (or run: exec zsh -l) to pick up the changes."

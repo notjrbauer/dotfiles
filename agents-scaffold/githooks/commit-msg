@@ -12,8 +12,11 @@ msg=$(sed -n '/^# ------------------------ >8 ------------------------$/q;p' "$m
 
 # Reject the AI Co-Authored-By trailer and "Generated with" banners —
 # these are never wanted here.
-if printf '%s\n' "$msg" | grep -qiE '^Co-Authored-By:.*(claude|anthropic|gpt|copilot|cursor)'; then
-	echo "commit-msg: no 'Co-Authored-By:' for AI — the owner attributes manually."
+# Any trailer naming an AI, not only Co-Authored-By: a Signed-off-by for
+# "Claude", or a Gemini/Codex co-author, is the same attribution by another
+# header. noreply@anthropic.com is the address every Claude trailer carries.
+if printf '%s\n' "$msg" | grep -qiE '^(Co-Authored-By|Signed-off-by|Reviewed-by|Assisted-by):.*(claude|anthropic|gpt|openai|codex|copilot|cursor|gemini|google\.com|devin|aider|windsurf|noreply@)'; then
+	echo "commit-msg: no AI attribution trailer — the owner attributes manually."
 	exit 1
 fi
 if printf '%s\n' "$msg" | grep -qE 'Generated with|🤖'; then

@@ -46,7 +46,16 @@ done < <(find "$TMPL" -type f -print0)
 # don't touch its files at all.
 install_hooks() {
 	mkdir -p "$TARGET/.githooks"
-	cp "$HOOKS_SRC"/* "$TARGET/.githooks/"
+	# Managed, so they are replaced — but a hand-written hook of the same name
+	# that differs from ours is the repo's own work; move it aside first.
+	for h in "$HOOKS_SRC"/*; do
+		dst="$TARGET/.githooks/$(basename "$h")"
+		if [ -e "$dst" ] && ! cmp -s "$h" "$dst"; then
+			mv "$dst" "$dst.bak.$(date +%Y%m%d%H%M%S)"
+			echo "  backed up:     .githooks/$(basename "$h") (differed from the managed copy)"
+		fi
+		cp "$h" "$dst"
+	done
 	chmod +x "$TARGET/.githooks/pre-commit" "$TARGET/.githooks/pre-push" "$TARGET/.githooks/commit-msg"
 	echo "  hooks:         .githooks/ (pre-commit, commit-msg, pre-push, lib-verify.sh)"
 }

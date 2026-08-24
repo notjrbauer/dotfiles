@@ -109,7 +109,20 @@ if command -v cargo >/dev/null 2>&1; then
       || echo "warn: tree-sitter-cli install failed — :TSInstall will not work"
   fi
 else
-  echo "warn: cargo not found — skipping tree-sitter-cli (is brew rust installed?)"
+  echo "warn: cargo not found — skipping tree-sitter-cli (is rustup installed?)"
+fi
+
+# --- 6b. zsh completions no package ships usably --------------------------
+# $ZDOTDIR/.zshrc puts this dir on fpath. zsh's bundled _go completes gccgo,
+# never `go`; rustup and uv generate theirs on demand. Regenerated every run
+# — they are cheap and track the installed versions.
+comp="${XDG_DATA_HOME:-$HOME/.local/share}/zsh/site-functions"
+mkdir -p "$comp"
+command -v rustup >/dev/null 2>&1 && rustup completions zsh cargo > "$comp/_cargo"
+command -v uv     >/dev/null 2>&1 && uv generate-shell-completion zsh > "$comp/_uv"
+if command -v go >/dev/null 2>&1 && [ ! -f "$comp/_golang" ]; then
+  curl -fsSL https://raw.githubusercontent.com/zsh-users/zsh-completions/master/src/_golang -o "$comp/_golang" \
+    || echo "warn: could not fetch _golang completion"
 fi
 
 # --- 7. Login shell --------------------------------------------------------
