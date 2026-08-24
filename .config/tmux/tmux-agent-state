@@ -38,18 +38,29 @@ fi
 
 state=${1:-}
 
-# Never badge the window you are already staring at — a * on the window you are
-# reading is noise. "wait" is the exception: a permission prompt still needs
-# saying even if you are looking straight at it, because you may not be.
-if [ "$state" != wait ] &&
-   [ "$(tmux display-message -p -t "$pane" '#{window_active}' 2>/dev/null)" = 1 ]; then
-    exit 0
-fi
-
 case "$state" in
-    running) tmux set-option -w -t "$pane" -u @agent 2>/dev/null ;;
-    clear)   tmux set-option -w -t "$pane" -u @agent 2>/dev/null ;;
-    done|wait) tmux set-option -w -t "$pane" @agent "$state" 2>/dev/null ;;
+    # Always unset, even on the window you are looking at: a "wait" you have
+    # already answered must not outlive the answer.
+    running|clear) tmux set-option -w -t "$pane" -u @agent 2>/dev/null ;;
+    wait)
+        tmux set-option -w -t "$pane" @agent wait 2>/dev/null
+        # Desktop toast. Claude Code has no WezTerm notification channel, but
+        # WezTerm renders OSC 777 as a system notification, and tmux forwards
+        # it from the pane's tty when wrapped in a DCS passthrough
+        # (allow-passthrough all in .tmux.conf — `on` forwards only from
+        # visible panes, and a background window is the whole point).
+        tty=$(tmux display-message -p -t "$pane" '#{pane_tty}' 2>/dev/null)
+        where=$(tmux display-message -p -t "$pane" '#{session_name}:#{window_index}' 2>/dev/null)
+        [ -w "$tty" ] && printf '\033Ptmux;\033\033]777;notify;claude;needs you in %s\007\033\\' "$where" > "$tty"
+        ;;
+    done)
+        # Never badge the window you are already staring at — a * on the
+        # window you are reading is noise. window_active alone is not enough:
+        # every session has a current window, so an agent finishing in the
+        # current window of a session you are NOT attached to was never
+        # badged. "Staring at" is active AND its session has a client.
+        [ "$(tmux display-message -p -t "$pane" '#{&&:#{window_active},#{session_attached}}' 2>/dev/null)" = 1 ] && exit 0
+        tmux set-option -w -t "$pane" @agent done 2>/dev/null ;;
     *) printf 'usage: %s running|done|wait|clear\n' "${0##*/}" >&2; exit 2 ;;
 esac
 

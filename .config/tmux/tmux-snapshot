@@ -56,7 +56,15 @@ tab=$(printf '\t')
 # transient name became permanent. A sentinel rather than an empty field
 # because IFS is a tab and read collapses runs of IFS whitespace, which would
 # shift every later column.
-fmt=$(printf '#{session_name}\t#{window_index}\t#{?#{==:#{automatic-rename},1},~auto~,#{window_name}}\t#{window_layout}\t#{pane_index}\t#{pane_current_path}')
+#
+# The last column is the Claude Code session id, if a Claude is running in the
+# pane: the SessionStart hook in .claude/settings.json stores it as the pane
+# option @claude_session and SessionEnd removes it. Restore does not run the
+# agent — it TYPES `claude -r <id>` into the restored pane and leaves it unsent,
+# so the reboot loop is one Enter instead of a hunt for which id belonged where
+# (`claude -c` resumes "the latest in this cwd", which is ambiguous the moment
+# two panes share a directory).
+fmt=$(printf '#{session_name}\t#{window_index}\t#{?#{==:#{automatic-rename},1},~auto~,#{window_name}}\t#{window_layout}\t#{pane_index}\t#{pane_current_path}\t#{@claude_session}')
 
 save() {
     # -f drops tmux 3.7's floating panes (prefix * upstream; unbound in
@@ -154,9 +162,15 @@ restore() {
 
     made=0 skipped=0 new_session=0 skip_session=0
     cur_s='' cur_w='' pending_win='' pending_layout='' last_pane='' sid=''
-    while IFS="$tab" read -r s wi wn layout pi cwd; do
+    while IFS="$tab" read -r s wi wn layout pi cwd cid; do
         [ -n "$s" ] || continue
         [ -d "$cwd" ] || cwd=$HOME
+        # Only a UUID is ever typed into a pane; anything else in the column
+        # (an older snapshot without it, a stray value) is dropped.
+        case $cid in
+            [0-9a-f]*-[0-9a-f]*-[0-9a-f]*-[0-9a-f]*-[0-9a-f]*) ;;
+            *) cid='' ;;
+        esac
         # ~auto~ means "this window had automatic-rename on" — create it with
         # no -n at all, so tmux keeps naming it after what runs in it.
         [ "$wn" = '~auto~' ] && wn=''
@@ -211,6 +225,7 @@ restore() {
                 [ -n "$last_pane" ] || { pending_win=''; continue; }
             fi
             pending_win="$sid:$wi" pending_layout=$layout
+            [ -n "$cid" ] && tmux send-keys -t "$last_pane" "claude -r $cid"
         else
             # Split the pane we made last, by id — NOT the window. split-window
             # targeting a window splits that window's *active* pane, and -d
@@ -219,6 +234,7 @@ restore() {
             [ -n "$last_pane" ] || continue
             last_pane=$(tmux split-window -d -P -F '#{pane_id}' -t "$last_pane" -c "$cwd" 2>/dev/null) || continue
             [ -n "$last_pane" ] || continue
+            [ -n "$cid" ] && tmux send-keys -t "$last_pane" "claude -r $cid"
             # Re-tile as we go: past four or five panes a default split has no
             # room left and fails, and the real layout only lands at the end.
             tmux select-layout -t "$pending_win" tiled >/dev/null 2>&1

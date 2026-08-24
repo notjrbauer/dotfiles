@@ -29,7 +29,6 @@ From the shell, outside or inside tmux:
 | Command | Does |
 | --- | --- |
 | `ta [name]` | attach to `name`, creating it if needed; defaults to the **main repo root's** basename |
-| `tw <branch>` | git worktree + session for that branch, named `<repo>-<branch>` |
 | `ts` / `^S` | fzf picker over live sessions |
 | `tkill [name…]` | kill sessions by exact name; with no args resolves the same name as `ta` |
 | `tsvc <name> <cmd> [args…]` | park a long-running command in its own detached session |
@@ -42,12 +41,12 @@ still names its session after the repo**: `--show-toplevel` returns the worktree
 directory, which lost the repo name and let a `fix-tests` worktree in two
 different projects collide onto one session.
 
-`tw <branch>` creates `<repo>__worktrees/<branch>` beside the repo (never inside
-it, so the main checkout's `git status` stays clean), creates or reuses the
-branch, and opens a session called `<repo>-<branch>`. A worktree is a checkout,
-not a copy: gitignored files do not come along, so `.env`, `node_modules` and
-`.venv` are missing until you put them there, and an agent will fail on its
-first command without them.
+A worktree per workstream is Claude Code's own feature now: `claude --worktree
+<name> --tmux=classic` creates `.claude/worktrees/<name>` on branch
+`worktree-<name>` and a tmux session for it, copies the gitignored files listed
+in `.worktreeinclude` (`.env`, `node_modules` are the usual ones), and on exit
+asks whether to keep the worktree. `claude -r` returns a session to its
+worktree. (The hand-rolled `tw` that did this lived in `.zshrc` until Aug 2026.)
 
 `.` and `:` in any name become `_` — `C-a C-s` and `C-a C` sanitize what you type
 too — because tmux reads them as session/window/pane separators and a name
@@ -112,17 +111,23 @@ task, and the window list becomes the to-do list.
 
 ## Panes
 
-Navigation needs no prefix. Bare `C-h/j/k/l` is Vim-, fzf- and Claude-aware, so
-the same keys move between Neovim splits, through an fzf list, and across tmux
-panes. The trade is that bare `C-h/l` do not *leave* a vim, fzf or claude pane —
-`C-a h/j/k/l` always do.
+Navigation needs no prefix. Bare `C-h/j/k/l` is Vim- and fzf-aware: when the
+pane's foreground program is nvim/vim or fzf the key is passed through
+(`if-shell -F` on `#{pane_current_command}`, no `ps` fork), otherwise tmux
+moves. Neovim's own `C-h/j/k/l` maps hop to the adjacent tmux pane at a window
+edge (`init.lua`'s `win_or_tmux`), so the same keys walk splits and panes as one
+grid; fzf keeps `C-j/C-k` for its list. `C-Space` and `C-\` get the same
+treatment, so blink's manual-complete trigger and `:terminal`'s `C-\ C-n` exit
+work inside tmux. Claude Code panes are deliberately not in the pattern — it
+binds none of these keys, so passing them through would only strand you.
+`C-a h/j/k/l` always moves, from anywhere.
 
 | Key | Does |
 | --- | --- |
 | `C-h` `C-j` `C-k` `C-l` | move left/down/up/right (no prefix; Vim- and fzf-aware) |
 | `C-\` | last pane |
 | `C-Space` | next pane |
-| `C-a h/j/k/l` | same moves, with prefix — the way out of a vim/fzf/claude pane |
+| `C-a h/j/k/l` | same moves, with prefix — the way out of any pane |
 | `C-a s` or `C-a "` | split vertically (new pane below) |
 | `C-a v` or `C-a %` | split horizontally (new pane right) |
 | `C-a z` | zoom the pane — prefer this to resizing |
@@ -130,7 +135,7 @@ panes. The trade is that bare `C-h/l` do not *leave* a vim, fzf or claude pane �
 | `C-a !` | break the pane out into its own window |
 | `C-a q` | kill pane, no confirmation (`C-a x` asks first) |
 | `C-a m` | mark the pane for `swap-pane`/`join-pane` (stock tmux) |
-| `C-a - = ( )` | resize by 10 cells (up / down / left / right) |
+| `C-a - = ( )` | resize by 10 cells (up / down / left / right) — this shadows stock `(`/`)` = previous/next **session**; use `C-a S` or `C-a L` instead |
 | `C-a Enter` | **scratch shell** — a popup shell in this pane's cwd; any key dismisses it once the shell exits |
 | `C-a e` | **broadcast** — toggle typing into every pane of this window |
 | `C-a g` | **agent-log picker** — fzf over `~/.cache/agent-logs/`, newest first, Enter pages it in `less -R` |
@@ -180,18 +185,34 @@ in two places without you looking:
   here. The window goes pink in the list, and WezTerm and Ghostty flash and
   bounce the dock. `C-a M-n` / `C-a M-p` jump between alerting windows.
 - **the badge.** Claude hooks run `~/.config/tmux/tmux-agent-state`, which sets a
-  window option the window list renders: a red `!` means that window wants you, a
-  green `*` means it finished while you were elsewhere. Moving to the window
-  clears it. `monitor-activity` stays off — an agent streams output continuously,
+  window option the window list renders: a red `!` means that window wants you
+  (a permission prompt, an elicitation, or a session that died on an API
+  error), a green `*` means it finished while you were elsewhere — "elsewhere"
+  includes another session, not just another window. Moving to the window
+  clears it, by `C-a n` and by a session switch alike; so does the session
+  ending. `monitor-activity` stays off — an agent streams output continuously,
   so activity flagged every agent window permanently and meant nothing.
+- **the pane border.** Every pane's border shows its title: Claude Code writes
+  its current task there, Neovim its file, and a shell its directory (or the
+  running command). So a glance at a window says what each pane is doing.
 
-Hooks are read when `claude` starts, so a change to `settings.json` does nothing
-to an agent already running.
+Hook edits in `settings.json` are picked up by a running `claude` within a few
+seconds (it watches the file); only a hook that never appears needs a restart.
 
-Resuming after a restart: `claude -c` continues the most recent conversation **in
-the current directory**, and a snapshot restores every pane's directory — so
-`C-a V` puts the directories back and you type `claude -c` in the pane that held
-an agent. Agent teams do not resume.
+Resuming after a restart: Claude's `SessionStart` hook stores each session's id
+on its tmux pane (`@claude_session`), the snapshot records it, and `C-a V` puts
+the directories back **and types `claude -r <id>` into every pane that held an
+agent** — unsent, so nothing runs until you press Enter. (`claude -c` resumes
+"the most recent in this cwd", which is the wrong one as soon as two panes
+share a directory.) Agent teams do not resume.
+
+When an agent needs you, the same hook that badges the window also sends a
+desktop notification through WezTerm (OSC 777, forwarded by
+`allow-passthrough all` even from a window you are not looking at). macOS shows
+it when WezTerm is not the frontmost app — the case it exists for; inside
+WezTerm the badge and bell are the signal. Needs System Settings → Notifications
+→ WezTerm set to Banners (it was None here, and every toast was silently
+recorded and never shown).
 
 ## Sessions that survive the server
 
