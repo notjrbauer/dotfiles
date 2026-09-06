@@ -235,11 +235,38 @@ for i in {1..9}; do alias "$i"="cd +$i"; done
 
 # small utilities
 mkcd() { mkdir -p -- "$1" && cd -- "$1"; }
+# Copy Claude Code's folder-trust from one path to another so a freshly made
+# worktree skips the "do you trust this folder?" prompt. No-op unless the source
+# is already trusted and ~/.claude.json exists. Atomic temp+mv (never corrupts
+# the live config); a lost race with a running Claude just re-prompts once — the
+# same bargain a friend's standalone version takes, minus its mkdir mutex, which
+# only earns its keep under concurrent hooks (gwr is interactive). Also callable
+# by hand for a `claude --worktree` dir: cctrust <trusted-path> <new-path>.
+cctrust() {
+  local cfg="$HOME/.claude.json" from=$1 to=$2 tmp
+  [[ -n $from && -n $to && -f $cfg ]] || return 0
+  [[ "$(jq -r --arg p "$from" '.projects[$p].hasTrustDialogAccepted // false' "$cfg" 2>/dev/null)" == true ]] || return 0
+  [[ "$(jq -r --arg p "$to"   '.projects[$p].hasTrustDialogAccepted // false' "$cfg" 2>/dev/null)" == true ]] && return 0
+  tmp=$(mktemp "$cfg.XXXXXX") || return 0
+  if jq --arg p "$to" '.projects[$p].hasTrustDialogAccepted = true' "$cfg" >| "$tmp" 2>/dev/null && [[ -s $tmp ]]; then
+    command mv -f "$tmp" "$cfg"
+  else
+    command rm -f "$tmp"
+  fi
+  return 0
+}
+
 # Fresh-context review worktree: gwr [ref] adds a detached ../<repo>-review and
 # enters it (a separate cwd keys a separate Claude session); gwrx removes it.
-gwr() { local r; r=$(git rev-parse --show-toplevel) && git worktree add --detach "$r-review" "${1:-HEAD}" && cd "$r-review"; }
+# cctrust carries trust over so the review Claude opens without a prompt; cd runs
+# regardless of whether the trust copy succeeded.
+gwr() { local r; r=$(git rev-parse --show-toplevel) && git worktree add --detach "$r-review" "${1:-HEAD}" && { cctrust "$r" "$r-review"; cd "$r-review"; }; }
 gwrx() { local w; w=$(git rev-parse --show-toplevel) && [[ "$w" == *-review ]] || { print -u2 "gwrx: not in a -review worktree"; return 1; }; cd "${w%-review}" && git worktree remove "$w"; }
-alias reload='exec zsh'
+# -l: a login shell re-runs .zprofile, which is the only file that puts brew's
+# site-functions on fpath (and re-runs path_helper); a bare `exec zsh` starts a
+# non-login shell and, since .zprofile un-exports FPATH, silently loses those
+# completions. typeset -U keeps the re-run idempotent.
+alias reload='exec zsh -l'
 alias path='print -l -- $path'                 # one PATH entry per line
 
 # ================================

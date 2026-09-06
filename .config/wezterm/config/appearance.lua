@@ -25,6 +25,9 @@ return {
   colors = colors,
   font = fonts.font,
   font_size = fonts.font_size,
+  -- nil unless fonts.lua's use_pragmata branch set it (PragmataPro wants 1.17);
+  -- a nil key is absent, so wezterm keeps its 1.0 default for JetBrains Mono.
+  line_height = fonts.line_height,
 
   -- Background
   background = backdrops:initial_options(),
