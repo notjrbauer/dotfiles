@@ -42,7 +42,7 @@
     ],
     "defaultMode": "auto"
   },
-  "model": "claude-fable-5[1m]",
+  "model": "claude-opus-4-8",
   "hooks": {
     "SessionStart": [
       {
@@ -76,6 +76,15 @@
           {
             "type": "command",
             "command": "\"$HOME/.claude/hooks/tmux-record-pane.sh\""
+          }
+        ]
+      },
+      {
+        "matcher": "Artifact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/.claude/hooks/artifact-reindex.sh\""
           }
         ]
       }
@@ -144,15 +153,28 @@
   },
   "statusLine": {
     "type": "command",
-    "refreshInterval": 30,
-    "command": "jq -r '[ (.model.display_name // \"?\"), (.session_name // (.cwd | split(\"/\") | last)), (.workspace.git_worktree // empty), (if .context_window.used_percentage != null then \"ctx \\(.context_window.used_percentage|floor)%\" + (if .exceeds_200k_tokens then \" >200k\" else \"\" end) else empty end), (if .rate_limits.five_hour.used_percentage != null then \"5h \\(.rate_limits.five_hour.used_percentage|floor)%\" else empty end) ] | join(\" | \")'"
+    "command": "jq -r '[ (.model.display_name // \"?\"), (.session_name // (.cwd | split(\"/\") | last)), (.workspace.git_worktree // empty), (if .context_window.used_percentage != null then \"ctx \\(.context_window.used_percentage|floor)%\" + (if .exceeds_200k_tokens then \" >200k\" else \"\" end) else empty end), (if .rate_limits.five_hour.used_percentage != null then \"5h \\(.rate_limits.five_hour.used_percentage|floor)%\" else empty end) ] | join(\" | \")'",
+    "refreshInterval": 30
+  },
+  "subagentStatusLine": {
+    "type": "command",
+    "command": "jq -c '.tasks[] | {id, content: \"\\(.name) \\(.model // \"\") \\(.status) ctx \\((((.tokenCount // 0) * 100) / (.contextWindowSize // 200000)) | floor)%\"}'"
   },
   "enabledPlugins": {
     "typescript-lsp@claude-plugins-official": true,
     "lua-lsp@claude-plugins-official": true,
     "gopls-lsp@claude-plugins-official": true,
     "lkctl@lkctl": true,
-    "pyright-lsp@claude-plugins-official": true
+    "pyright-lsp@claude-plugins-official": true,
+    "go@go-skills": true,
+    "go-spec-reviewer@go-skills": true,
+    "fileflow-pathologize@go-skills": true,
+    "go-release@go-skills": true,
+    "notion-workspace-plugin@notion-plugin-marketplace": true,
+    "frontend-design@claude-plugins-official": true,
+    "simple-english@simple-english": true,
+    "superpowers@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "lkctl": {
@@ -161,14 +183,28 @@
         "repo": "livekit/lkctl",
         "ref": "main"
       }
+    },
+    "go-skills": {
+      "source": {
+        "source": "github",
+        "repo": "spf13/go-skills"
+      }
+    },
+    "notion-plugin-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "makenotion/claude-code-notion-plugin"
+      }
+    },
+    "simple-english": {
+      "source": {
+        "source": "github",
+        "repo": "AminBlg/SimpleEnglish"
+      }
     }
   },
-  "subagentStatusLine": {
-    "type": "command",
-    "command": "jq -c '.tasks[] | {id, content: \"\\(.name) \\(.model // \"\") \\(.status) ctx \\((((.tokenCount // 0) * 100) / (.contextWindowSize // 200000)) | floor)%\"}'"
-  },
-  "terminalTitleFromRename": false,
   "outputStyle": "Concise",
+  "terminalTitleFromRename": false,
   "skipWorkflowUsageWarning": true,
   "preferredNotifChannel": "terminal_bell"
 }

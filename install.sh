@@ -195,15 +195,52 @@ link_children "$DOTFILES/.claude/skills" "$HOME/.claude/skills"
 link_children "$DOTFILES/.claude/rules"  "$HOME/.claude/rules"    # path-scoped, load with matching files
 link_children "$DOTFILES/.claude/hooks"  "$HOME/.claude/hooks"    # scripts settings.json's hooks call
 chmod +x "$DOTFILES"/.claude/hooks/*.sh 2>/dev/null || true
-# A subagent or skill with bad frontmatter is skipped silently by Claude Code;
-# validate here so the failure has a face. Non-fatal: claude may not be
-# installed yet on a fresh machine.
-if command -v claude >/dev/null 2>&1; then
-  for d in agents skills; do
-    claude plugin validate "$DOTFILES/.claude/$d" >/dev/null 2>&1 \
-      || echo "warn: claude plugin validate .claude/$d reported problems — run it to see them"
-  done
-fi
+# A subagent or skill with bad frontmatter is skipped silently by Claude Code,
+# and `claude plugin validate` only understands plugin/marketplace manifests —
+# so check the frontmatter ourselves: a closed --- block with a non-empty name
+# and description, and a skill's name matching its directory. Non-fatal, so a
+# bad file cannot stop the links above from landing.
+check_frontmatter() {
+  local file="$1" want_name="$2"
+  awk -v f="${file#"$DOTFILES"/}" -v want="$want_name" '
+    function warn(msg) { print "warn: " f ": " msg; bad = 1 }
+    NR == 1 { if (!/^---[ \t]*$/) { warn("no YAML frontmatter (first line is not ---)"); exit } next }
+    /^---[ \t]*$/ { closed = 1; exit }
+    # a folded description ("description: >-") counts once an indented line
+    # with content follows; hitting a top-level key first means it was empty
+    indesc && /[^ \t]/ { desc = ($0 ~ /^[ \t]/); indesc = 0 }
+    /^name:/ { name = $0; sub(/^name:[ \t]*/, "", name); sub(/[ \t]+$/, "", name) }
+    /^description:/ {
+      d = $0; sub(/^description:[ \t]*/, "", d)
+      if (d == "" || d ~ /^[>|][+-]?[ \t]*$/) indesc = 1; else desc = 1
+    }
+    END {
+      if (!bad) {
+        if (!closed) warn("unterminated frontmatter (no closing ---)")
+        if (name == "") warn("missing or empty name")
+        else if (want != "" && name != want) warn("name \"" name "\" does not match \"" want "\"")
+        if (!desc) warn("missing or empty description")
+      }
+      exit bad
+    }' "$file" >&2
+}
+frontmatter_ok=1
+for f in "$DOTFILES"/.claude/agents/*.md; do
+  [ -e "$f" ] || continue # unmatched glob
+  case "$(basename "$f")" in README.md) continue ;; esac
+  check_frontmatter "$f" "" || frontmatter_ok=0
+done
+for d in "$DOTFILES"/.claude/skills/*/; do
+  [ -d "$d" ] || continue # unmatched glob
+  d="${d%/}"
+  if [ -f "$d/SKILL.md" ]; then
+    check_frontmatter "$d/SKILL.md" "$(basename "$d")" || frontmatter_ok=0
+  else
+    echo "warn: ${d#"$DOTFILES"/} has no SKILL.md — Claude Code will not see it" >&2
+    frontmatter_ok=0
+  fi
+done
+[ "$frontmatter_ok" -eq 1 ] || echo "warn: some agents/skills have frontmatter problems (see above) — Claude Code skips those silently" >&2
 
 echo ""
 echo "Done. Start a new shell (or run: exec zsh -l) to pick up the changes."

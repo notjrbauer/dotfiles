@@ -9,6 +9,9 @@
 settings.local.json
 .claude.json*
 
+# LiveKit working context — symlinked to ~/dev/CLAUDE.md, never public
+livekit.md
+
 # Session data & history (private, large)
 projects/
 sessions/
