@@ -219,5 +219,6 @@
   "outputStyle": "Concise",
   "terminalTitleFromRename": false,
   "skipWorkflowUsageWarning": true,
-  "preferredNotifChannel": "terminal_bell"
+  "preferredNotifChannel": "terminal_bell",
+  "agentPushNotifEnabled": true
 }
