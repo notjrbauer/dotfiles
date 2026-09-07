@@ -6,7 +6,6 @@
 # machine, where the tap has no remote yet and only the bare name is available.
 # Trust is applied before anything fetches, so `brew bundle` alone is enough.
 tap "cockroachdb/tap", trusted: { formula: "cockroach" }
-tap "hashicorp/tap", trusted: { formulae: ["terraform", "terraform-ls"] }
 # LiveKit's taps live in the tool repos themselves, not in a homebrew-<name>
 # repo, so the git URL is required — the bare name would resolve to
 # livekit/homebrew-lkctl, which doesn't exist. nebula and nats need their own
@@ -20,34 +19,27 @@ brew "bat"
 brew "colima"
 brew "direnv"
 brew "docker"   # the CLI; colima is the daemon
-brew "exiftool"
 brew "eza"
-brew "ffmpeg"
 brew "fd"
+brew "flyctl"
 brew "fnm"
 brew "fzf"
 brew "gawk"
-brew "gifsicle"
+brew "gh"
 brew "git-delta"
 brew "gnu-sed"
 brew "go"
+brew "golangci-lint"
 brew "gopls"
-brew "goreleaser"
 brew "grep"
-brew "gum"
 brew "helmfile"
-brew "hugo"
 brew "jq"
 brew "k9s"
 brew "kubernetes-cli"
 brew "kustomize"
-brew "litecli"
 brew "lua-language-server"
 brew "luarocks"
-brew "mas"
-brew "mysql"
 brew "neovim"
-brew "protobuf"
 brew "ripgrep"
 # rustup only — it conflicts with the `rust` formula, and the toolchain it
 # manages lives in ~/.cargo (cargo/rustc resolve there; see .zprofile).
@@ -56,18 +48,20 @@ brew "saml2aws"
 brew "starship"
 brew "stylua"
 brew "tmux"
-brew "tree-sitter"
-brew "ttyd"
+# The CLI, not the library: Homebrew split `tree-sitter` into a lib-only formula
+# and a separate `tree-sitter-cli`. nvim-treesitter (main) shells out to the CLI
+# to fetch/compile parsers; the bare `tree-sitter` gave only libtree-sitter, which
+# nothing here links, so a node-based npm `tree-sitter-cli` had crept onto PATH
+# and broke parser installs whenever node was mid-upgrade. This is the native
+# Rust binary — no node dependency.
+brew "tree-sitter-cli"
 brew "typescript-language-server"
 brew "uv"
-brew "vhs"
 brew "wget"
 brew "yarn"
 brew "zoxide"
 brew "zsh"
 brew "cockroachdb/tap/cockroach"
-brew "hashicorp/tap/terraform"
-brew "hashicorp/tap/terraform-ls"
 # lkctl pulls nebula (required) and nats (recommended) with it, so neither is
 # listed — but both taps above are, since a URL tap can't be resolved from the
 # dependency name alone. `cockroach` is NOT a transitive dep: lkctl shells out
@@ -85,17 +79,11 @@ cask "font-jetbrains-mono"
 cask "gcloud-cli"
 cask "ghostty"
 cask "hammerspoon"
-cask "hiddenbar"
-cask "inkdrop"
-cask "numi"
 cask "obs"
-cask "obsidian"
 cask "path-finder"
-cask "popclip"
 cask "qlmarkdown"
 cask "tableplus"
 cask "the-unarchiver"
-cask "typora"
 # The nightly, not the stable cask: both install WezTerm.app, so listing the
 # one that is not installed makes `brew bundle` abort on the existing app.
 cask "wezterm@nightly"
