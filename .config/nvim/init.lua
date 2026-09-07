@@ -629,63 +629,76 @@ require("oil").setup({
   },
 })
 
-local fzf = require("fzf-lua")
-local fzf_actions = require("fzf-lua.actions")
+-- fzf-lua's require pulls in fzf-lua.config eagerly (~15ms) and is only needed
+-- once a picker is invoked, so defer require + setup off the startup path. The
+-- keymaps below call require("fzf-lua")[name] on demand via lazy_fzf; a picker
+-- fired later finds setup already applied. Between startup and this scheduled
+-- tick, vim.ui.select falls back to the builtin selector for a few ms.
+local function lazy_fzf(name)
+  return function(...)
+    return require("fzf-lua")[name](...)
+  end
+end
 
-fzf.setup({
-  fzf_colors = true,
-  fzf_opts = {
-    ["--no-scrollbar"] = true,
-    ["--info"] = "inline-right",
-  },
-  defaults = { formatter = "path.filename_first" },
-  previewers = { builtin = { syntax_limit_b = 1024 * 100 } },
-  winopts = {
-    height = 0.85,
-    width = 0.80,
-    row = 0.35,
-    col = 0.50,
-    border = "rounded",
-    preview = {
-      border = "border",
-      wrap = "nowrap",
-      hidden = "nohidden",
-      vertical = "down:45%",
-      horizontal = "right:50%",
-      layout = "flex",
-      flip_columns = 120,
+vim.schedule(function()
+  local fzf = require("fzf-lua")
+  local fzf_actions = require("fzf-lua.actions")
+
+  fzf.setup({
+    fzf_colors = true,
+    fzf_opts = {
+      ["--no-scrollbar"] = true,
+      ["--info"] = "inline-right",
     },
-  },
-  keymap = {
-    builtin = {
-      ["<C-/>"] = "toggle-help",
-      ["<C-a>"] = "toggle-fullscreen",
-      ["<C-i>"] = "toggle-preview",
-      ["<C-f>"] = "preview-page-down",
-      ["<C-b>"] = "preview-page-up",
+    defaults = { formatter = "path.filename_first" },
+    previewers = { builtin = { syntax_limit_b = 1024 * 100 } },
+    winopts = {
+      height = 0.85,
+      width = 0.80,
+      row = 0.35,
+      col = 0.50,
+      border = "rounded",
+      preview = {
+        border = "border",
+        wrap = "nowrap",
+        hidden = "nohidden",
+        vertical = "down:45%",
+        horizontal = "right:50%",
+        layout = "flex",
+        flip_columns = 120,
+      },
     },
-    fzf = {
-      ["ctrl-q"] = "select-all+accept",
-      ["ctrl-u"] = "half-page-up",
-      ["ctrl-d"] = "half-page-down",
-      ["ctrl-f"] = "preview-page-down",
-      ["ctrl-b"] = "preview-page-up",
+    keymap = {
+      builtin = {
+        ["<C-/>"] = "toggle-help",
+        ["<C-a>"] = "toggle-fullscreen",
+        ["<C-i>"] = "toggle-preview",
+        ["<C-f>"] = "preview-page-down",
+        ["<C-b>"] = "preview-page-up",
+      },
+      fzf = {
+        ["ctrl-q"] = "select-all+accept",
+        ["ctrl-u"] = "half-page-up",
+        ["ctrl-d"] = "half-page-down",
+        ["ctrl-f"] = "preview-page-down",
+        ["ctrl-b"] = "preview-page-up",
+      },
     },
-  },
-  files = {
-    prompt = "Files❯ ",
-    cwd_prompt = false,
-    actions = { ["ctrl-g"] = fzf_actions.toggle_ignore },
-  },
-  grep = {
-    prompt = "Grep❯ ",
-    rg_glob = true,
-    actions = { ["ctrl-g"] = fzf_actions.toggle_ignore },
-  },
-  lsp = { symbols = { symbol_style = 1 } },
-  oldfiles = { include_current_session = true },
-})
-fzf.register_ui_select()
+    files = {
+      prompt = "Files❯ ",
+      cwd_prompt = false,
+      actions = { ["ctrl-g"] = fzf_actions.toggle_ignore },
+    },
+    grep = {
+      prompt = "Grep❯ ",
+      rg_glob = true,
+      actions = { ["ctrl-g"] = fzf_actions.toggle_ignore },
+    },
+    lsp = { symbols = { symbol_style = 1 } },
+    oldfiles = { include_current_session = true },
+  })
+  fzf.register_ui_select()
+end)
 
 -- fzf-lua runs previews and actions through headless `nvim -l .../fzf-lua/rpc.lua`
 -- workers, but *fzf* spawns them, not us, so we hold no job handle to stop them.
@@ -722,53 +735,60 @@ vim.api.nvim_create_autocmd("VimLeavePre", {
 })
 
 local blink = require("blink.cmp")
-blink.setup({
-  keymap = {
-    preset = "default",
-    ["<C-space>"] = { "show", "show_documentation", "hide_documentation" },
-    ["<C-e>"] = { "hide", "fallback" },
-    ["<CR>"] = { "accept", "fallback" },
-    ["<Tab>"] = { "snippet_forward", "select_next", "fallback" },
-    ["<S-Tab>"] = { "snippet_backward", "select_prev", "fallback" },
-    ["<Up>"] = { "select_prev", "fallback" },
-    ["<Down>"] = { "select_next", "fallback" },
-    ["<C-p>"] = { "select_prev", "fallback" },
-    ["<C-n>"] = { "select_next", "fallback" },
-    ["<C-u>"] = { "scroll_documentation_up", "fallback" },
-    ["<C-d>"] = { "scroll_documentation_down", "fallback" },
-  },
-  appearance = {
-    use_nvim_cmp_as_default = true,
-    nerd_font_variant = "mono",
-  },
-  sources = {
-    default = { "lsp", "path", "snippets", "buffer" },
-    providers = {
-      buffer = { max_items = 4, min_keyword_length = 4 },
+-- get_lsp_capabilities() (below) is static and needed eagerly for vim.lsp.config,
+-- so the bare require stays. blink.setup() runs config.merge_with plus the
+-- fuzzy-matcher download/task chain (~40-60ms of synchronous work) and is only
+-- needed once you enter insert mode -- defer it one loop tick, off the startup
+-- critical path. Completion is ready long before the first InsertEnter.
+vim.schedule(function()
+  blink.setup({
+    keymap = {
+      preset = "default",
+      ["<C-space>"] = { "show", "show_documentation", "hide_documentation" },
+      ["<C-e>"] = { "hide", "fallback" },
+      ["<CR>"] = { "accept", "fallback" },
+      ["<Tab>"] = { "snippet_forward", "select_next", "fallback" },
+      ["<S-Tab>"] = { "snippet_backward", "select_prev", "fallback" },
+      ["<Up>"] = { "select_prev", "fallback" },
+      ["<Down>"] = { "select_next", "fallback" },
+      ["<C-p>"] = { "select_prev", "fallback" },
+      ["<C-n>"] = { "select_next", "fallback" },
+      ["<C-u>"] = { "scroll_documentation_up", "fallback" },
+      ["<C-d>"] = { "scroll_documentation_down", "fallback" },
     },
-  },
-  completion = {
-    accept = { auto_brackets = { enabled = true } },
-    documentation = {
-      auto_show = true,
-      auto_show_delay_ms = 200,
-      treesitter_highlighting = true,
+    appearance = {
+      use_nvim_cmp_as_default = true,
+      nerd_font_variant = "mono",
     },
-    ghost_text = { enabled = true },
-    menu = {
-      draw = {
-        treesitter = { "lsp" },
-        columns = {
-          { "kind_icon" },
+    sources = {
+      default = { "lsp", "path", "snippets", "buffer" },
+      providers = {
+        buffer = { max_items = 4, min_keyword_length = 4 },
+      },
+    },
+    completion = {
+      accept = { auto_brackets = { enabled = true } },
+      documentation = {
+        auto_show = true,
+        auto_show_delay_ms = 200,
+        treesitter_highlighting = true,
+      },
+      ghost_text = { enabled = true },
+      menu = {
+        draw = {
+          treesitter = { "lsp" },
+          columns = {
+            { "kind_icon" },
           -- stylua: ignore
           { "label",    "label_description", gap = 1 },
-          { "kind" },
+            { "kind" },
+          },
         },
       },
     },
-  },
-  signature = { enabled = true }, -- window border inherits global winborder
-})
+    signature = { enabled = true }, -- window border inherits global winborder
+  })
+end)
 
 -- LSP servers are installed to the system PATH (brew / go / rustup / uv / npm),
 -- not via mason. nvim-lspconfig supplies the default cmd/root_markers/filetypes
@@ -863,14 +883,29 @@ for name, cfg in pairs(servers) do
 end
 vim.lsp.enable(vim.tbl_keys(servers))
 
-require("typescript-tools").setup({
-  settings = {
-    tsserver_file_preferences = {
-      includeInlayParameterNameHints = "all",
-      includeInlayFunctionParameterTypeHints = true,
-      includeInlayVariableTypeHints = true,
-    },
-  },
+-- typescript-tools + its rpc/tsserver submodules are the single largest startup
+-- cost (~40-60ms) and the only startup consumer of plenary (~5ms), yet they only
+-- ever serve JS/TS buffers. Defer require+setup to the first such buffer's
+-- FileType. vim.pack.add already put the plugin on the runtimepath, so no packadd
+-- is needed; the eager LspAttach dispatch above still fires for the client this
+-- starts. The buffer that triggered this is already open, so re-emit FileType on
+-- it once setup() has registered the plugin's attach autocmds.
+vim.api.nvim_create_autocmd("FileType", {
+  group = augroup("typescript_tools_lazy"),
+  pattern = { "javascript", "javascriptreact", "typescript", "typescriptreact", "typescript.tsx" },
+  once = true,
+  callback = function()
+    require("typescript-tools").setup({
+      settings = {
+        tsserver_file_preferences = {
+          includeInlayParameterNameHints = "all",
+          includeInlayFunctionParameterTypeHints = true,
+          includeInlayVariableTypeHints = true,
+        },
+      },
+    })
+    vim.api.nvim_exec_autocmds("FileType", { buffer = 0 })
+  end,
 })
 
 -- Prettier (via conform) owns web/JS/TS formatting so on-save diffs match the
@@ -939,7 +974,10 @@ ts.setup({
 -- PackChanged handler above.
 do
   local installed = {}
-  for _, lang in ipairs(ts.get_installed()) do
+  -- get_installed("parsers") scans only the compiled-parser dir; the no-arg form
+  -- returns the union of parsers AND bundled queries, which would mark a language
+  -- "installed" on the strength of a query file alone and skip compiling its parser.
+  for _, lang in ipairs(ts.get_installed("parsers")) do
     installed[lang] = true
   end
   local missing = vim.tbl_filter(function(lang)
@@ -1147,8 +1185,8 @@ map("n", "]e", diagnostic_jump(1, vim.diagnostic.severity.ERROR), { desc = "Next
 map("n", "[e", diagnostic_jump(-1, vim.diagnostic.severity.ERROR), { desc = "Prev Error" })
 map("n", "]w", diagnostic_jump(1, vim.diagnostic.severity.WARN), { desc = "Next Warning" })
 map("n", "[w", diagnostic_jump(-1, vim.diagnostic.severity.WARN), { desc = "Prev Warning" })
-map("n", "<leader>xx", fzf.diagnostics_document, { desc = "Document Diagnostics" })
-map("n", "<leader>xX", fzf.diagnostics_workspace, { desc = "Workspace Diagnostics" })
+map("n", "<leader>xx", lazy_fzf("diagnostics_document"), { desc = "Document Diagnostics" })
+map("n", "<leader>xX", lazy_fzf("diagnostics_workspace"), { desc = "Workspace Diagnostics" })
 map("n", "<leader>xl", vim.diagnostic.setloclist, { desc = "Location List" })
 map("n", "<leader>xq", vim.diagnostic.setqflist, { desc = "Quickfix List" })
 
@@ -1159,13 +1197,13 @@ map("n", "]q", vim.cmd.cnext, { desc = "Next Quickfix" })
 -- LSP / symbols — align with Neovim's native gr* namespace (0.11+) so there's a
 -- single convention; the fzf pickers back the native keys (gri/grt/gO) instead
 -- of living under parallel aliases (gI/gy/<leader>ds).
-map("n", "grr", fzf.lsp_references, { desc = "LSP References" })
-map("n", "gri", fzf.lsp_implementations, { desc = "LSP Implementations" })
-map("n", "grt", fzf.lsp_typedefs, { desc = "LSP Type Definitions" })
-map("n", "gO", fzf.lsp_document_symbols, { desc = "Document Symbols" })
-map("n", "gd", fzf.lsp_definitions, { desc = "Goto Definition" })
+map("n", "grr", lazy_fzf("lsp_references"), { desc = "LSP References" })
+map("n", "gri", lazy_fzf("lsp_implementations"), { desc = "LSP Implementations" })
+map("n", "grt", lazy_fzf("lsp_typedefs"), { desc = "LSP Type Definitions" })
+map("n", "gO", lazy_fzf("lsp_document_symbols"), { desc = "Document Symbols" })
+map("n", "gd", lazy_fzf("lsp_definitions"), { desc = "Goto Definition" })
 map("n", "gD", vim.lsp.buf.declaration, { desc = "Goto Declaration" })
-map("n", "<leader>ws", fzf.lsp_live_workspace_symbols, { desc = "Workspace Symbols" })
+map("n", "<leader>ws", lazy_fzf("lsp_live_workspace_symbols"), { desc = "Workspace Symbols" })
 map("n", "<leader>cr", vim.lsp.buf.rename, { desc = "Rename" })
 map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Action" })
 map({ "n", "v" }, "<leader>cf", function()
@@ -1173,23 +1211,23 @@ map({ "n", "v" }, "<leader>cf", function()
 end, { desc = "Format Buffer" })
 
 -- Files / grep / picker
-map("n", "<leader><leader>", fzf.files, { desc = "Find Files" })
-map("n", "<leader>ff", fzf.files, { desc = "Find Files" })
+map("n", "<leader><leader>", lazy_fzf("files"), { desc = "Find Files" })
+map("n", "<leader>ff", lazy_fzf("files"), { desc = "Find Files" })
 map("n", "<leader>fc", function()
-  fzf.files({ cwd = vim.fn.stdpath("config") })
+  lazy_fzf("files")({ cwd = vim.fn.stdpath("config") })
 end, { desc = "Config Files" })
-map("n", "<leader>fr", fzf.oldfiles, { desc = "Recent Files" })
-map("n", "<leader>sg", fzf.live_grep, { desc = "Live Grep" })
-map("n", "<leader>sw", fzf.grep_cword, { desc = "Grep Word" })
-map("n", "<leader>sW", fzf.grep_cWORD, { desc = "Grep WORD" })
-map("n", "<leader>sb", fzf.lgrep_curbuf, { desc = "Grep Buffer" })
-map("n", "<leader>ss", fzf.builtin, { desc = "Search Select" })
-map("n", "<leader>,", fzf.buffers, { desc = "Buffers" })
-map("n", "<leader>/", fzf.lgrep_curbuf, { desc = "Grep Buffer" })
-map("n", "<leader>fh", fzf.helptags, { desc = "Help Tags" })
-map("n", "<leader>fk", fzf.keymaps, { desc = "Keymaps" })
-map("n", "<leader>fd", fzf.diagnostics_document, { desc = "Document Diagnostics" })
-map("n", "<leader>fD", fzf.diagnostics_workspace, { desc = "Workspace Diagnostics" })
+map("n", "<leader>fr", lazy_fzf("oldfiles"), { desc = "Recent Files" })
+map("n", "<leader>sg", lazy_fzf("live_grep"), { desc = "Live Grep" })
+map("n", "<leader>sw", lazy_fzf("grep_cword"), { desc = "Grep Word" })
+map("n", "<leader>sW", lazy_fzf("grep_cWORD"), { desc = "Grep WORD" })
+map("n", "<leader>sb", lazy_fzf("lgrep_curbuf"), { desc = "Grep Buffer" })
+map("n", "<leader>ss", lazy_fzf("builtin"), { desc = "Search Select" })
+map("n", "<leader>,", lazy_fzf("buffers"), { desc = "Buffers" })
+map("n", "<leader>/", lazy_fzf("lgrep_curbuf"), { desc = "Grep Buffer" })
+map("n", "<leader>fh", lazy_fzf("helptags"), { desc = "Help Tags" })
+map("n", "<leader>fk", lazy_fzf("keymaps"), { desc = "Keymaps" })
+map("n", "<leader>fd", lazy_fzf("diagnostics_document"), { desc = "Document Diagnostics" })
+map("n", "<leader>fD", lazy_fzf("diagnostics_workspace"), { desc = "Workspace Diagnostics" })
 
 -- File explorer
 map("n", "-", "<cmd>Oil<CR>", { desc = "Open Parent Directory" })
@@ -1273,18 +1311,26 @@ local function set_scratch_lines(buf, lines)
 end
 
 local function run_shell_command(buf, cmd)
-  local output = vim.fn.systemlist(cmd)
-  local exit_code = vim.v.shell_error
-
-  if vim.tbl_isempty(output) then
-    output = { "" }
-  end
-
-  set_scratch_lines(buf, output)
-
-  if exit_code ~= 0 then
-    vim.notify(string.format("Command failed (%d): %s", exit_code, cmd), vim.log.levels.WARN)
-  end
+  -- Async so a slow command (build, curl, git log on a big repo) typed into the
+  -- free-form prompt never freezes the editor. cmd is a raw shell string, so run
+  -- it through 'shell' the way vim.fn.systemlist(string) did. stdout+stderr are
+  -- both shown (systemlist captured stderr too).
+  set_scratch_lines(buf, { "Running: " .. cmd })
+  vim.system({ vim.o.shell, vim.o.shellcmdflag, cmd }, { text = true }, function(obj)
+    vim.schedule(function()
+      if not vim.api.nvim_buf_is_valid(buf) then
+        return
+      end
+      local lines = vim.split((obj.stdout or "") .. (obj.stderr or ""), "\n", { trimempty = true })
+      if vim.tbl_isempty(lines) then
+        lines = { "" }
+      end
+      set_scratch_lines(buf, lines)
+      if obj.code ~= 0 then
+        vim.notify(string.format("Command failed (%d): %s", obj.code, cmd), vim.log.levels.WARN)
+      end
+    end)
+  end)
 end
 
 -- Shell command scratch buffer
@@ -1527,7 +1573,10 @@ local function flash_jump(opts)
       return
     end
 
-    local start_col = backward and 1 or (col + 1)
+    -- col is a 0-based byte offset, so the char under the cursor sits at 1-based
+    -- index col+1; forward search must start one past it (col+2) to skip it, the
+    -- way native `f` does. Backward searches [1, col].
+    local start_col = backward and 1 or (col + 2)
     local end_col = backward and col or #line
 
     local init = start_col
@@ -1610,13 +1659,17 @@ end, { desc = "Flash (visible)" })
 
 -- Neovim's experimental message UI (ui2). Opt-in: it can only be reached
 -- before this file runs, so `nvim --cmd "lua vim.g.enable_ui2 = true"` (or an
--- alias). Option names follow $VIMRUNTIME/lua/vim/_core/ui2.lua: `msg.targets`
--- (plural) and the timeout nested under `msg.msg`.
+-- alias). Config follows $VIMRUNTIME/lua/vim/_core/ui2.lua: `msg.targets`
+-- (plural; a plain string is wrapped to { default = ... }). The old nested
+-- `msg.msg.timeout` key was removed -- timeout now lives in the 'messagesopt'
+-- option; enable() error()s if the removed key is present, and the pcall here
+-- would swallow that silently, leaving ui2 quietly off.
 if vim.g.enable_ui2 == true then
   pcall(function()
+    vim.opt.messagesopt:append("timeout:4000")
     require("vim._core.ui2").enable({
       enable = true,
-      msg = { targets = "msg", msg = { timeout = 4000 } },
+      msg = { targets = "msg" },
     })
   end)
 end
