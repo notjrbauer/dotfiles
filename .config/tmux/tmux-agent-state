@@ -50,7 +50,10 @@ case "$state" in
         # (allow-passthrough all in .tmux.conf — `on` forwards only from
         # visible panes, and a background window is the whole point).
         tty=$(tmux display-message -p -t "$pane" '#{pane_tty}' 2>/dev/null)
-        where=$(tmux display-message -p -t "$pane" '#{session_name}:#{window_index}' 2>/dev/null)
+        # #{pane_title} is Claude's live task (pane-border-status shows the same),
+        # so the toast names the job — "✳ Homebrew upgrade path issue" — with the
+        # tmux location kept as a trailing locator to jump to (prefix w / :2).
+        where=$(tmux display-message -p -t "$pane" '#{pane_title} (#{session_name}:#{window_index})' 2>/dev/null)
         [ -w "$tty" ] && printf '\033Ptmux;\033\033]777;notify;claude;needs you in %s\007\033\\' "$where" > "$tty"
         ;;
     done)
