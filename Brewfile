@@ -47,7 +47,10 @@ brew "rustup"
 brew "saml2aws"
 brew "starship"
 brew "stylua"
-brew "tmux"
+# HEAD (reports "next-3.9") until 3.8 ships: it carries the 3.8 redraw fixes —
+# flicker around synchronized updates and alternate-screen apps — that 3.7c
+# lacks. Drop the args once the bottle is 3.8+ (`brew reinstall tmux`).
+brew "tmux", args: ["HEAD"]
 # The CLI, not the library: Homebrew split `tree-sitter` into a lib-only formula
 # and a separate `tree-sitter-cli`. nvim-treesitter (main) shells out to the CLI
 # to fetch/compile parsers; the bare `tree-sitter` gave only libtree-sitter, which
