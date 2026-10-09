@@ -120,6 +120,8 @@ comp="${XDG_DATA_HOME:-$HOME/.local/share}/zsh/site-functions"
 mkdir -p "$comp"
 command -v rustup >/dev/null 2>&1 && rustup completions zsh cargo > "$comp/_cargo"
 command -v uv     >/dev/null 2>&1 && uv generate-shell-completion zsh > "$comp/_uv"
+command -v omp   >/dev/null 2>&1 && omp completions zsh > "$comp/_omp"
+command -v herdr >/dev/null 2>&1 && herdr completion zsh > "$comp/_herdr"
 if command -v go >/dev/null 2>&1 && [[ ! -f "$comp/_golang" ]]; then
   curl -fsSL https://raw.githubusercontent.com/zsh-users/zsh-completions/master/src/_golang -o "$comp/_golang" \
     || echo "warn: could not fetch _golang completion"

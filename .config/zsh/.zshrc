@@ -6,7 +6,6 @@
 # ================================
 CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
 ZCOMPDUMP_PATH="$CACHE_DIR/.zcompdump"
-
 # ================================
 # ⚙️  Early Bootstrapping
 # ================================
@@ -26,6 +25,7 @@ ZCOMPDUMP_PATH="$CACHE_DIR/.zcompdump"
 # On a bare Linux console, skip eza's icons (they render as tofu).
 [[ "$TERM" == "linux" ]] && DISABLE_EXA=true
 
+export DBT_PROFILES_DIR=~/.dbt
 # ================================
 # ⚡ Environment + Tools
 # ================================

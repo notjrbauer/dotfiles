@@ -123,30 +123,14 @@ unfocused-split-fill = #1f1f28
 split-divider-color = #6c7086
 
 # ---------------------------------------------------------------------------
-# Startup  (mirrors .config/wezterm/config/launch.lua)
+# Startup
 # ---------------------------------------------------------------------------
-# Every surface opens inside tmux. `new-session -A -s main` attaches to "main"
-# if it exists and creates it otherwise, so closing the last window never loses
-# the session.
-#
-# Do NOT prefix this with `exec`. Ghostty already runs the command as
-#   /usr/bin/login -flp <user> /bin/bash --noprofile --norc -c exec -l <command>
-# so a leading `exec` of our own produces `exec -l exec ...`, and bash then
-# looks for a binary named `exec` and dies with "exec: exec: not found".
-#
-# tmux is NOT exec'd either: exec replaces the shell, so `tmux detach` would
-# leave nothing running and the window would vanish with it. Running tmux
-# normally and exec'ing a login shell after it returns means detach drops you
-# at a prompt instead of closing the terminal.
-#
-# $SHELL, not a hardcoded path: it resolves to the login shell (brew zsh here)
-# and stays correct on Intel, where Homebrew lives at /usr/local. The login zsh
-# sources .zprofile, which is what puts tmux on PATH at all.
-# The backdrop roll runs here, not in .zshrc: tmux sets TERM_PROGRAM=tmux in
-# every pane and this -c shell never reads .zshrc, so .zshrc only ever ran it
-# after quitting tmux. Rolls the fragment for the NEXT launch (config is read
-# before command runs).
-command = shell:~/.config/ghostty/backdrop >/dev/null 2>&1; "$SHELL" -l -c 'tmux new-session -A -s main; exec "$SHELL" -l'
+# Open a login shell so Herdr can be started from the prompt. WezTerm keeps
+# its own tmux startup in .config/wezterm/config/launch.lua.
+# $SHELL follows the user's login shell on both Homebrew architectures.
+# Roll the backdrop for the next launch; config is read before this runs.
+# Ghostty prefixes this with `exec -l` on macOS, so keep both steps inside sh.
+command = shell:/bin/sh -c '"$HOME/.config/ghostty/backdrop" >/dev/null 2>&1; exec "$SHELL" -l'
 
 # Detection reads the command's filename, which is now `sh`, not a shell it
 # knows how to inject into — so name the scheme explicitly or the features

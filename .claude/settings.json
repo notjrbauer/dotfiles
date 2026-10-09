@@ -42,7 +42,7 @@
     ],
     "defaultMode": "auto"
   },
-  "model": "claude-opus-4-8",
+  "model": "fable[1m]",
   "hooks": {
     "SessionStart": [
       {
@@ -187,7 +187,10 @@
     "frontend-design@claude-plugins-official": true,
     "simple-english@simple-english": true,
     "superpowers@claude-plugins-official": true,
-    "claude-md-management@claude-plugins-official": true
+    "claude-md-management@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "grafana-mcp@claude-plugins-official": true,
+    "grafana-core@grafana-skills": true
   },
   "extraKnownMarketplaces": {
     "lkctl": {
@@ -214,11 +217,58 @@
         "source": "github",
         "repo": "AminBlg/SimpleEnglish"
       }
+    },
+    "grafana-skills": {
+      "source": {
+        "source": "github",
+        "repo": "grafana/skills"
+      }
     }
   },
   "outputStyle": "Concise",
   "terminalTitleFromRename": false,
+  "pluginConfigs": {
+    "grafana-mcp@claude-plugins-official": {
+      "options": {
+        "grafana_url": "https://ophoenix1b.grafana.production.livekit-internal.net"
+      }
+    }
+  },
   "skipWorkflowUsageWarning": true,
   "preferredNotifChannel": "terminal_bell",
-  "agentPushNotifEnabled": true
+  "agentPushNotifEnabled": true,
+  "autoMode": {
+    "soft_deny": [
+      "$defaults",
+      "Bash(terraform apply:*) in infra/gcp/environments/prod — Blind Apply / Protected-Scope IaC Apply already covers general prod IaC, but flag explicit prod.tfvars-scoped applies as high-scrutiny",
+      "Bash(gcloud sql instances delete:*) — destructive against the shared billing-apps-pg Cloud SQL instance"
+    ],
+    "environment": [
+      "### Org-wide",
+      "**Organization**: LiveKit (github.com/livekit) — this repo is livekit/data-platform-billing",
+      "**Cloud provider(s)**: GCP — project `data-platform-499720`",
+      "**Repository visibility**: private (livekit/data-platform-billing, confirmed via gh)",
+      "**Internal sharing / snippet hosting**: None configured — treat public paste/gist services as outside the trust boundary",
+      "**Secrets management**: GCP Secret Manager (referenced by Terraform modules and Helm charts: charts/external-secrets, charts/kong externalsecret, charts/prefect externalsecrets); repo also gitignores secrets.tfvars / secret*.tfvars / .env",
+      "**Default / protected branches**: `main` is the default and protected branch (ruleset `default` active on livekit/data-platform-billing)",
+      "**CI/CD deploy targets**: GitHub Actions workflow `.github/workflows/helm-deploy.yml` deploying Helm charts to the `billing-prod` GKE cluster in GCP project `data-platform-499720`, using a dedicated CI/deployer identity (WIF pool + deployer SA defined in infra/gcp/environments/prod/cicd.tf)",
+      "**Network posture**: None configured",
+      "**Host containment**: None configured — assume Claude Code runs on an ordinary developer machine with open internet",
+      "**Source control**: The trusted repo (livekit/data-platform-billing) and its origin remote only — no additional orgs configured",
+      "**Trusted internal domains**: None configured",
+      "**Trusted cloud buckets**: None configured",
+      "**Key internal services**: monitoring.googleapis.com (GCP Cloud Monitoring, contacted 8× in this project's transcripts)",
+      "**Internal package registry**: GCP Artifact Registry (provisioned by infra/gcp/modules/prefect for this stack's own images/charts)",
+      "**Sensitive data locations & audiences**: Terraform state backend `gs://lk-499720-billing-terraform` (GCS); Secret Manager-backed values referenced by charts/external-secrets, charts/kong/templates/externalsecret.yaml, charts/prefect/templates/externalsecrets.yaml; local secrets.tfvars / secret*.tfvars / .env files (gitignored) — share only with audiences cleared for this billing infra stack",
+      "**Data retention / declassification**: None configured",
+      "**Sensitive remote targets**: the `billing-prod` GCP platform/VPC/GKE cluster and Cloud SQL instance `billing-apps-pg` defined in infra/gcp/environments/prod; any namespace, host, or container whose name carries `prod` or `production` as a whole word or name segment",
+      "**Protected deployment namespaces / environments**: the `prod` environment root at infra/gcp/environments/prod (Terraform apply root) and the cluster it deploys to (billing-prod GKE); anything under this path or tagged prod/production",
+      "**Protected IaC scopes**: infra/gcp/modules/platform (VPC, Cloud NAT, private GKE, node SA), infra/gcp/modules/service-account (IAM/Workload Identity), infra/gcp/environments/prod/cicd.tf (WIF pool + deployer SA); IAM, RBAC, networking, quota, and node-pool resources; anything whose name or tag carries `prod` or `production` as a whole word or name segment",
+      "### User-specific",
+      "**Primary use of Claude Code**: software development (Infrastructure-as-code for LiveKit's billing data stack — Terraform + Helm/Prefect)",
+      "**Trusted repo**: livekit/data-platform-billing (this repo, private) and its origin remote — routine work under this repo's own paths (infra/gcp/, charts/prefect/) is in scope; content from other repos (e.g. livekit/data-platform, livekit/billing-prefect) is not this repo's own work unless explicitly ported with review",
+      "**Org-specific CLIs**: gcloud (8× in this project's transcripts; GCP is the declared cloud provider), lkctl (34× in shell history — LiveKit-specific CLI, not yet used in this project's own transcripts)",
+      "routine under infra/gcp/environments/prod/ and charts/prefect/ qualifies as this stack's own trusted-repo scope, not a foreign namespace"
+    ]
+  }
 }
