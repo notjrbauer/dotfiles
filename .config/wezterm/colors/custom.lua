@@ -59,30 +59,6 @@ local colorscheme = {
     mocha.subtext0,
   },
 
-  tab_bar = {
-    background = 'rgba(0, 0, 0, 0.4)',
-    active_tab = {
-      bg_color = mocha.surface2,
-      fg_color = mocha.text,
-    },
-    inactive_tab = {
-      bg_color = mocha.surface0,
-      fg_color = mocha.subtext1,
-    },
-    inactive_tab_hover = {
-      bg_color = mocha.surface0,
-      fg_color = mocha.text,
-    },
-    new_tab = {
-      bg_color = mocha.base,
-      fg_color = mocha.text,
-    },
-    new_tab_hover = {
-      bg_color = mocha.mantle,
-      fg_color = mocha.text,
-      italic = true,
-    },
-  },
   visual_bell = mocha.red,
   indexed = {
     [16] = mocha.peach,

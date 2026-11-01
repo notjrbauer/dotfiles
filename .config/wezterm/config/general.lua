@@ -6,7 +6,6 @@ return {
   -- modes enabled in Input Sources. Flip this back to true if that changes,
   -- since dead keys and IME composition need it.
   use_ime = false,
-  -- exit_behavior = 'CloseOnCleanExit', -- if the shell program exited with a successful status
 
   scrollback_lines = 20000,
 

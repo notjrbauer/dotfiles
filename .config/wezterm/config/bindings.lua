@@ -1,22 +1,31 @@
 local wezterm = require('wezterm')
-local platform = require('utils.platform')
 local act = wezterm.action
 
-local mod = {}
-if platform.is_mac then
-  mod.SUPER = 'SUPER'
-  mod.SUPER_REV = 'SUPER|CTRL'
-elseif platform.is_win or platform.is_linux then
-  mod.SUPER = 'ALT' -- avoid clashing with the Windows key
-  mod.SUPER_REV = 'ALT|CTRL'
-end
+-- macOS only (the Brewfile and launch.lua are), so SUPER is Cmd.
+local mod = { SUPER = 'SUPER', SUPER_REV = 'SUPER|CTRL' }
 
 -- SUPER-side chords only — tmux owns the C-a layer (.tmux.conf: prefix C-a,
 -- prefix h/j/k/l, sticky resize table, copy mode) plus bare C-h/j/k/l pane
 -- navigation. No LEADER here: a wezterm leader on C-a would swallow the tmux
 -- prefix and force the old C-a C-a double-tap. Same layering as ghostty
 -- (.config/ghostty/config), so both terminals feel identical over tmux.
+--
+-- The default key table is off: it binds CTRL-Tab, CTRL -/=/0 and the whole
+-- CTRL|SHIFT letter set, which tmux (extended-keys csi-u) would otherwise
+-- hand to nvim as distinct keys. Ghostty binds no CTRL chords on macOS. The
+-- SUPER defaults worth keeping are listed below, explicitly.
 local keys = {
+  -- app / window (wezterm defaults, kept)
+  { key = 'q', mods = 'SUPER', action = act.QuitApplication },
+  { key = 'h', mods = 'SUPER', action = act.HideApplication },
+  { key = 'm', mods = 'SUPER', action = act.Hide },
+  { key = 'n', mods = 'SUPER', action = act.SpawnWindow },
+  { key = 'r', mods = 'SUPER', action = act.ReloadConfiguration },
+  { key = 'k', mods = 'SUPER', action = act.ClearScrollback('ScrollbackOnly') },
+  { key = '-', mods = 'SUPER', action = act.DecreaseFontSize },
+  { key = '=', mods = 'SUPER', action = act.IncreaseFontSize },
+  { key = '0', mods = 'SUPER', action = act.ResetFontSize },
+
   -- panes: split / zoom / close (native wezterm panes, for use outside tmux)
   { key = [[\]], mods = mod.SUPER, action = act.SplitVertical({ domain = 'CurrentPaneDomain' }) },
   {
@@ -37,11 +46,14 @@ local keys = {
   { key = 'f', mods = mod.SUPER, action = act.Search({ CaseInSensitiveString = '' }) },
   { key = 'F12', mods = 'NONE', action = act.ShowDebugOverlay },
 
-  -- copy / paste (macOS Cmd+C / Cmd+V). Bound explicitly so they never depend
-  -- on wezterm's default key set.
+  -- copy / paste (macOS Cmd+C / Cmd+V)
   { key = 'c', mods = 'SUPER', action = act.CopyTo('Clipboard') },
   { key = 'v', mods = 'SUPER', action = act.PasteFrom('Clipboard') },
 }
+for i = 1, 8 do
+  table.insert(keys, { key = tostring(i), mods = 'SUPER', action = act.ActivateTab(i - 1) })
+end
+table.insert(keys, { key = '9', mods = 'SUPER', action = act.ActivateTab(-1) })
 
 local mouse_bindings = {
   -- Ctrl-click opens the link under the cursor
@@ -59,7 +71,7 @@ local mouse_bindings = {
   --
   -- Not CompleteSelection('PrimarySelection'): on macOS the window backend
   -- ignores the destination and writes the general pasteboard either way
-  -- (window/src/os/macos/window.rs set_clipboard, tag 20250713), so that
+  -- (window/src/os/macos/window.rs set_clipboard, nightly of 2025-07-13), so that
   -- "no-op writer" copied on every drag. Nop ends the gesture without copying;
   -- the highlight made on Down/Drag stays, and SUPER-c copies it deliberately.
   -- Check: `printf sentinel | pbcopy`, drag-select, `pbpaste` → sentinel.
@@ -72,6 +84,7 @@ local mouse_bindings = {
 }
 
 return {
+  disable_default_key_bindings = true,
   keys = keys,
   mouse_bindings = mouse_bindings,
 }
