@@ -25,9 +25,6 @@ return {
   colors = colors,
   font = fonts.font,
   font_size = fonts.font_size,
-  -- nil unless fonts.lua's use_pragmata branch set it (PragmataPro wants 1.17);
-  -- a nil key is absent, so wezterm keeps its 1.0 default for JetBrains Mono.
-  line_height = fonts.line_height,
 
   -- Background
   background = backdrops:initial_options(),
@@ -41,7 +38,6 @@ return {
   },
   initial_rows = 35,
   initial_cols = 100,
-  -- window_decorations = 'MACOS_FORCE_SQUARE_CORNERS|RESIZE',
   window_decorations = 'RESIZE',
   window_close_confirmation = 'NeverPrompt',
   adjust_window_size_when_changing_font_size = false,
@@ -56,7 +52,11 @@ return {
     brightness = 0.65,
   },
 
-  -- Visual bell
+  -- Bell: visual only. Claude Code's preferredNotifChannel is terminal_bell,
+  -- and the default audible_bell (SystemBeep) rang the macOS alert on top of
+  -- the alert clip tmux-agent-state plays. The tmux badge and the clip carry
+  -- the signal; the fade below is the visible one.
+  audible_bell = 'Disabled',
   visual_bell = {
     fade_in_function = 'EaseIn',
     fade_in_duration_ms = 250,

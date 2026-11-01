@@ -38,6 +38,16 @@ fi
 
 state=${1:-}
 
+# The same audio file herdr plays for its own toasts ([ui.sound] path in
+# ~/.config/herdr/config.toml, relative to that file), so an agent sounds the
+# same in and out of herdr. Untracked and optional: no file, no sound.
+# Backgrounded so the hook returns before the clip ends.
+ALERT_SOUND="${XDG_CONFIG_HOME:-$HOME/.config}/herdr/sounds/alert.mp3"
+play_alert() {
+    [ -f "$ALERT_SOUND" ] && command -v afplay >/dev/null 2>&1 || return 0
+    (afplay "$ALERT_SOUND" >/dev/null 2>&1 &)
+}
+
 case "$state" in
     # Always unset, even on the window you are looking at: a "wait" you have
     # already answered must not outlive the answer.
@@ -55,6 +65,7 @@ case "$state" in
         # tmux location kept as a trailing locator to jump to (prefix w / :2).
         where=$(tmux display-message -p -t "$pane" '#{pane_title} (#{session_name}:#{window_index})' 2>/dev/null)
         [ -w "$tty" ] && printf '\033Ptmux;\033\033]777;notify;claude;needs you in %s\007\033\\' "$where" > "$tty"
+        play_alert
         ;;
     done)
         # Never badge the window you are already staring at — a * on the
@@ -63,7 +74,8 @@ case "$state" in
         # current window of a session you are NOT attached to was never
         # badged. "Staring at" is active AND its session has a client.
         [ "$(tmux display-message -p -t "$pane" '#{&&:#{window_active},#{session_attached}}' 2>/dev/null)" = 1 ] && exit 0
-        tmux set-option -w -t "$pane" @agent done 2>/dev/null ;;
+        tmux set-option -w -t "$pane" @agent done 2>/dev/null
+        play_alert ;;
     *) printf 'usage: %s running|done|wait|clear\n' "${0##*/}" >&2; exit 2 ;;
 esac
 
