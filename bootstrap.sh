@@ -190,10 +190,11 @@ fi
 # to it (omp plugin link), and ~/.omp/agent/AGENTS.md runs scripts from it
 # by path. ENG_MODE_REPO is the fork that holds those commits.
 ENG_MODE_REPO="${ENG_MODE_REPO:-git@github.com:notjrbauer/eng-mode.git}"
+ENG_MODE_BRANCH="${ENG_MODE_BRANCH:-local/main}"   # fork's main mirrors upstream; the local commits live here
 ENG_MODE_DIR="$HOME/eng-mode"
 if [[ ! -d "$ENG_MODE_DIR/.git" ]]; then
-  echo "==> cloning eng-mode into $ENG_MODE_DIR…"
-  git clone "$ENG_MODE_REPO" "$ENG_MODE_DIR" \
+  echo "==> cloning eng-mode ($ENG_MODE_BRANCH) into $ENG_MODE_DIR…"
+  git clone --branch "$ENG_MODE_BRANCH" "$ENG_MODE_REPO" "$ENG_MODE_DIR" \
     || echo "warn: eng-mode clone failed — set ENG_MODE_REPO to a fork you can read"
 fi
 if [[ -d "$ENG_MODE_DIR/.git" ]] && command -v omp >/dev/null 2>&1; then
