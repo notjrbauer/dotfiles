@@ -60,11 +60,16 @@ upgrade:
 	$(NVIM_INSTALL) nightly
 	@echo "✅ Neovim Nightly upgraded."
 
+# nvim-treesitter's install()/update() are async; init.lua parks the task in
+# _G.ts_pending so a headless run can block on it instead of letting +qa kill a
+# parser build halfway (the next interactive start would just schedule it again).
+TS_WAIT = if _G.ts_pending then _G.ts_pending:wait(300000) end
+
 plugins:
 	@echo "📦 Installing Plugins..."
 	# Config uses vim.pack: a headless startup runs vim.pack.add and installs
 	# any missing plugins, then quits. (Old lazy.nvim "+Lazy! sync" is gone.)
-	nvim --headless "+lua print('plugins ready')" +qa
+	nvim --headless "+lua $(TS_WAIT) print('plugins ready')" +qa
 	@echo "✅ Plugins installed."
 
 # Update every plugin to the newest revision matching its spec's `version`, then
@@ -77,7 +82,7 @@ plugins:
 # Commit the resulting lockfile diff along with the update.
 plugins-update:
 	@echo "📦 Updating plugins (rewrites nvim-pack-lock.json)…"
-	nvim --headless "+lua vim.pack.update(nil, { force = true })" +qa
+	nvim --headless "+lua vim.pack.update(nil, { force = true }); $(TS_WAIT)" +qa
 	@echo "✅ Plugins updated. Review: git diff -- .config/nvim/nvim-pack-lock.json"
 
 # Back out a bad update: re-checkout every plugin at the revision recorded in the
@@ -85,7 +90,7 @@ plugins-update:
 # not an update — pair it with `git checkout` on the lockfile to go further back.
 plugins-restore:
 	@echo "⏪ Restoring plugins to lockfile revisions…"
-	nvim --headless "+lua vim.pack.update(nil, { force = true, target = 'lockfile' })" +qa
+	nvim --headless "+lua vim.pack.update(nil, { force = true, target = 'lockfile' }); $(TS_WAIT)" +qa
 	@echo "✅ Plugins restored to nvim-pack-lock.json."
 
 # Force a clean re-fetch of every vim.pack plugin. Removes ONLY the pack tree
@@ -95,7 +100,7 @@ plugins-restore:
 plugins-reinstall:
 	@echo "📦 Reinstalling plugins (vim.pack tree only)…"
 	rm -rf ~/.local/share/nvim/site/pack/core
-	nvim --headless "+lua print('plugins reinstalled')" +qa
+	nvim --headless "+lua $(TS_WAIT) print('plugins reinstalled')" +qa
 	@echo "✅ Plugins reinstalled (state and cache untouched)."
 
 # Install the LSP servers this config expects onto your PATH — the replacement
@@ -138,7 +143,11 @@ test:
 	@command -v nvim >/dev/null 2>&1 || { echo "❌ nvim not found on PATH — run 'make install'"; exit 1; }
 	@nvim --version | head -1
 	@echo "→ loading config headlessly (installs missing plugins on first run)…"
-	@nvim --headless "+lua print('init.lua loaded: ok')" +qa; echo
+	@# nvim exits 0 after a Lua error in init.lua, so the exit code is no gate:
+	@# anything on stderr is.
+	@err=$$(nvim --headless "+lua $(TS_WAIT)" +qa 2>&1 >/dev/null); \
+	  if [ -n "$$err" ]; then printf '%s\n' "$$err"; echo "❌ init.lua load wrote to stderr"; exit 1; fi; \
+	  echo "init.lua loaded: ok"
 	@echo "→ running :checkhealth …"
 	@nvim --headless "+silent! checkhealth" "+silent! write! /tmp/nvim_checkhealth.txt" "+qa!" >/dev/null 2>&1 || true
 	@echo "── checkhealth: ERROR / WARNING lines ──"

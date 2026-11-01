@@ -111,14 +111,6 @@ opt.swapfile = false
 opt.undofile = true
 opt.undolevels = 10000
 
-do
-  local undodir = vim.fn.stdpath("data") .. "/undo"
-  if vim.fn.isdirectory(undodir) == 0 then
-    vim.fn.mkdir(undodir, "p")
-  end
-  opt.undodir = undodir
-end
-
 -- Search
 opt.ignorecase = true
 opt.smartcase = true
@@ -267,32 +259,22 @@ local function organize_imports(client, bufnr, opts)
   end
 end
 
--- augroup() clears on every call, so it can't be used for a group that several
--- buffers register into. Cache one handle per server name instead; a per-buffer
--- group (the old approach) leaked an empty augroup for every buffer a server
--- ever attached to.
-local format_groups = {}
-local function format_augroup(name)
-  local group = format_groups[name]
-  if not group then
-    group = vim.api.nvim_create_augroup("user_" .. name, { clear = true })
-    format_groups[name] = group
-  end
-  return group
-end
-
 -- Register a BufWritePre formatter for `client` on `bufnr`.
 --   opts.name     : augroup suffix (kept per-server so groups stay distinct)
 --   opts.gate     : optional extra predicate(bufnr) that must pass to run
 --   opts.organize : optional { use_diagnostics, run_commands } for organizeImports
 local function register_format_on_save(client, bufnr, opts)
-  local group = format_augroup(opts.name)
+  -- One group per server that several buffers register into: clear = false
+  -- returns the existing group untouched (augroup() above always clears). A
+  -- per-buffer group leaked an empty augroup for every buffer a server ever
+  -- attached to.
+  local group = vim.api.nvim_create_augroup("user_" .. opts.name, { clear = false })
   -- Clear only THIS buffer's handler, preserving the reattach-dedup the old
   -- per-buffer group gave us without disturbing other buffers.
-  vim.api.nvim_clear_autocmds({ group = group, buffer = bufnr })
+  vim.api.nvim_clear_autocmds({ group = group, buf = bufnr })
   vim.api.nvim_create_autocmd("BufWritePre", {
     group = group,
-    buffer = bufnr,
+    buf = bufnr,
     callback = function()
       if not autoformat_enabled(bufnr) then
         return
@@ -498,6 +480,15 @@ vim.diagnostic.config({
   severity_sort = true,
   virtual_text = { spacing = 2, source = "if_many", prefix = "●" },
   float = { source = true }, -- border inherits global winborder
+  -- Default on_jump for vim.diagnostic.jump(), so the stock ]d [d ]D [D and the
+  -- severity-filtered maps below all show the line's diagnostics after moving.
+  jump = {
+    on_jump = function(diagnostic, bufnr)
+      if diagnostic then
+        vim.diagnostic.open_float({ bufnr = bufnr, scope = "line", source = "if_many", focus = false })
+      end
+    end,
+  },
   signs = {
     text = {
       [vim.diagnostic.severity.ERROR] = "E",
@@ -531,14 +522,16 @@ vim.api.nvim_create_autocmd("PackChanged", {
       -- update(), not install(): install() skips any language already on disk, so
       -- a plugin bump advanced the bundled queries while leaving the compiled
       -- parsers frozen. That skew is what broke the `diff` highlights query.
-      ts.update(ts_languages)
+      -- Async; the Makefile's headless recipes :wait() on _G.ts_pending so +qa
+      -- cannot cut a parser build short.
+      _G.ts_pending = ts.update(ts_languages)
     end
   end,
 })
 
 vim.pack.add({
   -- UI
-  { src = gh("catppuccin/nvim") },
+  { src = gh("catppuccin/nvim"), name = "catppuccin" },
   { src = gh("echasnovski/mini.icons") },
   { src = gh("folke/which-key.nvim") },
 
@@ -582,7 +575,6 @@ require("catppuccin").setup({
 vim.cmd.colorscheme("catppuccin")
 
 require("mini.icons").setup({ style = "glyph" })
-require("mini.icons").mock_nvim_web_devicons()
 
 local which_key = require("which-key")
 which_key.setup({
@@ -757,7 +749,6 @@ vim.schedule(function()
       ["<C-d>"] = { "scroll_documentation_down", "fallback" },
     },
     appearance = {
-      use_nvim_cmp_as_default = true,
       nerd_font_variant = "mono",
     },
     sources = {
@@ -904,7 +895,7 @@ vim.api.nvim_create_autocmd("FileType", {
         },
       },
     })
-    vim.api.nvim_exec_autocmds("FileType", { buffer = 0 })
+    vim.api.nvim_exec_autocmds("FileType", { buf = 0 })
   end,
 })
 
@@ -966,9 +957,6 @@ conform.setup({
 })
 
 local ts = require("nvim-treesitter")
-ts.setup({
-  install_dir = vim.fn.stdpath("data") .. "/site",
-})
 -- Only install parsers that are actually missing, so warm starts don't schedule
 -- install work every launch. New parsers on plugin update are handled by the
 -- PackChanged handler above.
@@ -984,7 +972,7 @@ do
     return not installed[lang]
   end, ts_languages)
   if #missing > 0 then
-    ts.install(missing)
+    _G.ts_pending = ts.install(missing)
   end
 end
 
@@ -1027,7 +1015,7 @@ require("gitsigns").setup({
     local gs = require("gitsigns")
 
     local function gmap(mode, lhs, rhs, desc)
-      vim.keymap.set(mode, lhs, rhs, { buffer = bufnr, desc = desc, silent = true })
+      vim.keymap.set(mode, lhs, rhs, { buf = bufnr, desc = desc, silent = true })
     end
 
     gmap("n", "]h", function()
@@ -1081,26 +1069,6 @@ require("gitsigns").setup({
   end,
 })
 
-local function diagnostic_jump(count, severity)
-  return function()
-    vim.diagnostic.jump({
-      count = count,
-      severity = severity,
-      on_jump = function(diagnostic, bufnr)
-        if not diagnostic then
-          return
-        end
-        vim.diagnostic.open_float({
-          bufnr = bufnr,
-          scope = "line",
-          source = "if_many",
-          focus = false,
-        })
-      end,
-    })
-  end
-end
-
 -- Escape / search
 map("i", "jj", "<Esc>", { desc = "Exit insert mode" })
 
@@ -1130,7 +1098,6 @@ end
 map("n", "<C-h>", win_or_tmux("h", "-L"), { desc = "Go to Left Window / tmux pane" })
 map("n", "<C-j>", win_or_tmux("j", "-D"), { desc = "Go to Lower Window / tmux pane" })
 map("n", "<C-k>", win_or_tmux("k", "-U"), { desc = "Go to Upper Window / tmux pane" })
-map("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Clear search highlight" })
 map("n", "<C-l>", win_or_tmux("l", "-R"), { desc = "Go to Right Window / tmux pane" })
 -- The two other keys .tmux.conf forwards into nvim: last pane and next pane.
 -- Normal mode only — blink keeps insert-mode C-Space, :terminal keeps C-\ C-n.
@@ -1161,8 +1128,6 @@ map("v", "<A-k>", ":m '<-2<CR>gv=gv", { desc = "Move Selection Up" })
 -- Buffers
 map("n", "<S-h>", "<cmd>bprevious<CR>", { desc = "Prev Buffer" })
 map("n", "<S-l>", "<cmd>bnext<CR>", { desc = "Next Buffer" })
-map("n", "[b", "<cmd>bprevious<CR>", { desc = "Prev Buffer" })
-map("n", "]b", "<cmd>bnext<CR>", { desc = "Next Buffer" })
 map("n", "<leader>bb", "<cmd>e #<CR>", { desc = "Other Buffer" })
 map("n", "<leader>bd", "<cmd>bdelete<CR>", { desc = "Delete Buffer" })
 
@@ -1178,9 +1143,13 @@ map("n", "N", "'nN'[v:searchforward].'zv'", { expr = true, desc = "Prev Search R
 map("x", "N", "'nN'[v:searchforward]", { expr = true, desc = "Prev Search Result" })
 map("o", "N", "'nN'[v:searchforward]", { expr = true, desc = "Prev Search Result" })
 
--- Diagnostics
-map("n", "]d", diagnostic_jump(1), { desc = "Next Diagnostic" })
-map("n", "[d", diagnostic_jump(-1), { desc = "Prev Diagnostic" })
+-- Diagnostics. ]d [d ]D [D are stock (0.11+); the float after a jump comes from
+-- diagnostic.config().jump.on_jump above, which these severity maps share.
+local function diagnostic_jump(count, severity)
+  return function()
+    vim.diagnostic.jump({ count = count, severity = severity })
+  end
+end
 map("n", "]e", diagnostic_jump(1, vim.diagnostic.severity.ERROR), { desc = "Next Error" })
 map("n", "[e", diagnostic_jump(-1, vim.diagnostic.severity.ERROR), { desc = "Prev Error" })
 map("n", "]w", diagnostic_jump(1, vim.diagnostic.severity.WARN), { desc = "Next Warning" })
@@ -1189,10 +1158,6 @@ map("n", "<leader>xx", lazy_fzf("diagnostics_document"), { desc = "Document Diag
 map("n", "<leader>xX", lazy_fzf("diagnostics_workspace"), { desc = "Workspace Diagnostics" })
 map("n", "<leader>xl", vim.diagnostic.setloclist, { desc = "Location List" })
 map("n", "<leader>xq", vim.diagnostic.setqflist, { desc = "Quickfix List" })
-
--- Quickfix
-map("n", "[q", vim.cmd.cprev, { desc = "Previous Quickfix" })
-map("n", "]q", vim.cmd.cnext, { desc = "Next Quickfix" })
 
 -- LSP / symbols — align with Neovim's native gr* namespace (0.11+) so there's a
 -- single convention; the fzf pickers back the native keys (gri/grt/gO) instead
@@ -1204,8 +1169,6 @@ map("n", "gO", lazy_fzf("lsp_document_symbols"), { desc = "Document Symbols" })
 map("n", "gd", lazy_fzf("lsp_definitions"), { desc = "Goto Definition" })
 map("n", "gD", vim.lsp.buf.declaration, { desc = "Goto Declaration" })
 map("n", "<leader>ws", lazy_fzf("lsp_live_workspace_symbols"), { desc = "Workspace Symbols" })
-map("n", "<leader>cr", vim.lsp.buf.rename, { desc = "Rename" })
-map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "Code Action" })
 map({ "n", "v" }, "<leader>cf", function()
   conform.format({ async = false, lsp_format = "fallback" })
 end, { desc = "Format Buffer" })
@@ -1351,10 +1314,10 @@ map("n", "<leader>o", function()
     vim.api.nvim_buf_set_name(buf, "[Shell] " .. cmd)
     run_shell_command(buf, cmd)
 
-    vim.keymap.set("n", "q", "<cmd>close<CR>", { buffer = buf, silent = true, desc = "Quit buffer" })
+    vim.keymap.set("n", "q", "<cmd>close<CR>", { buf = buf, silent = true, desc = "Quit buffer" })
     vim.keymap.set("n", "r", function()
       run_shell_command(buf, cmd)
-    end, { buffer = buf, desc = "Re-run command" })
+    end, { buf = buf, desc = "Re-run command" })
   end)
 end, { desc = "Run Shell Command" })
 
@@ -1401,7 +1364,7 @@ vim.api.nvim_create_autocmd("FileType", {
   pattern = { "help", "lspinfo", "notify", "qf", "query", "startuptime", "checkhealth", "man" },
   callback = function(ev)
     vim.bo[ev.buf].buflisted = false
-    vim.keymap.set("n", "q", "<cmd>close<CR>", { buffer = ev.buf, silent = true, desc = "Quit buffer" })
+    vim.keymap.set("n", "q", "<cmd>close<CR>", { buf = ev.buf, silent = true, desc = "Quit buffer" })
   end,
 })
 
