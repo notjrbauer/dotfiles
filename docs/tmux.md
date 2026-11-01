@@ -18,6 +18,7 @@ One session per project, so `cd`-ing around is replaced by switching.
 | --- | --- |
 | `C-a S` | session/window tree (`choose-tree -Zs`) — the main way to move; `x` in the list kills the highlighted item |
 | `C-a L` | last session (the toggle you'll use most) |
+| `C-a BTab` | fuzzy session switcher in a floating pane (stock tmux 3.8 `switch-mode -ks`) |
 | `C-a C-s` | new session, prompts for a name, inherits the current pane's cwd |
 | `C-a $` | rename session (prefills current) |
 | `C-a d` | detach — leaves everything running |
@@ -135,7 +136,7 @@ binds none of these keys, so passing them through would only strand you.
 | `C-a !` | break the pane out into its own window |
 | `C-a q` | kill pane, no confirmation (`C-a x` asks first) |
 | `C-a m` | mark the pane for `swap-pane`/`join-pane` (stock tmux) |
-| `C-a - = ( )` | resize by 10 cells (up / down / left / right) — this shadows stock `(`/`)` = previous/next **session**; use `C-a S` or `C-a L` instead |
+| `C-a - = ( )` | resize by 10 cells (up / down / left / right) — this shadows stock `(`/`)` = previous/next **client** (`switch-client -p/-n`; use `C-a S` or `C-a L` instead) and `-`/`=` = `delete-buffer`/`choose-buffer` (`C-a #` still lists buffers) |
 | `C-a Enter` | **scratch shell** — a popup shell in this pane's cwd; any key dismisses it once the shell exits |
 | `C-a e` | **broadcast** — toggle typing into every pane of this window |
 | `C-a g` | **agent-log picker** — fzf over `~/.cache/agent-logs/`, newest first, Enter pages it in `less -R` |
@@ -198,7 +199,8 @@ in two places without you looking:
   running command). So a glance at a window says what each pane is doing.
 - **the window list.** A window whose active pane is a Claude shows 󱚝 and the
   agent's live title instead of the window name (its `pane_current_command` is
-  Claude's version string, which nothing else looks like). A green `*` only
+  `claude`; older builds reported the version string, and `.tmux.conf` matches
+  both). A green `*` only
   appears when the agent has nothing running in the background — a `Stop`
   with background tasks still going is not "done".
 - **session names.** A `SessionStart` hook names every session `<repo>@<branch>`
@@ -331,8 +333,10 @@ on macOS.
 
 This is stock tmux plus `fzf` — no plugin manager, nothing to install.
 
-tmux 3.8 (unreleased as of Aug 2026) makes `mouse` default on, binds `Tab` to a
-new `switch-mode` (this config's `bind Tab last-window` still wins), and turns
-hooks into events with payloads — `set-hook -B` and OSC 133
-`pane-command-finished` could then replace the bell-driven badge for plain
-shells. Nothing here needs to change for it.
+tmux 3.8 (released; the Brewfile tracks the bottle) made `mouse` default on,
+bound `Tab` to a new `switch-mode` (this config's `bind Tab last-window` still
+wins; `BTab` keeps the stock session switcher), moved `#{window_layout}` to a
+JSON form that `tmux-snapshot` restores unchanged (verified), and turned hooks
+into events with payloads — `set-hook -B` and OSC 133 `pane-command-finished`
+could replace the bell-driven badge for plain shells. Nothing here needed to
+change for it beyond comments.

@@ -26,22 +26,45 @@ deny() {
     exit 0
 }
 
-# One subcommand per line: rules must hold for each part of a pipeline. Only a
+# One subcommand per line: rules must hold for each part of a pipeline. The
+# split happens outside quotes only — a `;` inside '…' or "…" is part of an
+# argument, not a separator — so `echo 'tmux new-window; …' > notes.txt` is
+# one subcommand whose command word is echo, and is left alone. Only a
 # subcommand whose command word IS tmux (bare, by path, or behind env/command)
-# is checked — not any text that mentions tmux, so quoting a tmux command inside
-# another program's argument is not a false positive. `sh -c '…'` wrappers are
-# left to the permission classifier.
-printf '%s\n' "$cmd" | sed -E 's/(&&|\|\||;|\|)/\n/g' | while IFS= read -r c; do
+# is checked. `sh -c '…'` wrappers are left to the permission classifier.
+# Flags are read with quoted strings blanked out, so a -d or -p inside the
+# shell command a pane will run does not satisfy the rule.
+split_outside_quotes() {
+    awk 'BEGIN { q = "" }
+    {
+        n = length($0); out = ""
+        for (i = 1; i <= n; i++) {
+            ch = substr($0, i, 1)
+            if (q == "") {
+                if (ch == "\047" || ch == "\"") { q = ch }
+                else if (ch == "\\") { out = out ch substr($0, ++i, 1); continue }
+                else if (ch == ";" || ch == "|" || ch == "&") { out = out "\n"; continue }
+            } else if (ch == q) { q = "" }
+            else if (q == "\"" && ch == "\\") { out = out ch substr($0, ++i, 1); continue }
+            out = out ch
+        }
+        printf "%s\n", out
+    }'
+}
+printf '%s\n' "$cmd" | split_outside_quotes | while IFS= read -r c; do
     c=$(printf '%s' "$c" | sed -E 's/^[[:space:]]*//; s/^(command[[:space:]]+|env([[:space:]]+[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*)*[[:space:]]+)*//; s#^[^[:space:]]*/tmux([[:space:]]|$)#tmux\1#')
     case $c in tmux\ *|tmux) ;; *) continue ;; esac
+    # Quoted strings blanked: the flag checks must only see tmux's own
+    # arguments, never the command a new pane is told to run.
+    cq=$(printf '%s' "$c" | sed -E "s/'[^']*'/''/g; s/\"[^\"]*\"/\"\"/g")
     case $c in
         *new-session*|*new-window*|*split-window*|*tmux\ new\ *|*tmux\ neww\ *|*tmux\ splitw\ *|*tmux\ new-s\ *|*tmux\ new-w\ *|*tmux\ split\ *)
-            printf '%s' "$c" | grep -qE -- '(^|[[:space:]])-[A-Za-z]*d' \
+            printf '%s' "$cq" | grep -qE -- '(^|[[:space:]])-[A-Za-z]*d' \
                 || deny "tmux: creating a session/window/pane without -d steals the user's focus — add -d" ;;
     esac
     case $c in
         *capture-pane*|*tmux\ capturep\ *|*tmux\ capture\ *)
-            printf '%s' "$c" | grep -qE -- '(^|[[:space:]])-[A-Za-z]*p' \
+            printf '%s' "$cq" | grep -qE -- '(^|[[:space:]])-[A-Za-z]*p' \
                 || deny "tmux: capture-pane without -p clobbers the user's paste buffer — add -p" ;;
     esac
     case $c in

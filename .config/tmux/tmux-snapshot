@@ -67,14 +67,17 @@ tab=$(printf '\t')
 fmt=$(printf '#{session_name}\t#{window_index}\t#{?#{==:#{automatic-rename},1},~auto~,#{window_name}}\t#{window_layout}\t#{pane_index}\t#{pane_current_path}\t#{@claude_session}')
 
 save() {
-    # -f drops tmux 3.7's floating panes (prefix * upstream; unbound in
-    # .tmux.conf). They are real panes, but one in a window appends a trailing
-    # <...> section to #{window_layout} that select-layout rejects outright
-    # with "invalid layout" — and restore() discards that error, so the window
+    # -f drops floating panes (prefix * upstream; unbound in .tmux.conf). They
+    # are real panes, but on 3.7 one in a window appended a trailing <...>
+    # section to #{window_layout} that select-layout rejected outright with
+    # "invalid layout" — and restore() discards that error, so the window
     # would come back with its panes wherever the incremental tiled pass left
     # them. Recording the window without them restores the docked layout
     # faithfully; the floating pane itself is not restored, which is the same
-    # bargain as not restoring commands.
+    # bargain as not restoring commands. 3.8 changed #{window_layout} to a JSON
+    # form that also records pane ids ("I":"%3"); select-layout accepts a
+    # recorded string whose ids belong to a dead server (save, kill, restore
+    # verified on a scratch -L server), so nothing is stripped here.
     panes=$(tmux list-panes -a -f '#{!:#{pane_floating_flag}}' -F "$fmt" 2>/dev/null) || return 0
     [ -n "$panes" ] || return 0
 

@@ -38,6 +38,9 @@
       "Bash(tmux rename*)",
       "Bash(tmux run-shell*)",
       "Bash(tmux run*)",
+      "Bash(tmux set*)",
+      "Bash(tmux bind*)",
+      "Bash(tmux unbind*)",
       "Bash(tmux display-popup*)"
     ],
     "defaultMode": "auto"

@@ -5,7 +5,13 @@
 set -u
 in=$(cat)
 cmd=$(printf '%s' "$in" | jq -r '.tool_input.command // empty')
+# Only a create verb that asked for the id (-P -F '#{pane_id}') earns a record.
+# A call that also lists panes is skipped: its last stdout line would be a
+# pane the session did not make.
 case $cmd in *tmux*-P*) ;; *) exit 0 ;; esac
+case $cmd in *new-session*|*new-window*|*split-window*|*tmux\ new\ *|*tmux\ neww\ *|*tmux\ splitw\ *|*tmux\ new-s\ *|*tmux\ new-w\ *|*tmux\ split\ *) ;; *) exit 0 ;; esac
+case $cmd in *pane_id*) ;; *) exit 0 ;; esac
+case $cmd in *list-panes*|*tmux\ lsp*|*display-message*|*tmux\ display\ *|*show-options*|*tmux\ show\ *) exit 0 ;; esac
 sid=$(printf '%s' "$in" | jq -r '.session_id // empty')
 # The id is a path component; a UUID is the only shape it ever has.
 case $sid in ''|*[!0-9a-fA-F-]*) exit 0 ;; esac

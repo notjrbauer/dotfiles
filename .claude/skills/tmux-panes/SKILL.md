@@ -90,7 +90,9 @@ not paste the body into the transcript.
 
 A popup is the surface for "read this log, then get out of my way": it floats
 over the whole window at whatever size you ask, costs no rows, and vanishes on
-`q`. It is modal, so it fits reading — never a persistent process.
+`q`. It fits reading — never a persistent process: it is not in the user's
+snapshot and `display-popup` still needs an attached client (verified on the
+current HEAD build, where popups are rendered as floating panes).
 
 ```sh
 tmux run-shell -b "tmux display-popup -E -w 90% -h 85% -T ' <job> ' \
