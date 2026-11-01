@@ -13,6 +13,7 @@ Stdlib-first, current idiom, clarity over cleverness. Verify any version-specifi
 - `sync.WaitGroup.Go(func())` (1.25) — use it instead of manual `Add(1)`/`go`/`defer Done()`.
 - `testing/synctest` (stable 1.25) for deterministic concurrency tests with a fake clock; `testing.B.Loop` for benchmarks.
 - `errors.AsType[T]` (1.26) — prefer over `errors.As` with a var. `new(expr)` (`new(42)` → `*int`). `log/slog.NewMultiHandler`. `os/signal.NotifyContext` cancels with a cause.
+- **1.27**: generic methods (a method can declare its own type params); `encoding/json/v2` + `jsontext` are stable; stdlib `uuid` package; `strings.CutLast`/`bytes.CutLast`; `url.URL.Clone`; `httptest.NewTestServer` + `synctest.Sleep`; `goroutineleak` pprof profile is GA; `go fix` adds `atomictypes`, `embedlit`, `slicesbackward`, `unsafefuncs`. Don't move a hashed/persisted encoding to `json/v2` — its stricter defaults change bytes; in the billing repos, do not import it at all until the project opts in.
 - `os.Root` (1.24) for dir-scoped FS ops; `runtime.AddCleanup` replaces `runtime.SetFinalizer`; generic type aliases.
 - Tool deps via `tool` directives in `go.mod` (`go get -tool`, `go tool`) — the `tools.go` blank-import hack is dead.
 - `go fix` is the home of the "modernizers" — run it to modernize code.

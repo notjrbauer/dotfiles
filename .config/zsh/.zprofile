@@ -48,3 +48,9 @@ path=(
 # installed despite the Brewfile; cargo resolves to ~/.cargo/bin.)
 [[ -n "$HOMEBREW_PREFIX" && -d "$HOMEBREW_PREFIX/opt/rustup/bin" ]] \
   && path+=("$HOMEBREW_PREFIX/opt/rustup/bin")
+
+# python.org framework scripts (pip, pip3, debugpy entry points). /usr/local/bin
+# already symlinks python3 from here, so this only adds the scripts pip warns
+# about. APPENDED so it never shadows brew or the python3 symlink.
+[[ -d /Library/Frameworks/Python.framework/Versions/3.14/bin ]] \
+  && path+=(/Library/Frameworks/Python.framework/Versions/3.14/bin)

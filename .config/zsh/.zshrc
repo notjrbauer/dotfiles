@@ -544,3 +544,6 @@ _plugin() {  # _plugin owner/repo sha
 _plugin zsh-users/zsh-autosuggestions        0e810e5afa27acbd074398eefbe28d13005dbc15
 _plugin zdharma-continuum/fast-syntax-highlighting cf318e06a9b7c9f2219d78f41b46fa6e06011fd9
 unfunction _plugin
+
+# bun completions
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
