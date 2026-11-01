@@ -333,7 +333,8 @@ on macOS.
 
 This is stock tmux plus `fzf` — no plugin manager, nothing to install.
 
-tmux 3.8 (released; the Brewfile tracks the bottle) made `mouse` default on,
+tmux 3.8 (released; the Brewfile stays on HEAD, which is ahead of it) made
+`mouse` default on,
 bound `Tab` to a new `switch-mode` (this config's `bind Tab last-window` still
 wins; `BTab` keeps the stock session switcher), moved `#{window_layout}` to a
 JSON form that `tmux-snapshot` restores unchanged (verified), and turned hooks

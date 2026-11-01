@@ -47,12 +47,13 @@ brew "rustup"
 brew "saml2aws"
 brew "starship"
 brew "stylua"
-# 3.8 is bottled (it carries the redraw fixes around synchronized updates and
-# alternate-screen apps that 3.7c lacked). A machine still on the HEAD build
-# needs `brew reinstall tmux` once — `brew upgrade` never touches a HEAD
-# install — and then a server restart: every client, including the Claude
-# hooks, fails with a protocol-version mismatch until the old server is gone.
-brew "tmux"
+# HEAD on purpose (reports "next-3.9"): it is ahead of the 3.8 bottle, and
+# .tmux.conf already tracks post-3.8 changes (popup-style gone, popups as
+# floating panes). `brew upgrade` never touches a HEAD install; refresh with
+# `brew reinstall tmux` and then restart the server — every client, including
+# the Claude hooks, fails with a protocol-version mismatch until the old
+# server is gone.
+brew "tmux", args: ["HEAD"]
 # The CLI, not the library: Homebrew split `tree-sitter` into a lib-only formula
 # and a separate `tree-sitter-cli`. nvim-treesitter (main) shells out to the CLI
 # to fetch/compile parsers; the bare `tree-sitter` gave only libtree-sitter, which
