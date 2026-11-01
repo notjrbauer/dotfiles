@@ -242,5 +242,18 @@ for d in "$DOTFILES"/.claude/skills/*/; do
 done
 [ "$frontmatter_ok" -eq 1 ] || echo "warn: some agents/skills have frontmatter problems (see above) — Claude Code skips those silently" >&2
 
+# --- herdr + omp -----------------------------------------------------------
+# Both directories are mostly runtime state (logs, sockets, session and
+# credential databases), so only the authored config files are linked, one at
+# a time. omp rewrites config.yml itself (/settings, omp config set), so like
+# ~/.claude/settings.json it is a write-through into this repo — review the
+# diff before committing. The herdr<->omp bridge in ~/.omp/agent/extensions is
+# herdr-managed (herdr integration install omp) and stays local.
+link "$DOTFILES/.config/herdr/config.toml" "$XDG_CONFIG_HOME/herdr/config.toml"
+for f in config.yml mcp.json AGENTS.md lsp.json dap.json; do
+  link "$DOTFILES/.omp/agent/$f" "$HOME/.omp/agent/$f"
+done
+link_children "$DOTFILES/.omp/agent/rules" "$HOME/.omp/agent/rules"
+
 echo ""
 echo "Done. Start a new shell (or run: exec zsh -l) to pick up the changes."

@@ -1,0 +1,31 @@
+{
+  "servers": {
+    "gopls": {
+      "rootMarkers": [
+        "go.mod",
+        "go.work"
+      ],
+      "settings": {
+        "gopls": {
+          "analyses": {
+            "unusedparams": true,
+            "shadow": true
+          },
+          "staticcheck": true,
+          "gofumpt": true
+        }
+      }
+    },
+    "pyright": {
+      "rootMarkers": [
+        "pyproject.toml",
+        "pyrightconfig.json",
+        "setup.py",
+        "setup.cfg",
+        "requirements.txt",
+        "Pipfile",
+        "pytest.ini"
+      ]
+    }
+  }
+}

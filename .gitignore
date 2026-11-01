@@ -27,3 +27,17 @@ bin/
 
 # claude --worktree creates checkouts here
 .claude/worktrees/
+
+# herdr / omp: only the authored config files are tracked (see install.sh).
+# Nothing else should ever be copied in here, but guard the obvious spill.
+.config/herdr/*
+!.config/herdr/config.toml
+.omp/*
+!.omp/agent/
+.omp/agent/*
+!.omp/agent/config.yml
+!.omp/agent/mcp.json
+!.omp/agent/AGENTS.md
+!.omp/agent/lsp.json
+!.omp/agent/dap.json
+!.omp/agent/rules/

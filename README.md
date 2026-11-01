@@ -49,6 +49,8 @@ make help        # list targets
 | `.config/nvim/` | Neovim 0.12 — native LSP, `vim.pack`, blink.cmp, fzf-lua, treesitter |
 | `.config/wezterm/` | WezTerm — catppuccin mocha, SUPER-side chords only; tmux owns `C-a` |
 | `.config/ghostty/` | Ghostty — same palette/font, native tabs & splits |
+| `.config/herdr/config.toml` | herdr (agent multiplexer) — prefix `C-a` like tmux, system toasts, one alert clip |
+| `.omp/agent/` | omp — model roles, approval mode, MCP, rules; runtime state stays in `~/.omp` |
 | `.gitconfig`, `.psqlrc`, `.tmux.conf`, `Brewfile` | Git / psql / tmux / Homebrew bundle |
 | `docs/` | Guides — [`tmux.md`](docs/tmux.md) (sessions, panes, copy/paste) |
 | `.claude/` | **Portable Claude Code config** — global rules, curated agents, settings |

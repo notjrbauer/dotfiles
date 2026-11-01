@@ -1,0 +1,9 @@
+{
+  "adapters": {
+    "debugpy": {
+      "command": "python3",
+      "args": ["-m", "debugpy.adapter"],
+      "launchDefaults": { "request": "launch", "justMyCode": false, "stopOnEntry": true }
+    }
+  }
+}

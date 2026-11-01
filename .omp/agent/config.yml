@@ -1,0 +1,126 @@
+task:
+  enableLsp: true
+  showResolvedModelBadge: true
+  disabledAgents:
+    - panel-deepseek
+  isolation:
+    apply: false
+    enabled: true
+  softRequestBudget: 1600
+  agentModelOverrides:
+    reviewer: "@adversary"
+secrets:
+  enabled: true
+checkpoint:
+  enabled: true
+modelRoles:
+  default: openai-codex/gpt-6-astra:medium
+  slow: openai-codex/gpt-6-astra:high
+  plan: openai-codex/gpt-6-astra:high
+  advisor: anthropic/claude-opus-5-5:medium
+  task: openai-codex/gpt-6.1-sol:medium
+  tiny: openai-codex/gpt-6-luna:low
+  commit: openai-codex/gpt-6-luna:low
+  code: anthropic/claude-opus-5-5:medium
+  judgment: openai-codex/gpt-6-astra:medium
+  designer: anthropic/claude-opus-5-5:medium
+  adversary: anthropic/claude-opus-5-5:high
+  review: openai-codex/gpt-6-astra:medium
+  flash: openai-codex/gpt-6-luna:low
+  smol: openai-codex/gpt-6-luna:low
+  panel_opus: anthropic/claude-opus-5-5:high
+  panel_sol: openai-codex/gpt-6.1-sol:high
+  panel_fable: anthropic/claude-fable-5-1:high
+symbolPreset: nerd
+theme:
+  dark: dark-tokyo-night
+  light: light-catppuccin
+setupVersion: 2
+dev:
+  autoqaConsent: denied
+  autoqa: false
+defaultThinkingLevel: auto
+disabledProviders:
+  - amazon-bedrock
+  - bedrock-mantle
+  - ollama
+  - llama.cpp
+  - lm-studio
+hideThinkingBlock: true
+memory:
+  backend: mnemopi
+tools:
+  approvalMode: write
+  approval:
+    task: allow
+    mcp__linear_create_attachment: prompt
+    mcp__linear_create_attachment_from_upload: prompt
+    mcp__linear_create_initiative_label: prompt
+    mcp__linear_create_issue_label: prompt
+    mcp__linear_delete_attachment: prompt
+    mcp__linear_delete_comment: prompt
+    mcp__linear_delete_customer: prompt
+    mcp__linear_delete_customer_need: prompt
+    mcp__linear_delete_diff_comment: prompt
+    mcp__linear_delete_status_update: prompt
+    mcp__linear_mark_notification: prompt
+    mcp__linear_merge_diff: prompt
+    mcp__linear_prepare_attachment_upload: prompt
+    mcp__linear_resolve_diff_thread: prompt
+    mcp__linear_restore_initiative_label: prompt
+    mcp__linear_restore_issue_label: prompt
+    mcp__linear_restore_project_label: prompt
+    mcp__linear_retire_initiative_label: prompt
+    mcp__linear_retire_issue_label: prompt
+    mcp__linear_retire_project_label: prompt
+    mcp__linear_save_comment: prompt
+    mcp__linear_save_customer: prompt
+    mcp__linear_save_customer_need: prompt
+    mcp__linear_save_diff_comment: prompt
+    mcp__linear_save_document: prompt
+    mcp__linear_save_initiative: prompt
+    mcp__linear_save_initiative_label: prompt
+    mcp__linear_save_issue: prompt
+    mcp__linear_save_issue_label: prompt
+    mcp__linear_save_milestone: prompt
+    mcp__linear_save_project: prompt
+    mcp__linear_save_project_label: prompt
+    mcp__linear_save_release: prompt
+    mcp__linear_save_release_note: prompt
+    mcp__linear_save_status_update: prompt
+    mcp__linear_share_issue: prompt
+    mcp__linear_submit_diff_review: prompt
+    mcp__linear_unshare_issue: prompt
+    mcp__linear_update_diff: prompt
+retry:
+  maxDelayMs: 60000
+mnemopi:
+  retainEveryNTurns: 8
+  injectionTokenLimit: 3000
+  scoping: per-project-tagged
+compaction:
+  methodOrder:
+    - handoff
+    - remote
+    - shake
+    - soft
+  handoffSaveToDisk: true
+  thresholdTokens: 120000
+  idleEnabled: true
+branchSummary:
+  enabled: true
+lsp:
+  diagnosticsOnEdit: true
+  shared: false
+cycleOrder:
+  - default
+  - code
+  - slow
+  - smol
+ttsr:
+  repeatMode: after-gap
+advisor:
+  enabled: true
+  reviewInterval: 2
+codexResets:
+  autoRedeem: "no"

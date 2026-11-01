@@ -12,6 +12,8 @@
 #   6. cargo tools                (tree-sitter CLI; brew's tree-sitter is lib-only)
 #   7. Login shell                (brew zsh; macOS ships an older one at /bin/zsh)
 #   8. Neovim nightly             (init.lua targets 0.12+; brew stable may lag)
+#   9. herdr + omp                (vendor install scripts; neither is in brew's core tap)
+#  10. eng-mode                   (omp plugin, cloned to ~/eng-mode and linked)
 #
 # Idempotent: every step checks before it acts; safe to re-run after a partial
 # failure (e.g. sign into the App Store, then run it again).
@@ -160,6 +162,52 @@ if [[ ! -x "$HOME/.local/bin/nvim" ]]; then
     || echo "warn: nvim nightly install failed — brew's stable nvim (if any) is the fallback"
 fi
 
+# --- 9. herdr + omp ---------------------------------------------------------
+# Both ship their own installer and land in ~/.local/bin (already on PATH via
+# .zprofile). Upgrades are `herdr update` / `omp update`, not brew.
+#   https://herdr.dev/tui/docs/install/   https://omp.sh/docs/quickstart
+if ! command -v herdr >/dev/null 2>&1; then
+  echo "==> installing herdr…"
+  curl -fsSL https://herdr.dev/install.sh | sh \
+    || echo "warn: herdr install failed — https://herdr.dev/tui/docs/install/"
+fi
+if ! command -v omp >/dev/null 2>&1; then
+  echo "==> installing omp…"
+  curl -fsSL https://omp.sh/install | sh \
+    || echo "warn: omp install failed — https://omp.sh/docs/quickstart"
+fi
+# The herdr<->omp bridge: writes ~/.omp/agent/extensions/herdr-omp-agent-state.ts
+# (herdr-managed, never tracked) so herdr's sidebar sees omp's state.
+if command -v herdr >/dev/null 2>&1 && command -v omp >/dev/null 2>&1; then
+  herdr integration install omp >/dev/null 2>&1 \
+    && echo "==> herdr: omp integration installed" \
+    || echo "warn: herdr integration install omp failed — rerun after a new shell"
+fi
+
+# --- 10. eng-mode (omp plugin) ---------------------------------------------
+# Eng Mode is used from a local clone, not the upstream package: the clone
+# carries local commits on top of ajoslin/eng-mode, omp's plugin dir symlinks
+# to it (omp plugin link), and ~/.omp/agent/AGENTS.md runs scripts from it
+# by path. ENG_MODE_REPO is the fork that holds those commits.
+ENG_MODE_REPO="${ENG_MODE_REPO:-git@github.com:notjrbauer/eng-mode.git}"
+ENG_MODE_DIR="$HOME/eng-mode"
+if [[ ! -d "$ENG_MODE_DIR/.git" ]]; then
+  echo "==> cloning eng-mode into $ENG_MODE_DIR…"
+  git clone "$ENG_MODE_REPO" "$ENG_MODE_DIR" \
+    || echo "warn: eng-mode clone failed — set ENG_MODE_REPO to a fork you can read"
+fi
+if [[ -d "$ENG_MODE_DIR/.git" ]] && command -v omp >/dev/null 2>&1; then
+  if command -v bun >/dev/null 2>&1; then
+    (cd "$ENG_MODE_DIR" && bun install --frozen-lockfile >/dev/null) \
+      || echo "warn: bun install in $ENG_MODE_DIR failed"
+  else
+    echo "warn: bun not found — eng-mode's scripts and eng-github need it (brew \"oven-sh/bun/bun\")"
+  fi
+  omp plugin list 2>/dev/null | grep -q 'eng-mode' \
+    || omp plugin link "$ENG_MODE_DIR" \
+    || echo "warn: omp plugin link failed — run: omp plugin link $ENG_MODE_DIR"
+fi
+
 echo ""
 echo "Done. Next steps:"
 echo "  exec zsh -l                         # new shell: starship, PATH, plugins"
@@ -167,3 +215,4 @@ echo "  claude login                        # one-time Claude Code auth"
 echo "  make macos                          # optional: macOS defaults (key repeat, Finder…)"
 echo "  open -a Hammerspoon                 # then grant Accessibility for window hotkeys"
 echo "  make -C .config/nvim servers        # optional: LSP servers (gopls, ruff, …)"
+echo "  omp                                 # then run setup-eng-mode in each repo (see ~/eng-mode/README.md)"
