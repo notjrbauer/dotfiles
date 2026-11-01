@@ -1,8 +1,8 @@
 # Ghostty config — mirrors .config/wezterm/* (colors/custom.lua, config/appearance.lua,
 # config/fonts.lua, config/bindings.lua, utils/backdrops.lua)
-# Target: Ghostty 1.3.1, macOS. Location: ~/.config/ghostty/config
+# Target: Ghostty 1.4.0, macOS. Location: ~/.config/ghostty/config
 # Palette: slightly-altered Catppuccin Mocha (base swapped to #1f1f28).
-# Every option/action below verified against the 1.3.1 binary
+# Every option/action below verified against the 1.4.0 binary
 # (+show-config --default --docs, +list-actions, +validate-config).
 
 # ---------------------------------------------------------------------------
@@ -145,12 +145,13 @@ shell-integration-features = cursor,sudo,title,path
 mouse-hide-while-typing = true
 
 # Selecting is inert — the same rule as .tmux.conf (Copy-mode) and wezterm
-# (config/bindings.lua mouse_bindings). copy-on-select defaults to TRUE, and
+# (config/bindings.lua mouse_bindings). none is the macOS default since 1.4
+# (false is now a deprecated alias for it), stated here as intent:
 # mouse-shift-capture defaults to false, so inside tmux (mouse on) a Shift-drag
-# is handled by Ghostty rather than tmux — and with the default on, that silently
-# replaces the clipboard you just filled in another pane. Selection still works;
+# is handled by Ghostty rather than tmux — and copying on select would silently
+# replace the clipboard you just filled in another pane. Selection still works;
 # super+c is the deliberate copy.
-copy-on-select = false
+copy-on-select = none
 # Left Option is Alt (nvim/tmux alt+ maps); right Option composes — the same
 # split as wezterm's macOS default (send_composed_key_when_*_alt_is_pressed).
 macos-option-as-alt = left
@@ -180,7 +181,7 @@ keybind = super+ctrl+w=close_tab
 # tabs
 keybind = super+t=new_tab
 # wezterm ActivateLastTab was most-recently-used; Ghostty's last_tab action
-# means final tab — no MRU-tab action exists in 1.3.1.
+# means final tab — no MRU-tab action exists as of 1.4.0.
 keybind = super+ctrl+[=last_tab
 keybind = super+ctrl+]=move_tab:1
 
@@ -199,6 +200,6 @@ keybind = f12=inspector:toggle
 #   above is the closest
 # - scrollbar_thumb / compose_cursor / tab_bar colors (native macOS widgets)
 # - ctrl+click to open links (macOS Ghostty hardcodes cmd+hover+click; the
-#   modifier is not configurable in 1.3.1)
+#   modifier is not configurable as of 1.4.0)
 # - switch_to_last_active_tab_when_closing_tab
 # ---------------------------------------------------------------------------
