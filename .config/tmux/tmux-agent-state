@@ -41,10 +41,13 @@ state=${1:-}
 # The same audio file herdr plays for its own toasts ([ui.sound] path in
 # ~/.config/herdr/config.toml, relative to that file), so an agent sounds the
 # same in and out of herdr. Untracked and optional: no file, no sound.
-# Backgrounded so the hook returns before the clip ends.
+# Backgrounded so the hook returns before the clip ends. One permission
+# prompt fires two hooks (PermissionRequest and Notification) within
+# milliseconds, so a play is skipped while the clip is still sounding.
 ALERT_SOUND="${XDG_CONFIG_HOME:-$HOME/.config}/herdr/sounds/alert.mp3"
 play_alert() {
     [ -f "$ALERT_SOUND" ] && command -v afplay >/dev/null 2>&1 || return 0
+    pgrep -f "afplay $ALERT_SOUND" >/dev/null 2>&1 && return 0
     (afplay "$ALERT_SOUND" >/dev/null 2>&1 &)
 }
 
